@@ -168,10 +168,13 @@ mainConfig.read("settings.cfg")
 
 lastUpdated = 0
 delayTime = mainConfig.getfloat("Main","uploadDelay")
+disableLeds = mainConfig.getint("Main","disableLEDs")
 redPin = mainConfig.getint("Main","redPin")
 greenPin = mainConfig.getint("Main","greenPin")
-GPIO.setup(redPin,GPIO.OUT,initial=GPIO.LOW)
-GPIO.setup(greenPin,GPIO.OUT,initial=GPIO.LOW)
+if redPin:
+    GPIO.setup(redPin,GPIO.OUT,initial=GPIO.LOW)
+if greenPin:
+    GPIO.setup(greenPin,GPIO.OUT,initial=GPIO.LOW)
 while True:
 	curTime = time.time()
 	if (curTime-lastUpdated)>delayTime:
@@ -197,7 +200,10 @@ while True:
 			GPIO.output(greenPin,GPIO.HIGH)
 		else:
 			print "Failed to upload"
-			GPIO.output(redPin,GPIO.HIGH)
+            if redPin:
+    			GPIO.output(redPin,GPIO.HIGH)
 		time.sleep(1)
-		GPIO.output(greenPin,GPIO.LOW)
-		GPIO.output(redPin,GPIO.LOW)
+        if greenPin:
+    		GPIO.output(greenPin,GPIO.LOW)
+        if redPin:
+    		GPIO.output(redPin,GPIO.LOW)
