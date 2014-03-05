@@ -22,7 +22,7 @@ class BMP085(sensor.Sensor):
 			self.altitude = 0
 			self.mslp = False
 			if "mslp" in data:
-				if data["mslp"].lower in ["on","true","1","yes"]:
+				if data["mslp"].lower() in ["on","true","1","yes"]:
 					self.mslp = True
 					if "altitude" in data:
 						self.altitude=data["altitude"]
