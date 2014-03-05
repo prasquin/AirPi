@@ -183,7 +183,7 @@ while True:
 			val = i.getVal()
 			if val==None: #this means it has no data to upload.
 				continue
-			dataDict["value"] = i.getVal()
+			dataDict["value"] = val
 			dataDict["unit"] = i.valUnit
 			dataDict["symbol"] = i.valSymbol
 			dataDict["name"] = i.valName
