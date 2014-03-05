@@ -9,16 +9,21 @@ class raingauge(sensor.Sensor):
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setwarnings(False)
 		self.pinNum = int(data["pinNumber"])
-        GPIO.setup(self.pinNum, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(self.pinNum, GPIO.FALLING, callback=self.bucketTip, bouncetime=300)
-        self.rain = 0
+		GPIO.setup(self.pinNum, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+		GPIO.add_event_detect(self.pinNum, GPIO.FALLING, callback=self.bucketTip, bouncetime=300)
+		self.rain = 0
+		self.sensorName = "Maplin_N77NF"
+		self.valName = "Bucket_tips"
+		self.valSymbol = ""
+		self.valUnit = ""
 
 	def getVal(self):
-        # return number of bucket tips since last reading
-        # that means we reset the count at this reading
-        rain = self.rain
-        self.rain = 0
-        return rain
+	        # return number of bucket tips since last reading
+	        # that means we reset the count at this reading
+		rain = self.rain
+		self.rain = 0
+		return rain
 
-    def bucketTip():
-        self.rain += 1
+	def bucketTip(self, channel):
+		self.rain += 1
+
