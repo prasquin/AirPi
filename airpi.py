@@ -180,9 +180,6 @@ while True:
 		#Collect the data from each sensor
 		for i in sensorPlugins:
 			dataDict = {}
-			val = i.getVal()
-			if val==None: #this means it has no data to upload.
-				continue
 			dataDict["value"] = i.getVal()
 			dataDict["unit"] = i.valUnit
 			dataDict["symbol"] = i.valSymbol
