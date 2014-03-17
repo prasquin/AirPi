@@ -2,7 +2,7 @@ import output
 import datetime
 import time
 
-class Print(output.Output):
+class CSV(output.Output):
 	requiredData = ["outputFile"]
 	optionalData = []
 
@@ -13,7 +13,7 @@ class Print(output.Output):
 		self.header = False;
 
 	def outputData(self,dataPoints):
-		line = "\"" + str(datetime.datetime.now()) + "\"," + time.time()
+		line = "\"" + str(datetime.datetime.now()) + "\"," + str(time.time())
 		if self.header == False:
 			header = "\"Date and time\",\"Unix time\"";
 
