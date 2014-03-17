@@ -81,8 +81,12 @@ for i in sensorNames:
 				if sensorConfig.has_option(i,optionalField):
 					pluginData[optionalField]=sensorConfig.get(i,optionalField)
 			instClass = sensorClass(pluginData)
-			sensorPlugins.append(instClass)
-			print ("Success: Loaded sensor plugin " + i)
+			# check for a getVal
+			if callable(getattr(instClass, "getVal", None)):
+				sensorPlugins.append(instClass)
+				print ("Success: Loaded sensor plugin " + i)
+			else:
+				print ("Success: Loaded support plugin " + i)
 	except Exception as e: #add specific exception for missing module
 		print("Error: Did not import sensor plugin " + i )
 		raise e
