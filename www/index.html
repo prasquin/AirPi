@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>AirPi - Sheffield</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<link href="css/bootstrap.css" rel="stylesheet">
+		<style>
+			body {
+				padding-top: 60px;
+			}
+		</style>
+		<link href="css/bootstrap-responsive.css" rel="stylesheet">
+
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+			<script src="js/html5shiv.js"></script>
+		<![endif]-->
+
+	</head>
+
+	<body>
+
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="brand" href="index.html">AirPi - Sheffield</a>
+					<div class="nav-collapse collapse">
+						<ul class="nav">
+							<li><a href="#current">Current Readings</a></li>
+							<li><a href="#about">About</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="container">
+
+			<h1>Current Readings<a name="current"></a></h1>
+			<div class="row">
+				<div class="span6">
+					<p>These readings were taken...</p>
+					<table class="table table-striped">
+						<tr><td>Temperature</td><td>35 C</td><td><div class="btn pull-right" id="temp-button">View details &raquo;</div></td></tr>
+						<tr><td>Pressure</td><td>101300 Pa</td><td><div class="btn pull-right" id="pres-button">View details &raquo;</div></td></tr>
+					</table>
+				</div>
+				<div class="span6 hidden" id="temp">
+					<h4>Temperature</h4>
+					<p>Readings taken from a...</p>
+					<p><a class="btn pull-right btn-primary " href="#">View history &raquo;</a></p>
+				</div>
+				<div class="span6 hidden" id="pres">
+					<h4>Pressure</h4>
+					<p>Readings taken from a...</p>
+					<p><a class="btn" href="#">View history &raquo;</a></p>
+				</div>
+			</div>
+
+			<h1>About<a name="about"></a></h1>
+			<div class="span12">
+				<p>Some text</p>
+			</div>
+
+		</div>
+
+
+		<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+
+$('#temp-button').click(function() {
+       $('#temp').removeClass('hidden');
+
+       $('#pres').addClass('hidden'); 
+    });
+
+
+$('#pres-button').click(function() {
+       $('#pres').removeClass('hidden'); 
+    });
+
+});
+
+
+
+</script>
+
+	</body>
+</html>
+
