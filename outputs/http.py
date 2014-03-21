@@ -2,6 +2,7 @@ import output
 import os
 import BaseHTTPServer
 import datetime
+import threading
 
 # useful resources:
 # http://unixunique.blogspot.co.uk/2011/06/simple-python-http-web-server.html
@@ -39,9 +40,10 @@ class HTTP(output.Output):
 			self.about = "An AirPi weather station."
 
 		self.handler = requestHandler
-#		self.server = BaseHTTPServer.HTTPServer(("",self.port), self.handler)
 		self.server = httpServer(self, ("", self.port), self.handler)
-		self.server.serve_forever()
+		self.thread = threading.Thread(target = self.server.serve_forever)
+		self.thread.daemon = True
+		self.thread.start()
 
 	def outputData(self,dataPoints):
 		self.data = dataPoints
@@ -53,7 +55,6 @@ class httpServer(BaseHTTPServer.HTTPServer):
 	def __init__(self, httpoutput, server_address, RequestHandlerClass):
 		self.httpoutput = httpoutput
 		print "init"
-#		super(BaseHTTPServer.HTTPServer, self).__init__(server_address, RequestHandlerClass)
 		BaseHTTPServer.HTTPServer.__init__(self, server_address, RequestHandlerClass)
 
 
@@ -80,13 +81,16 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			pass # do substitutions here
 
 		self.send_response(response)
-		fileName, fileExtension = os.path.splitext(toread)
-		if fileExtension == '.png':
-			self.send_header("Content-Type", "image/png")
-		elif fileExtension == '.css':
-			self.send_header("Content-Type", "text/css")
-		elif fileExtension == '.js':
-			self.send_header("Content-Type", "application/javascript")
+		if response == 200:
+			fileName, fileExtension = os.path.splitext(toread)
+			if fileExtension == '.png':
+				self.send_header("Content-Type", "image/png")
+			elif fileExtension == '.css':
+				self.send_header("Content-Type", "text/css")
+			elif fileExtension == '.js':
+				self.send_header("Content-Type", "application/javascript")
+			else:
+				self.send_header("Content-Type", "text/html")
 		else:
 			self.send_header("Content-Type", "text/html")
 		self.send_header("Content-length", len(page))
