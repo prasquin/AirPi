@@ -1,12 +1,13 @@
 import output
 import os
-from SimpleHTTPServer import SimpleHTTPRequestHandler
-import SocketServer
+import BaseHTTPServer
 import datetime
 
 # useful resources:
 # http://unixunique.blogspot.co.uk/2011/06/simple-python-http-web-server.html
 # http://docs.python.org/2/library/simplehttpserver.html
+# http://docs.python.org/2/library/basehttpserver.html#BaseHTTPServer.BaseHTTPRequestHandler
+# https://wiki.python.org/moin/BaseHttpServer
 # http://stackoverflow.com/questions/10607621/a-simple-website-with-python-using-simplehttpserver-and-socketserver-how-to-onl
 # http://www.huyng.com/posts/modifying-python-simplehttpserver/
 # http://stackoverflow.com/questions/6391280/simplehttprequesthandler-override-do-get
@@ -37,8 +38,9 @@ class HTTP(output.Output):
 		else:
 			self.about = "An AirPi weather station."
 
-		handler = requestHandler
-		self.server = SocketServer.TCPServer(("",self.port), handler)
+		self.handler = requestHandler
+#		self.server = BaseHTTPServer.HTTPServer(("",self.port), self.handler)
+		self.server = httpServer(self, ("", self.port), self.handler)
 		self.server.serve_forever()
 
 	def outputData(self,dataPoints):
@@ -46,17 +48,26 @@ class HTTP(output.Output):
 		self.lastUpdate = str(datetime.datetime.now())
 		return True
 
-class requestHandler(SimpleHTTPRequestHandler):
+class httpServer(BaseHTTPServer.HTTPServer):
+
+	def __init__(self, httpoutput, server_address, RequestHandlerClass):
+		self.httpoutput = httpoutput
+		print "init"
+#		super(BaseHTTPServer.HTTPServer, self).__init__(server_address, RequestHandlerClass)
+		BaseHTTPServer.HTTPServer.__init__(self, server_address, RequestHandlerClass)
+
+
+class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 	def do_GET(self):
-		if self.path == '/' or self.path == 'index.html'
+		if self.path == '/' or self.path == 'index.html':
 			self.path = 'index.html'
 			index = 1
-		else
+		else:
 			index = 0
 
-		toread = self.www + os.sep + self.path
-		if os.path.isffile(toread):
+		toread = self.server.httpoutput.www + os.sep + self.path
+		if os.path.isfile(toread):
 			pageFile = open(toread, 'r')
 			page = pageFile.read()
 			pageFile.close()
@@ -65,11 +76,19 @@ class requestHandler(SimpleHTTPRequestHandler):
 			page = "quoth the raven, 404"
 			response = 404
 
-		if index = 1 and response = 200:
+		if index == 1 and response == 200:
 			pass # do substitutions here
 
 		self.send_response(response)
-		self.send_header("Content-Type", "text/html")
+		fileName, fileExtension = os.path.splitext(toread)
+		if fileExtension == '.png':
+			self.send_header("Content-Type", "image/png")
+		elif fileExtension == '.css':
+			self.send_header("Content-Type", "text/css")
+		elif fileExtension == '.js':
+			self.send_header("Content-Type", "application/javascript")
+		else:
+			self.send_header("Content-Type", "text/html")
 		self.send_header("Content-length", len(page))
 		self.end_headers()
 		self.wfile.write(page)
