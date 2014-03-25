@@ -3,7 +3,7 @@ import dhtreader
 import time
 class DHT22(sensor.Sensor):
 	requiredData = ["measurement","pinNumber"]
-	optionalData = ["unit"]
+	optionalData = ["unit","description"]
 	def __init__(self,data):
 		dhtreader.init()
 		dhtreader.lastDataTime = 0
@@ -22,6 +22,10 @@ class DHT22(sensor.Sensor):
 			self.valName = "Relative_Humidity"
 			self.valSymbol = "%"
 			self.valUnit = "% Relative Humidity"
+		if "description" in data:
+			self.description = data["description"]
+		else:
+			self.description = "A combined temperature and humidity sensor."
 		return
 
 	def getVal(self):

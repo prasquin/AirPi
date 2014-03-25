@@ -188,6 +188,7 @@ while True:
 			dataDict["symbol"] = i.valSymbol
 			dataDict["name"] = i.valName
 			dataDict["sensor"] = i.sensorName
+			dataDict["description"] = i.description
 			data.append(dataDict)
 		working = True
 		for i in outputPlugins:

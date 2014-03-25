@@ -3,7 +3,7 @@ import sensor
 
 class raingauge(sensor.Sensor):
 	requiredData = ["pinNumber"]
-	optionalData = []
+	optionalData = ["description"]
     
 	def __init__(self, data):
 		GPIO.setmode(GPIO.BCM)
@@ -16,6 +16,10 @@ class raingauge(sensor.Sensor):
 		self.valName = "Bucket_tips"
 		self.valSymbol = ""
 		self.valUnit = ""
+		if "description" in data:
+			self.description = data["description"]
+		else:
+			self.description = "A rain gauge."
 
 	def getVal(self):
 	        # return number of bucket tips since last reading
