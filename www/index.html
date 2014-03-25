@@ -7,7 +7,7 @@
 		<meta name="description" content="">
 		<meta name="author" content="">
 
-		<link href="css/bootstrap.css" rel="stylesheet">
+		<link href="css/bootstrap.min.css" rel="stylesheet">
 		<link rel="alternate" type="application/rss+xml" title="$title$" href="/rss.xml" />
 
 		<style>
@@ -15,7 +15,6 @@
 				padding-top: 60px;
 			}
 		</style>
-		<link href="css/bootstrap-responsive.css" rel="stylesheet">
 
 		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
 		<!--[if lt IE 9]>
@@ -26,45 +25,54 @@
 
 	<body>
 
-		<div class="navbar navbar-inverse navbar-fixed-top">
-			<div class="navbar-inner">
-				<div class="container">
-					<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+		<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="sr-only">Toggle navigation</span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a class="brand" href="index.html">$title$</a>
-					<div class="nav-collapse collapse">
-						<ul class="nav">
-							<li><a href="#current"><i class="icon-home icon-white"></i> Current Readings</a></li>
-							<li><a href="#about"><i class="icon-question-sign icon-white"></i> About</a></li>
-						</ul>
-					</div>
-					<div class="nav-collapse collapse">
-						<ul class="nav pull-right">
-							<li><a href="/rss.xml"><img src="img/rss_icon.png" /> RSS</a></li>
-						</ul>
-					</div>
+					<a class="navbar-brand" href="#">$title$</a>
+				</div>
+				<div class="collapse navbar-collapse">
+					<ul class="nav navbar-nav">
+						<li><a href="#current"><span class="glyphicon glyphicon-home"></span> Current Readings</a></li>
+						<li><a href="#details"><span class="glyphicon glyphicon-list"></span> Details</a></li>
+						<li><a href="#about"><span class="glyphicon glyphicon-question-sign"></span> About</a></li>
+					</ul>
+					<ul class="nav navbar-nav pull-right">
+						<li><a href="/rss.xml"><img src="img/rss_icon.png" /> RSS</a></li>
+					</ul>
 				</div>
 			</div>
 		</div>
 
+
+
+
 		<div class="container">
 
-			<h1>Current Readings<a name="current"></a></h1>
 			<div class="row">
-				<div class="span6">
+				<div class="col-md-6">
+					<a name="current"></a>
+					<h1>Current Readings</h1>
 					<p>$time$</p>
 					<table class="table table-striped">
 						$table$
 					</table>
 				</div>
-				$details$
+				<div class="panel-group col-md-6" id="accordion">
+					<a name="details"></a>
+					<h1>Details</h1>
+					<p>More information about the sensors...</p>
+					$details$
+				</div>
 			</div>
-
-			<h1>About<a name="about"></a></h1>
-			<div class="span12">
+			<div class="col-md-12">
+				<a name="about"></a>
+				<h1>About</h1>
 				<p>$about$</p>
 			</div>
 

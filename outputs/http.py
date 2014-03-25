@@ -18,11 +18,16 @@ class HTTP(output.Output):
 	requiredData = ["wwwPath"]
 	optionalData = ["port", "history", "title", "about"]
 
-	tableRow = '<tr><td>$readingName$</td><td>$reading$ $units$</td><td><div class="btn pull-right" id="$sensorId$-button">Details &raquo;</div></td></tr>\n';
-	sensorDetails = '<div class="span6 hidden" id="$sensorId$"><h4>$sensorName$</h4><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#">History</a></p></div>\n';
+	tableRow = '<tr><td>$readingName$</td><td>$reading$ $units$</td></tr>\n';
+#	sensorDetails = '<div class="span6 hidden" style="overflow: hidden" id="$sensorId$"><h4>$sensorName$</h4><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#">History</a></p></div>\n';
+	sensorDetails = '<div class="panel panel-default"><div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#accordion" href="#collapse-$sensorId$">$sensorName$</a></h4></div><div id="collapse-$sensorId$" class="panel-collapse collapse"><div class="panel-body"><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#" role="button">History</a></p></div></div></div>\n';
 	detailsJSstart = "$('#$sensorId$-button').click(function() {\n"
-	detailsJSshow = "$('#$sensorId$').removeClass('hidden');\n"
-	detailsJShide = "$('#$sensorId$').addClass('hidden');\n"
+#	detailsJSshow = "$('#$sensorId$').removeClass('hidden');\n"
+#	detailsJShide = "$('#$sensorId$').addClass('hidden');\n"
+#	detailsJSshow = "$('#collapse-$sensorId$').collapse('show');\n"
+	detailsJSshow = "\n"
+#	detailsJShide = "$('#$sensorId$').collapse('hide');\n"
+	detailsJShide = ""
 	detailsJSend = "});\n"
 
 	rssItem = "<item><title>$sensorName$</title><description>$reading$ $units$</description></item>\n"
@@ -83,7 +88,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			rss = 1
 		else:
 			rss = 0
-		print self.path
+
 		toread = self.server.httpoutput.www + os.sep + self.path
 		if os.path.isfile(toread):
 			pageFile = open(toread, 'r')
