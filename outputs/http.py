@@ -25,6 +25,8 @@ class HTTP(output.Output):
 	detailsJShide = "$('#$sensorId$').addClass('hidden');\n"
 	detailsJSend = "});\n"
 
+	rssItem = "<item><title>$sensorName$</title><description>$reading$ $units$</description></item>\n"
+
 	def __init__(self,data):
 		self.www = data["wwwPath"]
 
@@ -72,12 +74,16 @@ class httpServer(BaseHTTPServer.HTTPServer):
 class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 	def do_GET(self):
-		if self.path == '/' or self.path == 'index.html':
+		if self.path == '/' or self.path == '/index.html':
 			self.path = 'index.html'
 			index = 1
 		else:
 			index = 0
-
+		if self.path == '/rss.xml':
+			rss = 1
+		else:
+			rss = 0
+		print self.path
 		toread = self.server.httpoutput.www + os.sep + self.path
 		if os.path.isfile(toread):
 			pageFile = open(toread, 'r')
@@ -87,14 +93,6 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		else:
 			page = "quoth the raven, 404"
 			response = 404
-
-
-#tableRow = '<tr><td>$sensorName$</td><td>$reading$ $units$</td><td><div class="btn pull-right" id="$sensorId$-button">Details &raquo;</div></td></tr>\n';
-#sensorDetails = '<div class="span6 hidden" id="$sensorId$"><h4>$sensorName$</h4><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#">History</a></p></div>\n';
-#detailsJSstart = "$('#$sensorId$-button').click(function() {"
-#detailsJSshow = "$('#$sensorId$').removeClass('hidden');"
-#detailsJShide = "$('#$sensorId$').addClass('hidden');"
-#detailsJSend = "});\n';"
 
 		# do substitutions here
 		if index == 1 and response == 200:
@@ -129,6 +127,17 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 						line += replace(self.server.httpoutput.detailsJShide, "$sensorId$", str(j))
 				javascript += line + self.server.httpoutput.detailsJSend;
 			page = replace(page, "$javascript$", javascript)
+		elif rss == 1 and response == 200:
+			page = replace(page, "$title$", self.server.httpoutput.title)
+			page = replace(page, "$about$", self.server.httpoutput.about)
+			page = replace(page, "$time$", self.server.httpoutput.lastUpdate)
+			items = ''
+			for i in self.server.httpoutput.data:
+				line = replace(self.server.httpoutput.rssItem, "$sensorName$", i["name"])
+				line = replace(line, "$reading$", str(i["value"]))
+				line = replace(line, "$units$", i["symbol"])
+				items += line
+			page = replace(page, "$items$", items)
 
 		self.send_response(response)
 		if response == 200:
@@ -139,6 +148,8 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				self.send_header("Content-Type", "text/css")
 			elif fileExtension == '.js':
 				self.send_header("Content-Type", "application/javascript")
+			elif fileExtension == '.rss':
+				self.send_header("Content-Type", "application/rss+xml")
 			else:
 				self.send_header("Content-Type", "text/html")
 		else:
