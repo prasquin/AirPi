@@ -18,7 +18,7 @@ class HTTP(output.Output):
 	requiredData = ["wwwPath"]
 	optionalData = ["port", "history", "title", "about"]
 
-	tableRow = '<tr><td>$sensorName$</td><td>$reading$ $units$</td><td><div class="btn pull-right" id="$sensorId$-button">Details &raquo;</div></td></tr>\n';
+	tableRow = '<tr><td>$readingName$</td><td>$reading$ $units$</td><td><div class="btn pull-right" id="$sensorId$-button">Details &raquo;</div></td></tr>\n';
 	sensorDetails = '<div class="span6 hidden" id="$sensorId$"><h4>$sensorName$</h4><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#">History</a></p></div>\n';
 	detailsJSstart = "$('#$sensorId$-button').click(function() {\n"
 	detailsJSshow = "$('#$sensorId$').removeClass('hidden');\n"
@@ -104,14 +104,14 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			details = ''
 			sensors = 0
 			for i in self.server.httpoutput.data:
-				line = replace(self.server.httpoutput.tableRow, "$sensorName$", i["name"])
+				line = replace(self.server.httpoutput.tableRow, "$readingName$", i["name"])
 				line = replace(line, "$reading$", str(i["value"]))
 				line = replace(line, "$units$", i["symbol"])
 				line = replace(line, "$sensorId$", str(sensors))
 				table += line
 				line = replace(self.server.httpoutput.sensorDetails, "$sensorId$", str(sensors))
-				line = replace(line, "$sensorName$", i["name"])
-				line = replace(line, "$sensorText$", "Sensor description.")
+				line = replace(line, "$sensorName$", i["sensor"] + " (" + i["name"] + ")")
+				line = replace(line, "$sensorText$", i["description"])
 				details += line
 				sensors += 1
 			page = replace(page, "$table$", table)
