@@ -1,8 +1,9 @@
 import output
 import os
 import BaseHTTPServer
-import datetime
-import threading
+from datetime import datetime
+from threading import Thread
+from string import replace
 
 # useful resources:
 # http://unixunique.blogspot.co.uk/2011/06/simple-python-http-web-server.html
@@ -15,25 +16,36 @@ import threading
 
 class HTTP(output.Output):
 	requiredData = ["wwwPath"]
-	optionalData = ["port", "history", "name", "about"]
+	optionalData = ["port", "history", "title", "about"]
+
+	tableRow = '<tr><td>$sensorName$</td><td>$reading$ $units$</td><td><div class="btn pull-right" id="$sensorId$-button">Details &raquo;</div></td></tr>\n';
+	sensorDetails = '<div class="span6 hidden" id="$sensorId$"><h4>$sensorName$</h4><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#">History</a></p></div>\n';
+	detailsJSstart = "$('#$sensorId$-button').click(function() {\n"
+	detailsJSshow = "$('#$sensorId$').removeClass('hidden');\n"
+	detailsJShide = "$('#$sensorId$').addClass('hidden');\n"
+	detailsJSend = "});\n"
 
 	def __init__(self,data):
 		self.www = data["wwwPath"]
+
 		if "port" in data:
 			self.port = int(data["port"])
 		else:
 			self.port = 8080
+
 		if "history" in data:
-			if data["history"].lower in ["on","true","1","yes"]:
-				self.history = 1
-			else:
+			if data["history"].lower in ["off","false","0","no"]:
 				self.history = 0
+			else:
+				self.history = 1
 		else:
 			self.history = 0
-		if "name" in data:
-			self.name = data["name"]
+
+		if "title" in data:
+			self.title = data["title"]
 		else:
-			self.name = "AirPi"
+			self.title = "AirPi"
+
 		if "about" in data:
 			self.about = data["about"]
 		else:
@@ -41,20 +53,19 @@ class HTTP(output.Output):
 
 		self.handler = requestHandler
 		self.server = httpServer(self, ("", self.port), self.handler)
-		self.thread = threading.Thread(target = self.server.serve_forever)
+		self.thread = Thread(target = self.server.serve_forever)
 		self.thread.daemon = True
 		self.thread.start()
 
 	def outputData(self,dataPoints):
 		self.data = dataPoints
-		self.lastUpdate = str(datetime.datetime.now())
+		self.lastUpdate = str(datetime.now())
 		return True
 
 class httpServer(BaseHTTPServer.HTTPServer):
 
 	def __init__(self, httpoutput, server_address, RequestHandlerClass):
 		self.httpoutput = httpoutput
-		print "init"
 		BaseHTTPServer.HTTPServer.__init__(self, server_address, RequestHandlerClass)
 
 
@@ -77,8 +88,47 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			page = "quoth the raven, 404"
 			response = 404
 
+
+#tableRow = '<tr><td>$sensorName$</td><td>$reading$ $units$</td><td><div class="btn pull-right" id="$sensorId$-button">Details &raquo;</div></td></tr>\n';
+#sensorDetails = '<div class="span6 hidden" id="$sensorId$"><h4>$sensorName$</h4><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#">History</a></p></div>\n';
+#detailsJSstart = "$('#$sensorId$-button').click(function() {"
+#detailsJSshow = "$('#$sensorId$').removeClass('hidden');"
+#detailsJShide = "$('#$sensorId$').addClass('hidden');"
+#detailsJSend = "});\n';"
+
+		# do substitutions here
 		if index == 1 and response == 200:
-			pass # do substitutions here
+			page = replace(page, "$title$", self.server.httpoutput.title)
+			page = replace(page, "$about$", self.server.httpoutput.about)
+			page = replace(page, "$time$", self.server.httpoutput.lastUpdate)
+			# sort out the sensor stuff
+			table = ''
+			details = ''
+			sensors = 0
+			for i in self.server.httpoutput.data:
+				line = replace(self.server.httpoutput.tableRow, "$sensorName$", i["name"])
+				line = replace(line, "$reading$", str(i["value"]))
+				line = replace(line, "$units$", i["symbol"])
+				line = replace(line, "$sensorId$", str(sensors))
+				table += line
+				line = replace(self.server.httpoutput.sensorDetails, "$sensorId$", str(sensors))
+				line = replace(line, "$sensorName$", i["name"])
+				line = replace(line, "$sensorText$", "Sensor description.")
+				details += line
+				sensors += 1
+			page = replace(page, "$table$", table)
+			page = replace(page, "$details$", details)
+			# sort out the javascript for the sensors now
+			javascript = ''
+			for i in range(0, sensors):
+				line = replace(self.server.httpoutput.detailsJSstart, "$sensorId$", str(i))
+				line += replace(self.server.httpoutput.detailsJSshow, "$sensorId$", str(i))
+				# hide every other
+				for j in range(0, sensors):
+					if i != j:
+						line += replace(self.server.httpoutput.detailsJShide, "$sensorId$", str(j))
+				javascript += line + self.server.httpoutput.detailsJSend;
+			page = replace(page, "$javascript$", javascript)
 
 		self.send_response(response)
 		if response == 200:

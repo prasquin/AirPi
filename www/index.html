@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>AirPi - Sheffield</title>
+		<title>$title$</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta name="description" content="">
 		<meta name="author" content="">
@@ -32,7 +32,7 @@
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 					</button>
-					<a class="brand" href="index.html">AirPi - Sheffield</a>
+					<a class="brand" href="index.html">$title$</a>
 					<div class="nav-collapse collapse">
 						<ul class="nav">
 							<li><a href="#current">Current Readings</a></li>
@@ -48,27 +48,17 @@
 			<h1>Current Readings<a name="current"></a></h1>
 			<div class="row">
 				<div class="span6">
-					<p>These readings were taken...</p>
+					<p>$time$</p>
 					<table class="table table-striped">
-						<tr><td>Temperature</td><td>35 C</td><td><div class="btn pull-right" id="temp-button">View details &raquo;</div></td></tr>
-						<tr><td>Pressure</td><td>101300 Pa</td><td><div class="btn pull-right" id="pres-button">View details &raquo;</div></td></tr>
+						$table$
 					</table>
 				</div>
-				<div class="span6 hidden" id="temp">
-					<h4>Temperature</h4>
-					<p>Readings taken from a...</p>
-					<p><a class="btn pull-right btn-primary " href="#">View history &raquo;</a></p>
-				</div>
-				<div class="span6 hidden" id="pres">
-					<h4>Pressure</h4>
-					<p>Readings taken from a...</p>
-					<p><a class="btn" href="#">View history &raquo;</a></p>
-				</div>
+				$details$
 			</div>
 
 			<h1>About<a name="about"></a></h1>
 			<div class="span12">
-				<p>Some text</p>
+				<p>$about$</p>
 			</div>
 
 		</div>
@@ -81,20 +71,9 @@
 
 $(document).ready(function(){
 
-$('#temp-button').click(function() {
-       $('#temp').removeClass('hidden');
-
-       $('#pres').addClass('hidden'); 
-    });
-
-
-$('#pres-button').click(function() {
-       $('#pres').removeClass('hidden'); 
-    });
+$javascript$
 
 });
-
-
 
 </script>
 
