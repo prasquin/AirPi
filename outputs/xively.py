@@ -1,14 +1,21 @@
 import output
 import requests
 import json
+import calibration
 
 class Xively(output.Output):
 	requiredData = ["APIKey","FeedID"]
-	optionalData = []
+	optionalData = ["calibration"]
+
 	def __init__(self,data):
 		self.APIKey=data["APIKey"]
 		self.FeedID=data["FeedID"]
+		self.cal = calibration.Calibration.sharedClass
+		self.docal = calibration.calCheck(data)
+
 	def outputData(self,dataPoints):
+		if self.docal == 1:
+			dataPoints = self.cal.calibrate(dataPoints)
 		arr = []
 		for i in dataPoints:
 			arr.append({"id":i["name"],"current_value":i["value"]})

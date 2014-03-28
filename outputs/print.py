@@ -14,8 +14,8 @@ class Print(output.Output):
 		if self.docal == 1:
 			dataPoints = self.cal.calibrate(dataPoints)
 
-		print ""
 		print "Time: " + str(datetime.datetime.now())
 		for i in dataPoints:
 			print i["name"] + ": " + str(i["value"]) + " " + i["symbol"]
+		print ""
 		return True
