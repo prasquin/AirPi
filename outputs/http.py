@@ -16,7 +16,7 @@ from string import replace
 
 class HTTP(output.Output):
 	requiredData = ["wwwPath"]
-	optionalData = ["port", "history", "title", "about"]
+	optionalData = ["port", "history", "title", "about", "calibration"]
 
 	tableRow = '<tr><td>$readingName$</td><td>$reading$ $units$</td></tr>\n';
 #	sensorDetails = '<div class="span6 hidden" style="overflow: hidden" id="$sensorId$"><h4>$sensorName$</h4><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#">History</a></p></div>\n';
@@ -41,7 +41,7 @@ class HTTP(output.Output):
 			self.port = 8080
 
 		if "history" in data:
-			if data["history"].lower in ["off","false","0","no"]:
+			if data["history"].lower() in ["off","false","0","no"]:
 				self.history = 0
 			else:
 				self.history = 1
@@ -58,6 +58,9 @@ class HTTP(output.Output):
 		else:
 			self.about = "An AirPi weather station."
 
+		self.cal = calibration.Calibration.sharedClass
+		self.docal = calibration.calCheck(data)
+
 		self.handler = requestHandler
 		self.server = httpServer(self, ("", self.port), self.handler)
 		self.thread = Thread(target = self.server.serve_forever)
@@ -65,6 +68,9 @@ class HTTP(output.Output):
 		self.thread.start()
 
 	def outputData(self,dataPoints):
+		if self.docal == 1:
+			dataPoints = self.cal.calibrate(dataPoints)
+
 		self.data = dataPoints
 		self.lastUpdate = str(datetime.now())
 		return True

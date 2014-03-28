@@ -4,15 +4,20 @@ import time
 
 class CSV(output.Output):
 	requiredData = ["outputFile"]
-	optionalData = []
+	optionalData = ["calibration"]
 
 	def __init__(self,data):
 		# open the file persistently for append
 		self.file = open(data["outputFile"], "a")
 		# write a header line so we know which sensor is which?
 		self.header = False;
+		self.cal = calibration.Calibration.sharedClass
+		self.docal = calibration.calCheck(data)
 
 	def outputData(self,dataPoints):
+		if self.docal == 1:
+			dataPoints = self.cal.calibrate(dataPoints)
+
 		line = "\"" + str(datetime.datetime.now()) + "\"," + str(time.time())
 		if self.header == False:
 			header = "\"Date and time\",\"Unix time\"";
