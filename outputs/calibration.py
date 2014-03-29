@@ -37,7 +37,8 @@ def findVal(key):
 			found = found + i["value"]
 			num += 1
 	# average for things like Temperature where we have multiple sensors
-	found = found / float(num)
+	if num != 0:
+		found = found / float(num)
 	return found
 
 def calCheck(data):
