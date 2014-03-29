@@ -24,8 +24,9 @@ class Calibration(output.Output):
 		for i in range(0, len(dataPoints)):
 			for j in self.calibrations:
 				if dataPoints[i]["name"] == j["name"]:
-					dataPoints[i]["value"] = j["function"](dataPoints[i]["value"])
-					dataPoints[i]["symbol"] = j["symbol"]
+					if dataPoints[i]["value"] != None:
+						dataPoints[i]["value"] = j["function"](dataPoints[i]["value"])
+						dataPoints[i]["symbol"] = j["symbol"]
 		return dataPoints
 
 def findVal(key):
