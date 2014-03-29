@@ -4,6 +4,7 @@ import BaseHTTPServer
 from datetime import datetime
 from threading import Thread
 from string import replace
+import calibration
 
 # useful resources:
 # http://unixunique.blogspot.co.uk/2011/06/simple-python-http-web-server.html
@@ -18,17 +19,20 @@ class HTTP(output.Output):
 	requiredData = ["wwwPath"]
 	optionalData = ["port", "history", "title", "about", "calibration"]
 
-	tableRow = '<tr><td>$readingName$</td><td>$reading$ $units$</td></tr>\n';
-#	sensorDetails = '<div class="span6 hidden" style="overflow: hidden" id="$sensorId$"><h4>$sensorName$</h4><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#">History</a></p></div>\n';
-	sensorDetails = '<div class="panel panel-default"><div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#accordion" href="#collapse-$sensorId$">$sensorName$</a></h4></div><div id="collapse-$sensorId$" class="panel-collapse collapse"><div class="panel-body"><p>$sensorText$</p><p><a class="btn pull-right btn-primary" href="#" role="button">History</a></p></div></div></div>\n';
-	detailsJSstart = "$('#$sensorId$-button').click(function() {\n"
-#	detailsJSshow = "$('#$sensorId$').removeClass('hidden');\n"
-#	detailsJShide = "$('#$sensorId$').addClass('hidden');\n"
-#	detailsJSshow = "$('#collapse-$sensorId$').collapse('show');\n"
-	detailsJSshow = "\n"
-#	detailsJShide = "$('#$sensorId$').collapse('hide');\n"
-	detailsJShide = ""
-	detailsJSend = "});\n"
+	details = """
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h4 class="panel-title"><a class="accordion-toggle collapsed" data-toggle="collapse" data-parent="#accordion" href="#collapse-$sensorId$">
+			$readingName$: $reading$ ($units$)
+		</a></h4>
+	</div>
+	<div id="collapse-$sensorId$" class="panel-collapse collapse">
+		<div class="panel-body"><p>
+			Sensor: <em>$sensorName$</em><br/>
+			Description: <em>$sensorText$</em>
+		</p></div>
+	</div>
+</div>""";
 
 	rssItem = "<item><title>$sensorName$</title><description>$reading$ $units$</description></item>\n"
 
@@ -115,29 +119,15 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			details = ''
 			sensors = 0
 			for i in self.server.httpoutput.data:
-				line = replace(self.server.httpoutput.tableRow, "$readingName$", i["name"])
-				line = replace(line, "$reading$", str(i["value"]))
+				line = replace(self.server.httpoutput.details, "$readingName$", i["name"])
+				line = replace(line, "$reading$", str(round(i["value"], 2)))
 				line = replace(line, "$units$", i["symbol"])
 				line = replace(line, "$sensorId$", str(sensors))
-				table += line
-				line = replace(self.server.httpoutput.sensorDetails, "$sensorId$", str(sensors))
-				line = replace(line, "$sensorName$", i["sensor"] + " (" + i["name"] + ")")
+				line = replace(line, "$sensorName$", i["sensor"])
 				line = replace(line, "$sensorText$", i["description"])
 				details += line
 				sensors += 1
-			page = replace(page, "$table$", table)
 			page = replace(page, "$details$", details)
-			# sort out the javascript for the sensors now
-			javascript = ''
-			for i in range(0, sensors):
-				line = replace(self.server.httpoutput.detailsJSstart, "$sensorId$", str(i))
-				line += replace(self.server.httpoutput.detailsJSshow, "$sensorId$", str(i))
-				# hide every other
-				for j in range(0, sensors):
-					if i != j:
-						line += replace(self.server.httpoutput.detailsJShide, "$sensorId$", str(j))
-				javascript += line + self.server.httpoutput.detailsJSend;
-			page = replace(page, "$javascript$", javascript)
 		elif rss == 1 and response == 200:
 			page = replace(page, "$title$", self.server.httpoutput.title)
 			page = replace(page, "$about$", self.server.httpoutput.about)
