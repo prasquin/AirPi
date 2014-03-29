@@ -47,7 +47,12 @@ class HTTP(output.Output):
 		if "history" in data:
 			if data["history"].lower() in ["off","false","0","no"]:
 				self.history = 0
+			elif os.path.isfile(data["history"]):
+				#it's a file to load, check if it exists
+				self.history = 2
+				self.historyFile = data["history"];
 			else:
+				# short-term history
 				self.history = 1
 		else:
 			self.history = 0
@@ -64,6 +69,7 @@ class HTTP(output.Output):
 
 		self.cal = calibration.Calibration.sharedClass
 		self.docal = calibration.calCheck(data)
+		self.sensorIds = []
 
 		self.handler = requestHandler
 		self.server = httpServer(self, ("", self.port), self.handler)
@@ -71,9 +77,25 @@ class HTTP(output.Output):
 		self.thread.daemon = True
 		self.thread.start()
 
+		# load up history
+		if self.history == 2:
+			print "Loading history from " + self.historyFile
+
+	def createSensorIds(self,dataPoints):
+		if len(self.sensorIds) == 0:
+			for i in dataPoints:
+				self.sensorIds.append(i["sensor"]+" "+i["name"])
+
+	def getSensorId(self,name):
+		for i in range(0,len(self.sensorIds)):
+			if name == self.sensorIds[i]:
+				return i
+		return -1
+
 	def outputData(self,dataPoints):
 		if self.docal == 1:
-			dataPoints = self.cal.calibrate(dataPoints)
+			dataPoints = self.cal.calibrate(dataPoints[:])
+		self.createSensorIds(dataPoints)		
 
 		self.data = dataPoints
 		self.lastUpdate = str(datetime.now())
@@ -115,18 +137,19 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			page = replace(page, "$about$", self.server.httpoutput.about)
 			page = replace(page, "$time$", self.server.httpoutput.lastUpdate)
 			# sort out the sensor stuff
-			table = ''
 			details = ''
-			sensors = 0
 			for i in self.server.httpoutput.data:
 				line = replace(self.server.httpoutput.details, "$readingName$", i["name"])
 				line = replace(line, "$reading$", str(round(i["value"], 2)))
 				line = replace(line, "$units$", i["symbol"])
-				line = replace(line, "$sensorId$", str(sensors))
+				line = replace(line, "$sensorId$", str(self.server.httpoutput.getSensorId(i["sensor"]+" "+i["name"])))
 				line = replace(line, "$sensorName$", i["sensor"])
 				line = replace(line, "$sensorText$", i["description"])
 				details += line
-				sensors += 1
+			if self.server.httpoutput.history != 0:
+				page = replace(page, "$graph$", "\"graph_\"+id+\".html\"")
+			else:
+				page = replace(page, "$graph$", "\"No history available.\"")
 			page = replace(page, "$details$", details)
 		elif rss == 1 and response == 200:
 			page = replace(page, "$title$", self.server.httpoutput.title)

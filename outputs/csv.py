@@ -1,6 +1,7 @@
 import output
 import datetime
 import time
+import calibration
 
 class CSV(output.Output):
 	requiredData = ["outputFile"]
@@ -24,7 +25,7 @@ class CSV(output.Output):
 
 		for i in dataPoints:
 			if self.header == False:
-				header = "%s,\"%s (%s)\"" % (header, i["name"], i["symbol"])
+				header = "%s,\"%s %s (%s)\"" % (header, i["sensor"], i["name"], i["symbol"])
 			line = line + "," + str(i["value"])
 
 		# if it's the first write of this instance do a header so we know what's what
