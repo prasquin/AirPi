@@ -7,6 +7,7 @@ from threading import Thread
 from string import replace
 import calibration
 import numpy
+import re
 
 # useful resources:
 # http://unixunique.blogspot.co.uk/2011/06/simple-python-http-web-server.html
@@ -76,6 +77,7 @@ class HTTP(output.Output):
 		self.historicAt = 0
 
 		self.handler = requestHandler
+		self.handler.protocol_version = "HTTP/1.1"
 		self.server = httpServer(self, ("", self.port), self.handler)
 		self.thread = Thread(target = self.server.serve_forever)
 		self.thread.daemon = True
@@ -118,7 +120,8 @@ class HTTP(output.Output):
 		self.recordData(dataPoints)
 
 		self.data = dataPoints
-		self.lastUpdate = str(datetime.now())
+#		self.lastUpdate = str(datetime.now())
+		self.lastUpdate = time.strftime('%a, %d %b %Y %H:%M:%S %Z', time.localtime(time.time()))
 		return True
 
 class httpServer(BaseHTTPServer.HTTPServer):
@@ -140,6 +143,13 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			rss = 1
 		else:
 			rss = 0
+		r = re.match('/graph_collapse-([0-9]).html', self.path)
+		if r:
+			graph = 1
+			graphid = r.group(1)
+			self.path = 'graph.html'
+		else:
+			graph = 0
 
 		toread = self.server.httpoutput.www + os.sep + self.path
 		if os.path.isfile(toread):
@@ -147,6 +157,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			page = pageFile.read()
 			pageFile.close()
 			response = 200
+			lm = time.strftime('%a, %d %b %Y %H:%M:%S %Z', time.localtime(os.stat(toread).st_mtime))
 		else:
 			page = "quoth the raven, 404"
 			response = 404
@@ -167,7 +178,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				line = replace(line, "$sensorText$", i["description"])
 				details += line
 			if self.server.httpoutput.history != 0:
-				page = replace(page, "$graph$", "\"graph_\"+id+\".html\"")
+				page = replace(page, "$graph$", """'<div class="aspect-ratio"><iframe src="graph_'+id+'.html"></iframe></div>'""")
 			else:
 				page = replace(page, "$graph$", "\"No history available.\"")
 			page = replace(page, "$details$", details)
@@ -182,6 +193,8 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				line = replace(line, "$units$", i["symbol"])
 				items += line
 			page = replace(page, "$items$", items)
+		elif graph == 1 and response == 200:
+			pass
 
 		self.send_response(response)
 		if response == 200:
@@ -194,11 +207,18 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				self.send_header("Content-Type", "application/javascript")
 			elif fileExtension == '.rss':
 				self.send_header("Content-Type", "application/rss+xml")
+			elif fileExtension == '.ttf':
+				self.send_header("Content-Type", "application/x-font-ttf")
+			elif fileExtension == '.woff':
+				self.send_header("Content-Type", "application/font-woff")
 			else:
 				self.send_header("Content-Type", "text/html")
 		else:
 			self.send_header("Content-Type", "text/html")
-		self.send_header("Content-length", len(page))
+		self.send_header("Content-length", len(page)-1)
+		if index == 1 or rss == 1 or graph == 1:
+			lm = self.server.httpoutput.lastUpdate
+		self.send_header("Last-Modified", lm)
 		self.end_headers()
-		self.wfile.write(page)
-		self.wfile.close()
+		if self.command != 'HEAD':
+			self.wfile.write(page)
