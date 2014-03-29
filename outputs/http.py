@@ -145,8 +145,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			rss = 0
 		r = re.match('/graph_collapse-([0-9]).html', self.path)
 		if r:
-			graph = 1
-			graphid = r.group(1)
+			graph = int(r.group(1))+1
 			self.path = 'graph.html'
 		else:
 			graph = 0
@@ -193,8 +192,14 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				line = replace(line, "$units$", i["symbol"])
 				items += line
 			page = replace(page, "$items$", items)
-		elif graph == 1 and response == 200:
-			pass
+		elif graph > 0 and response == 200:
+			x = self.server.httpoutput.historicData[0:self.server.httpoutput.historicAt,0]
+			y = self.server.httpoutput.historicData[0:self.server.httpoutput.historicAt,graph]
+			data = ''
+			for index, item in enumerate(x):
+				data += "[%i, %f]," % (item*1000, y[index])
+			page = replace(page, "$data$", data)
+				
 
 		self.send_response(response)
 		if response == 200:
