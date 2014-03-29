@@ -10,6 +10,7 @@ class Calibration(output.Output):
 	def __init__(self,data):
 		self.calibrations = []
 		self.last = []
+		self.lastpassed = []
 		for i in self.optionalData:
 			if i in data:
 				[f, s] = rsplit(data[i], ',', 1)
@@ -19,15 +20,21 @@ class Calibration(output.Output):
 			Calibration.sharedClass = self
 
 	def calibrate(self,dataPoints):
-		# turn this into some sort of caching so we don't have to re-run the calculation?
-		self.last = dataPoints
-		for i in range(0, len(dataPoints)):
+		if self.lastpassed == dataPoints:
+			# the same dataPoints object, so the calculations would turn out the same
+			# so we can just return the result of the last calcs
+			return self.last
+
+		self.last = list(dataPoints) # recreate so we don't overwrite un-calibrated data
+		for i in range(0, len(self.last)):
+			self.last[i] = dict(self.last[i]) # recreate again
 			for j in self.calibrations:
-				if dataPoints[i]["name"] == j["name"]:
-					if dataPoints[i]["value"] != None:
-						dataPoints[i]["value"] = j["function"](dataPoints[i]["value"])
-						dataPoints[i]["symbol"] = j["symbol"]
-		return dataPoints
+				if self.last[i]["name"] == j["name"]:
+					if self.last[i]["value"] != None:
+						self.last[i]["value"] = j["function"](self.last[i]["value"])
+						self.last[i]["symbol"] = j["symbol"]
+		self.lastpassed = dataPoints # update which object we last worked on
+		return self.last
 
 def findVal(key):
 	found = 0
