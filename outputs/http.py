@@ -2,9 +2,11 @@ import output
 import os
 import BaseHTTPServer
 from datetime import datetime
+import time
 from threading import Thread
 from string import replace
 import calibration
+import numpy
 
 # useful resources:
 # http://unixunique.blogspot.co.uk/2011/06/simple-python-http-web-server.html
@@ -70,6 +72,8 @@ class HTTP(output.Output):
 		self.cal = calibration.Calibration.sharedClass
 		self.docal = calibration.calCheck(data)
 		self.sensorIds = []
+		self.historicData = []
+		self.historicAt = 0
 
 		self.handler = requestHandler
 		self.server = httpServer(self, ("", self.port), self.handler)
@@ -85,6 +89,7 @@ class HTTP(output.Output):
 		if len(self.sensorIds) == 0:
 			for i in dataPoints:
 				self.sensorIds.append(i["sensor"]+" "+i["name"])
+			self.historicData = numpy.zeros([2, len(self.sensorIds)+1])
 
 	def getSensorId(self,name):
 		for i in range(0,len(self.sensorIds)):
@@ -92,10 +97,25 @@ class HTTP(output.Output):
 				return i
 		return -1
 
+	def recordData(self,dataPoints):
+		t = numpy.zeros(len(self.sensorIds)+1)
+		t[0] = time.time()
+		for i in dataPoints:
+			sid = self.getSensorId(i["sensor"]+" "+i["name"])
+			t[sid+1] = i["value"]
+		self.historicData[self.historicAt] = t
+		self.historicAt += 1
+
+		if len(self.historicData) == self.historicAt: #grow
+			t = numpy.zeros([self.historicAt * 2, len(self.sensorIds)+1])
+			t[0:self.historicAt,:] = self.historicData
+			self.historicData = t
+
 	def outputData(self,dataPoints):
 		if self.docal == 1:
 			dataPoints = self.cal.calibrate(dataPoints[:])
-		self.createSensorIds(dataPoints)		
+		self.createSensorIds(dataPoints)
+		self.recordData(dataPoints)
 
 		self.data = dataPoints
 		self.lastUpdate = str(datetime.now())
