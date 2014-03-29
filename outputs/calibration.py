@@ -33,7 +33,7 @@ def findVal(key):
 	found = 0
 	num = 0
 	for i in Calibration.sharedClass.last:
-		if i["name"] == key:
+		if i["name"] == key and i["value"] != None:
 			found = found + i["value"]
 			num += 1
 	# average for things like Temperature where we have multiple sensors
