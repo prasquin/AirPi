@@ -201,3 +201,4 @@ while True:
 		time.sleep(1)
 		GPIO.output(greenPin,GPIO.LOW)
 		GPIO.output(redPin,GPIO.LOW)
+		time.sleep(delayTime-(time.time()-curTime))
