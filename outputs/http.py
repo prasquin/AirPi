@@ -20,7 +20,7 @@ import re
 
 class HTTP(output.Output):
 	requiredData = ["wwwPath"]
-	optionalData = ["port", "history", "title", "about", "calibration"]
+	optionalData = ["port", "history", "title", "about", "calibration", "historySize", "historyInterval", "historyCalibrated"]
 
 	details = """
 <div class="panel panel-default">
@@ -59,6 +59,21 @@ class HTTP(output.Output):
 				self.history = 1
 		else:
 			self.history = 0
+		if "historySize" in data:
+			self.historySize = data["historySize"]
+		else:
+			self.historySize = 2880
+		if "historyInterval" in data:
+			self.historyInterval = data["historyInterval"]
+		else:
+			self.historyInterval = 30
+		if "historyCalibrated" in data:
+			if data["historyCalibrated"].lower() in ["on","true","1","yes"]:
+				self.historyCalibrated = 1
+			else:
+				self.historyCalibrated = 0
+		else:
+			self.historyCalibrated = 0
 
 		if "title" in data:
 			self.title = data["title"]
@@ -77,7 +92,6 @@ class HTTP(output.Output):
 		self.historicAt = 0
 
 		self.handler = requestHandler
-		self.handler.protocol_version = "HTTP/1.1"
 		self.server = httpServer(self, ("", self.port), self.handler)
 		self.thread = Thread(target = self.server.serve_forever)
 		self.thread.daemon = True
@@ -85,42 +99,58 @@ class HTTP(output.Output):
 
 		# load up history
 		if self.history == 2:
-			print "Loading history from " + self.historyFile
+			if self.historyCalibrated == 0:
+				print "Loading uncalibrated history from " + self.historyFile
+			else
+				print "Loading calibrated history from " + self.historyFile
 
 	def createSensorIds(self,dataPoints):
-		if len(self.sensorIds) == 0:
-			for i in dataPoints:
-				self.sensorIds.append(i["sensor"]+" "+i["name"])
-			self.historicData = numpy.zeros([2, len(self.sensorIds)+1])
+		for i in dataPoints:
+			self.sensorIds.append(i["sensor"]+" "+i["name"])
+		self.historicData = numpy.zeros([2, len(self.sensorIds)+1])
 
 	def getSensorId(self,name):
 		for i in range(0,len(self.sensorIds)):
 			if name == self.sensorIds[i]:
 				return i
-		return -1
+		# does not exist, add it
+		# (should only happen if the loaded history has different sensors)
+		self.sensorIds.append(i["sensor"]+" "+i["name"])
+		t = numpy.zeros([len(self.historicData), len(self.sensorIds)+1])
+		t[0:self.historicAt,0:len(self.sensorIds)] = self.historicData
+		self.historicData = t
+		return len(self.sensorIds)-1
 
 	def recordData(self,dataPoints):
 		t = numpy.zeros(len(self.sensorIds)+1)
 		t[0] = time.time()
+		if self.historicData[self.historicAt-1,0] - t[0] < self.historyInterval:
+			return
 		for i in dataPoints:
 			sid = self.getSensorId(i["sensor"]+" "+i["name"])
-			t[sid+1] = i["value"]
+			if i["value"] != None:
+				t[sid+1] = i["value"]
+			else:
+				t[sid+1] = 0
 		self.historicData[self.historicAt] = t
 		self.historicAt += 1
 
-		if len(self.historicData) == self.historicAt: #grow
+		if len(self.historicData) == self.historicAt and self.historicAt < self.historySize: #grow
 			t = numpy.zeros([self.historicAt * 2, len(self.sensorIds)+1])
 			t[0:self.historicAt,:] = self.historicData
 			self.historicData = t
+		elif self.historicAt == self.historySize: # shift the end off the array
+			self.historicData[0:self.historicAt-1,:] = self.historicData[1:self.historicAt,:]
+			self.historicAt -= 1
 
 	def outputData(self,dataPoints):
 		if self.docal == 1:
 			dataPoints = self.cal.calibrate(dataPoints[:])
-		self.createSensorIds(dataPoints)
+		if len(self.sensorIds) == 0:
+			self.createSensorIds(dataPoints)
 		self.recordData(dataPoints)
 
 		self.data = dataPoints
-#		self.lastUpdate = str(datetime.now())
 		self.lastUpdate = time.strftime('%a, %d %b %Y %H:%M:%S %Z', time.localtime(time.time()))
 		return True
 
@@ -160,6 +190,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		else:
 			page = "quoth the raven, 404"
 			response = 404
+			lm = "Tue, 15 Nov 1994 12:45:26 GMT"
 
 		# do substitutions here
 		if index == 1 and response == 200:
@@ -227,3 +258,4 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 		self.end_headers()
 		if self.command != 'HEAD':
 			self.wfile.write(page)
+		self.wfile.close()
