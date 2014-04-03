@@ -8,6 +8,7 @@ from string import replace
 import calibration
 import numpy
 import re
+import csv
 
 # useful resources:
 # http://unixunique.blogspot.co.uk/2011/06/simple-python-http-web-server.html
@@ -60,18 +61,20 @@ class HTTP(output.Output):
 		else:
 			self.history = 0
 		if "historySize" in data:
-			self.historySize = data["historySize"]
+			self.historySize = int(data["historySize"])
 		else:
 			self.historySize = 2880
 		if "historyInterval" in data:
-			self.historyInterval = data["historyInterval"]
+			self.historyInterval = int(data["historyInterval"])
 		else:
 			self.historyInterval = 30
 		if "historyCalibrated" in data:
 			if data["historyCalibrated"].lower() in ["on","true","1","yes"]:
 				self.historyCalibrated = 1
+				self.cal = calibration.Calibration.sharedClass
 			else:
 				self.historyCalibrated = 0
+				self.cal = []
 		else:
 			self.historyCalibrated = 0
 
@@ -101,30 +104,74 @@ class HTTP(output.Output):
 		if self.history == 2:
 			if self.historyCalibrated == 0:
 				print "Loading uncalibrated history from " + self.historyFile
-			else
+			else:
 				print "Loading calibrated history from " + self.historyFile
+			self.loadData()
 
 	def createSensorIds(self,dataPoints):
 		for i in dataPoints:
 			self.sensorIds.append(i["sensor"]+" "+i["name"])
 		self.historicData = numpy.zeros([2, len(self.sensorIds)+1])
 
+	def loadData(self):
+		with open(self.historyFile, "r") as csvfile:
+			reader = csv.reader(csvfile)
+			data = []
+			for row in reader:
+				# Date & Time, Unix Time, then sensors
+				try:
+					t = [w.replace('None', '0') for w in row[1:]]
+					d = numpy.array(map(float, t))
+					now = d[0]
+					d = d[1:]
+					for i, val in enumerate(d):
+						data[i]["value"] = val
+					if self.historyCalibrated == 0:
+						dataPoints = self.cal.calibrate(data)
+					else:
+						dataPoints = data
+					self.recordData(data, now)
+				except ValueError:
+					row = row[2:]
+					data = []
+					for i in row:
+						sensor = {}
+						r = re.match('([a-zA-Z0-9_-]*) ([a-zA-Z0-9_-]*) \(([a-zA-Z%_-]*)\)', i)
+						if r == None:
+							print row
+						sensor["sensor"] = r.group(1)
+						sensor["name"] = r.group(2)
+						sensor["symbol"] = r.group(3)
+						data.append(sensor)
+					if len(self.historicData) == 0:
+						self.createSensorIds(data)
+					else:
+						for i in data:
+							name = i["sensor"]+" "+i["name"]
+							self.getSensorId(name)
+
 	def getSensorId(self,name):
 		for i in range(0,len(self.sensorIds)):
 			if name == self.sensorIds[i]:
 				return i
 		# does not exist, add it
+		return self.addSensorId(name)
+
+	def addSensorId(self,name):
 		# (should only happen if the loaded history has different sensors)
-		self.sensorIds.append(i["sensor"]+" "+i["name"])
+		self.sensorIds.append(name)
 		t = numpy.zeros([len(self.historicData), len(self.sensorIds)+1])
 		t[0:self.historicAt,0:len(self.sensorIds)] = self.historicData
 		self.historicData = t
 		return len(self.sensorIds)-1
 
-	def recordData(self,dataPoints):
+	def recordData(self,dataPoints,now=0):
 		t = numpy.zeros(len(self.sensorIds)+1)
-		t[0] = time.time()
-		if self.historicData[self.historicAt-1,0] - t[0] < self.historyInterval:
+		if now == 0:
+			t[0] = time.time()
+		else:
+			t[0] = now
+		if (t[0] - self.historicData[self.historicAt-1,0]) < self.historyInterval:
 			return
 		for i in dataPoints:
 			sid = self.getSensorId(i["sensor"]+" "+i["name"])
@@ -223,7 +270,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				line = replace(line, "$units$", i["symbol"])
 				items += line
 			page = replace(page, "$items$", items)
-		elif graph > 0 and response == 200:
+		elif graph > 0 and response == 200 and self.server.httpoutput.history != 0:
 			x = self.server.httpoutput.historicData[0:self.server.httpoutput.historicAt,0]
 			y = self.server.httpoutput.historicData[0:self.server.httpoutput.historicAt,graph]
 			data = ''
