@@ -3,7 +3,7 @@ import datetime
 import time
 import calibration
 
-class CSV(output.Output):
+class CSVOutput(output.Output):
 	requiredData = ["outputFile"]
 	optionalData = ["calibration"]
 
