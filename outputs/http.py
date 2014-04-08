@@ -91,6 +91,7 @@ class HTTP(output.Output):
 		self.cal = calibration.Calibration.sharedClass
 		self.docal = calibration.calCheck(data)
 		self.sensorIds = []
+		self.readingTypes = dict()
 		self.historicData = []
 		self.historicAt = 0
 
@@ -179,6 +180,7 @@ class HTTP(output.Output):
 				t[sid+1] = i["value"]
 			else:
 				t[sid+1] = 0
+			self.readingTypes[sid] = i["readingType"] 
 		self.historicData[self.historicAt] = t
 		self.historicAt += 1
 
@@ -248,7 +250,10 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			details = ''
 			for i in self.server.httpoutput.data:
 				line = replace(self.server.httpoutput.details, "$readingName$", i["name"])
-				line = replace(line, "$reading$", str(round(i["value"], 2)))
+				if i["value"] != None:
+					line = replace(line, "$reading$", str(round(i["value"], 2)))
+				else:
+					line = replace(line, "$reading$", 'None')
 				line = replace(line, "$units$", i["symbol"])
 				line = replace(line, "$sensorId$", str(self.server.httpoutput.getSensorId(i["sensor"]+" "+i["name"])))
 				line = replace(line, "$sensorName$", i["sensor"])
@@ -266,13 +271,18 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 			items = ''
 			for i in self.server.httpoutput.data:
 				line = replace(self.server.httpoutput.rssItem, "$sensorName$", i["name"])
-				line = replace(line, "$reading$", str(i["value"]))
+				if i["value"] != None:
+					line = replace(line, "$reading$", str(round(i["value"], 2)))
+				else:
+					line = replace(line, "$reading$", 'None')
 				line = replace(line, "$units$", i["symbol"])
 				items += line
 			page = replace(page, "$items$", items)
 		elif graph > 0 and response == 200 and self.server.httpoutput.history != 0:
 			x = self.server.httpoutput.historicData[0:self.server.httpoutput.historicAt,0]
 			y = self.server.httpoutput.historicData[0:self.server.httpoutput.historicAt,graph]
+			if self.server.httpoutput.readingTypes[graph-1] == "pulseCount":
+				y = numpy.cumsum(y)
 			data = ''
 			for index, item in enumerate(x):
 				data += "[%i, %f]," % (item*1000, y[index])
