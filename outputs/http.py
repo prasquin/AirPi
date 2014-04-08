@@ -94,6 +94,8 @@ class HTTP(output.Output):
 		self.readingTypes = dict()
 		self.historicData = []
 		self.historicAt = 0
+		self.tempHistory = []
+		self.tempHistoryAt = 0
 
 		self.handler = requestHandler
 		self.server = httpServer(self, ("", self.port), self.handler)
@@ -113,6 +115,7 @@ class HTTP(output.Output):
 		for i in dataPoints:
 			self.sensorIds.append(i["sensor"]+" "+i["name"])
 		self.historicData = numpy.zeros([2, len(self.sensorIds)+1])
+		self.tempHistory = numpy.zeros([2, len(self.sensorIds)])
 
 	def loadData(self):
 		with open(self.historyFile, "r") as csvfile:
@@ -164,6 +167,7 @@ class HTTP(output.Output):
 		t = numpy.zeros([len(self.historicData), len(self.sensorIds)+1])
 		t[0:self.historicAt,0:len(self.sensorIds)] = self.historicData
 		self.historicData = t
+		self.tempHistory = numpy.zeros([2, len(self.sensorIds)])
 		return len(self.sensorIds)-1
 
 	def recordData(self,dataPoints,now=0):
@@ -172,8 +176,7 @@ class HTTP(output.Output):
 			t[0] = time.time()
 		else:
 			t[0] = now
-		if (t[0] - self.historicData[self.historicAt-1,0]) < self.historyInterval:
-			return
+
 		for i in dataPoints:
 			sid = self.getSensorId(i["sensor"]+" "+i["name"])
 			if i["value"] != None:
@@ -181,6 +184,27 @@ class HTTP(output.Output):
 			else:
 				t[sid+1] = 0
 			self.readingTypes[sid] = i["readingType"] 
+
+		# put the readings into temporary history for averaging
+		self.tempHistory[self.tempHistoryAt] = t[1:]
+		self.tempHistoryAt += 1
+		if len(self.tempHistory) == self.tempHistoryAt:
+			t2 = numpy.zeros([self.tempHistoryAt * 2, len(self.sensorIds)])
+			t2[0:self.tempHistoryAt,:] = self.tempHistory
+			self.tempHistory = t2
+
+		# go no further if we're not saving
+		if (t[0] - self.historicData[self.historicAt-1,0]) < self.historyInterval:
+			return
+
+		# take average reading etc
+		for i, r in enumerate(self.tempHistory[0]):
+			if self.readingTypes[i] == "sample":
+				t[i+1] = numpy.mean(self.tempHistory[:self.tempHistoryAt,i])
+			elif self.readingTypes[i] == "pulseCount":
+				t[i+1] = numpy.sum(self.tempHistory[:self.tempHistoryAt,i])
+		self.tempHistoryAt = 0 #reset
+
 		self.historicData[self.historicAt] = t
 		self.historicAt += 1
 
