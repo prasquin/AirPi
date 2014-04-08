@@ -8,6 +8,7 @@ class Analogue(sensor.Sensor):
 		self.adcPin = int(data["adcPin"])
 		self.valName = data["measurement"]
 		self.sensorName = data["sensorName"]
+		self.readingType = "sample"
 		self.pullUp, self.pullDown = None, None
 		if "pullUpResistance" in data:
 			self.pullUp = int(data["pullUpResistance"])

@@ -7,6 +7,7 @@ class BMP085(sensor.Sensor):
 	optionalData = ["altitude","mslp","unit","description"]
 	def __init__(self,data):
 		self.sensorName = "BMP085"
+		self.readingType = "sample"
 		if "temp" in data["measurement"].lower():
 			self.valName = "Temperature"
 			self.valUnit = "Celsius"

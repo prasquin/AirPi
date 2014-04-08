@@ -9,6 +9,7 @@ class DHT22(sensor.Sensor):
 		dhtreader.lastDataTime = 0
 		dhtreader.lastData = (None,None)
 		self.sensorName = "DHT22"
+		self.readingType = "sample"
 		self.pinNum = int(data["pinNumber"])
 		if "temp" in data["measurement"].lower():
 			self.valName = "Temperature"

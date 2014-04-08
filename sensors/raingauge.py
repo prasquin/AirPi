@@ -13,6 +13,7 @@ class raingauge(sensor.Sensor):
 		GPIO.add_event_detect(self.pinNum, GPIO.FALLING, callback=self.bucketTip, bouncetime=300)
 		self.rain = 0
 		self.sensorName = "Maplin_N77NF"
+		self.readingType = "pulseCount"
 		self.valName = "Bucket_tips"
 		self.valSymbol = ""
 		self.valUnit = ""
