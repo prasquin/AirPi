@@ -25,7 +25,7 @@ class CSVOutput(output.Output):
 
 		for i in dataPoints:
 			if self.header == False:
-				header = "%s,\"%s %s (%s)\"" % (header, i["sensor"], i["name"], i["symbol"])
+				header = "%s,\"%s %s (%s) (%s)\"" % (header, i["sensor"], i["name"], i["symbol"], i["readingType"])
 			line = line + "," + str(i["value"])
 
 		# if it's the first write of this instance do a header so we know what's what

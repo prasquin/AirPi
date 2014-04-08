@@ -114,14 +114,26 @@ class HTTP(output.Output):
 	def createSensorIds(self,dataPoints):
 		for i in dataPoints:
 			self.sensorIds.append(i["sensor"]+" "+i["name"])
+			self.readingTypes[len(self.sensorIds)-1] = i["readingType"]
 		self.historicData = numpy.zeros([2, len(self.sensorIds)+1])
 		self.tempHistory = numpy.zeros([2, len(self.sensorIds)])
 
 	def loadData(self):
 		with open(self.historyFile, "r") as csvfile:
+			# get file length
+			for flen, l in enumerate(csvfile):
+				pass
+			# assume 5 second interval
+			start = flen - (self.historyInterval / 5) * self.historySize
+			csvfile.seek(0)
+
 			reader = csv.reader(csvfile)
 			data = []
+			at = -1
 			for row in reader:
+				at += 1
+				if at > 0 and at < start:
+					continue
 				# Date & Time, Unix Time, then sensors
 				try:
 					t = [w.replace('None', '0') for w in row[1:]]
@@ -140,12 +152,13 @@ class HTTP(output.Output):
 					data = []
 					for i in row:
 						sensor = {}
-						r = re.match('([a-zA-Z0-9_-]*) ([a-zA-Z0-9_-]*) \(([a-zA-Z%_-]*)\)', i)
+						r = re.match('([a-zA-Z0-9_-]*) ([a-zA-Z0-9_-]*) \(([a-zA-Z%_-]*)\) \(([a-zA-Z]*)\)', i)
 						if r == None:
 							print row
 						sensor["sensor"] = r.group(1)
 						sensor["name"] = r.group(2)
 						sensor["symbol"] = r.group(3)
+						sensor["readingType"] = r.group(4)
 						data.append(sensor)
 					if len(self.historicData) == 0:
 						self.createSensorIds(data)
