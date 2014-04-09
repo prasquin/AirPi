@@ -26,18 +26,24 @@ logger.addHandler(handler)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 
+cfgdir = "/usr/local/etc/airpi"
+sensorcfg = os.path.join(cfgdir, 'sensors.cfg')
+outputscfg = os.path.join(cfgdir, 'outputs.cfg')
+settingscfg = os.path.join(cfgdir, 'settings.cfg')
+
 def get_subclasses(mod,cls):
     for name, obj in inspect.getmembers(mod):
         if hasattr(obj, "__bases__") and cls in obj.__bases__:
             return obj
 
 
-if not os.path.isfile('sensors.cfg'):
-	print "Unable to access config file: sensors.cfg"
-	exit(1)
+if not os.path.isfile(sensorcfg):
+    print "Unable to access config file: sensors.cfg"
+    logger.error("Unable to access config file: %s" % sensorscfg)
+    exit(1)
 
 sensorConfig = ConfigParser.SafeConfigParser()
-sensorConfig.read('sensors.cfg')
+sensorConfig.read(sensorcfg)
 
 sensorNames = sensorConfig.sections()
 
@@ -46,8 +52,6 @@ GPIO.setmode(GPIO.BCM) #Use BCM GPIO numbers.
 
 sensorPlugins = []
 for i in sensorNames:
-if not os.path.isfile("outputs.cfg"):
-	print "Unable to access config file: outputs.cfg"
     try:
         try:
             filename = sensorConfig.get(i,"filename")
@@ -111,17 +115,19 @@ if not os.path.isfile("outputs.cfg"):
         raise e
 
 
+if not os.path.isfile(outputscfg):
+    print "Unable to access config file: outputs.cfg"
+    logger.error("Unable to access config file: %s" % outputscfg)
+    exit(1)
 
 outputConfig = ConfigParser.SafeConfigParser()
-outputConfig.read("outputs.cfg")
+outputConfig.read(outputscfg)
 
 outputNames = outputConfig.sections()
 
 outputPlugins = []
 
 for i in outputNames:
-if not os.path.isfile("settings.cfg"):
-	print "Unable to access config file: settings.cfg"
     try:
         try:
             filename = outputConfig.get(i, "filename")
@@ -189,9 +195,13 @@ if not os.path.isfile("settings.cfg"):
         logger.error("Error: Did not import output plugin %s" % i)
         raise e
 
+if not os.path.isfile(settingscfg):
+    print "Unable to access config file: settings.cfg"
+    logger.error("Unable to access config file: %s" % settingscfg)
+    exit(1)
 
 mainConfig = ConfigParser.SafeConfigParser()
-mainConfig.read("settings.cfg")
+mainConfig.read(settingscfg)
 
 lastUpdated = 0
 delayTime = mainConfig.getfloat("Main", "uploadDelay")
