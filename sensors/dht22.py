@@ -3,8 +3,9 @@
 import sensor
 import dhtreader
 import time
+
 class DHT22(sensor.Sensor):
-	requiredData = ["measurement","pinNumber"]
+	requiredData = ["measurement", "pinNumber"]
 	optionalData = ["unit"]
 	def __init__(self,data):
 		dhtreader.init()
@@ -17,7 +18,7 @@ class DHT22(sensor.Sensor):
 			self.valUnit = "Celsius"
 			self.valSymbol = "C"
 			if "unit" in data:
-				if data["unit"]=="F":
+				if data["unit"] == "F":
 					self.valUnit = "Fahrenheit"
 					self.valSymbol = "F"
 		elif "h" in data["measurement"].lower():
@@ -28,16 +29,15 @@ class DHT22(sensor.Sensor):
 
 	def getVal(self):
 		tm = dhtreader.lastDataTime
-		if (time.time()-tm)<2:
+		if (time.time() - tm) < 2:
 			t, h = dhtreader.lastData
 		else:
-			tim = time.time()
 			try:
-				t, h = dhtreader.read(22,self.pinNum)
+				t, h = dhtreader.read(22, self.pinNum)
 			except Exception:
 				t, h = dhtreader.lastData
-			dhtreader.lastData = (t,h)
-			dhtreader.lastDataTime=tim
+			dhtreader.lastData = (t, h)
+			dhtreader.lastDataTime = time.time()
 		if self.valName == "Temperature":
 			temp = t
 			if self.valUnit == "Fahrenheit":

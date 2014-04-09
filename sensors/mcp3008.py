@@ -5,7 +5,7 @@ import sensor
 
 class MCP3008(sensor.Sensor):
 	requiredData = []
-	optionalData = ["mosiPin","misoPin","csPin","clkPin"]
+	optionalData = ["mosiPin", "misoPin", "csPin", "clkPin"]
 	sharedClass = None
 	def __init__(self, data):
 		GPIO.setmode(GPIO.BCM)
@@ -21,7 +21,7 @@ class MCP3008(sensor.Sensor):
 		if "clkPin" in data:
 			self.SPICLK = data["clkPin"]
 		if "csPin" in data:
-			self.SPICS = data["csPin"] 
+			self.SPICS = data["csPin"]
 		GPIO.setup(self.SPIMOSI, GPIO.OUT)
 		GPIO.setup(self.SPIMISO, GPIO.IN)
 		GPIO.setup(self.SPICLK, GPIO.OUT)
@@ -61,6 +61,6 @@ class MCP3008(sensor.Sensor):
 
 		GPIO.output(self.SPICS, True)
 		return adcout
-	
+
 	def getVal(self):
 		return None #not that kind of plugin, this is to be used by other plugins

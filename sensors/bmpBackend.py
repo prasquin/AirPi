@@ -43,11 +43,11 @@ class BMP085 :
   _cal_AC4 = 0
   _cal_AC5 = 0
   _cal_AC6 = 0
-  _cal_B1 = 0
-  _cal_B2 = 0
-  _cal_MB = 0
-  _cal_MC = 0
-  _cal_MD = 0
+  _cal_B1  = 0
+  _cal_B2  = 0
+  _cal_MB  = 0
+  _cal_MC  = 0
+  _cal_MD  = 0
 
   # Constructor
   def __init__(self, address=0x77, mode=1, bus=0, debug=False):
@@ -165,16 +165,16 @@ class BMP085 :
     if (dsValues):
       UT = 27898
       UP = 23843
-      self._cal_AC6 = 23153
+      self._cal_AC1 = 408
+      self._cal_AC2 = -72
+      self._cal_AC3 = -14383
+      self._cal_AC4 = 32741
       self._cal_AC5 = 32757
-      self._cal_MC = -8711
-      self._cal_MD = 2868
+      self._cal_AC6 = 23153
       self._cal_B1 = 6190
       self._cal_B2 = 4
-      self._cal_AC3 = -14383
-      self._cal_AC2 = -72
-      self._cal_AC1 = 408
-      self._cal_AC4 = 32741
+      self._cal_MC = -8711
+      self._cal_MD = 2868
       self.mode = self.__BMP085_ULTRALOWPOWER
       if (self.debug):
         self.showCalibrationData()

@@ -5,8 +5,8 @@ import bmpBackend
 
 class BMP085(sensor.Sensor):
 	bmpClass = None
-	requiredData = ["measurement","i2cbus"]
-	optionalData = ["altitude","mslp","unit"]
+	requiredData = ["measurement", "i2cbus"]
+	optionalData = ["altitude", "mslp", "unit"]
 	def __init__(self,data):
 		self.sensorName = "BMP085"
 		if "temp" in data["measurement"].lower():
@@ -14,7 +14,7 @@ class BMP085(sensor.Sensor):
 			self.valUnit = "Celsius"
 			self.valSymbol = "C"
 			if "unit" in data:
-				if data["unit"]=="F":
+				if data["unit"] == "F":
 					self.valUnit = "Fahrenheit"
 					self.valSymbol = "F"
 		elif "pres" in data["measurement"].lower():
@@ -24,15 +24,15 @@ class BMP085(sensor.Sensor):
 			self.altitude = 0
 			self.mslp = False
 			if "mslp" in data:
-				if data["mslp"].lower in ["on","true","1","yes"]:
+				if data["mslp"].lower in ["on", "true", "1", "yes"]:
 					self.mslp = True
 					if "altitude" in data:
-						self.altitude=data["altitude"]
+						self.altitude = data["altitude"]
 					else:
 						print "To calculate MSLP, please provide an 'altitude' config setting (in m) for the BMP085 pressure module"
 						self.mslp = False
-		if (BMP085.bmpClass==None):
-			BMP085.bmpClass = bmpBackend.BMP085(bus=int(data["i2cbus"]))
+		if (BMP085.bmpClass == None):
+			BMP085.bmpClass = bmpBackend.BMP085(bus = int(data["i2cbus"]))
 		return
 
 	def getVal(self):
