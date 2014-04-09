@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 #This file takes in inputs from a variety of sensor files, and outputs information to a variety of services
 import sys
 sys.dont_write_bytecode = True

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import mcp3008
 import sensor
 class Analogue(sensor.Sensor):
