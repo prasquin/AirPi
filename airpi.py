@@ -13,6 +13,19 @@ from sys import exit
 from sensors import sensor
 from outputs import output
 
+# add logging support
+import logging, logging.handlers
+LOG_FILENAME = os.path.join("/var/log/airpi" , 'airpi.log')
+# Set up a specific logger with our desired output level
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+# create handler and add it to the logger
+handler = logging.handlers.RotatingFileHandler(LOG_FILENAME, maxBytes = 40960, backupCount = 5)
+logger.addHandler(handler)
+# create formatter and add it to the handler
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+
 def get_subclasses(mod,cls):
     for name, obj in inspect.getmembers(mod):
         if hasattr(obj, "__bases__") and cls in obj.__bases__:
@@ -40,6 +53,7 @@ if not os.path.isfile("outputs.cfg"):
             filename = sensorConfig.get(i,"filename")
         except Exception:
             print("Error: no filename config option found for sensor plugin " + i)
+            logger.error("Error: no filename config option found for sensor plugin %s" % i)
             raise
         try:
             enabled = sensorConfig.getboolean(i,"enabled")
@@ -52,6 +66,7 @@ if not os.path.isfile("outputs.cfg"):
                 mod = __import__('sensors.' + filename, fromlist = ['a']) #Why does this work?
             except Exception:
                 print("Error: could not import sensor module " + filename)
+                logger.error("Error: could not import sensor module %s" % filename)
                 raise
 
             try:
@@ -60,6 +75,7 @@ if not os.path.isfile("outputs.cfg"):
                     raise AttributeError
             except Exception:
                 print("Error: could not find a subclass of sensor.Sensor in module " + filename)
+                logger.error("Error: could not find a subclass of sensor.Sensor in module %s" % filename)
                 raise
 
             try:
@@ -80,6 +96,7 @@ if not os.path.isfile("outputs.cfg"):
                     pluginData[requiredField] = sensorConfig.get(i, requiredField)
                 else:
                     print "Error: Missing required field '" + requiredField + "' for sensor plugin " + i
+                    logger.error("Error: Missing required field %s for sensor plugin %s" % (requiredField, i))
                     raise MissingField
             for optionalField in opt:
                 if sensorConfig.has_option(i, optionalField):
@@ -87,8 +104,10 @@ if not os.path.isfile("outputs.cfg"):
             instClass = sensorClass(pluginData)
             sensorPlugins.append(instClass)
             print ("Success: Loaded sensor plugin " + i)
+            logger.info("Success: Loaded sensor plugin %s" % i)
     except Exception as e: #add specific exception for missing module
         print("Error: Did not import sensor plugin " + i )
+        logger.error("Error: Did not import sensor plugin %s" % i)
         raise e
 
 
@@ -108,6 +127,7 @@ if not os.path.isfile("settings.cfg"):
             filename = outputConfig.get(i, "filename")
         except Exception:
             print("Error: no filename config option found for output plugin " + i)
+            logger.error("Error: no filename config option found for output plugin %s" % i)
             raise
         try:
             enabled = outputConfig.getboolean(i, "enabled")
@@ -120,6 +140,7 @@ if not os.path.isfile("settings.cfg"):
                 mod = __import__('outputs.' + filename, fromlist = ['a']) #Why does this work?
             except Exception:
                 print("Error: could not import output module " + filename)
+                logger.error("Error: could not import output module %s" % filename)
                 raise
 
             try:
@@ -128,6 +149,7 @@ if not os.path.isfile("settings.cfg"):
                     raise AttributeError
             except Exception:
                 print("Error: could not find a subclass of output.Output in module " + filename)
+                logger.error("Error: could not find a subclass of output.Output in module %s" % filename)
                 raise
             try:
                 reqd = outputClass.requiredData
@@ -152,6 +174,7 @@ if not os.path.isfile("settings.cfg"):
                     pluginData[requiredField] = outputConfig.get(i, requiredField)
                 else:
                     print "Error: Missing required field '" + requiredField + "' for output plugin " + i
+                    logger.error("Error: Missing required field %s for output plugin %s" % (requiredField, i))
                     raise MissingField
             for optionalField in opt:
                 if outputConfig.has_option(i, optionalField):
@@ -160,8 +183,10 @@ if not os.path.isfile("settings.cfg"):
             instClass.async = async
             outputPlugins.append(instClass)
             print ("Success: Loaded output plugin " + i)
+            logger.info("Success: Loaded output plugin %s" % i)
     except Exception as e: #add specific exception for missing module
         print("Error: Did not import output plugin " + i)
+        logger.error("Error: Did not import output plugin %s" % i)
         raise e
 
 
@@ -192,14 +217,23 @@ while True:
             dataDict["sensor"] = i.sensorName
             data.append(dataDict)
         working = True
+        try:
             for i in outputPlugins:
                 working = working and i.outputData(data)
             if working:
                 print "Uploaded successfully"
+                logger.info("Uploaded successfully")
                 GPIO.output(greenPin, GPIO.HIGH)
             else:
                 print "Failed to upload"
+                logger.info("Failed to upload")
                 GPIO.output(redPin, GPIO.HIGH)
+        except Exception as e:
+            logger.error("Exception: %s, %d" % (e, time.time()))
+            # set correct time if SSL certificate verify error
+            if "certificate verify failed" in e and time.time() < 5000:
+                os.system("getTime.sh")
+        else:
             time.sleep(1)
             GPIO.output(greenPin, GPIO.LOW)
             GPIO.output(redPin, GPIO.LOW)

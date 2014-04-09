@@ -20,6 +20,6 @@ class Xively(output.Output):
 			if z.text != "":
 				print "Xively Error: " + z.text
 				return False
-		except Exception:
-			return False
+		except Exception as e:
+			raise e
 		return True
