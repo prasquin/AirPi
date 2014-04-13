@@ -201,4 +201,7 @@ while True:
 		time.sleep(1)
 		GPIO.output(greenPin,GPIO.LOW)
 		GPIO.output(redPin,GPIO.LOW)
-		time.sleep(delayTime-(time.time()-curTime))
+		try:
+			time.sleep(delayTime-(time.time()-curTime)-0.01)
+		except Exception:
+			pass # fall back on old method...
