@@ -18,10 +18,11 @@ import csv
 # http://stackoverflow.com/questions/10607621/a-simple-website-with-python-using-simplehttpserver-and-socketserver-how-to-onl
 # http://www.huyng.com/posts/modifying-python-simplehttpserver/
 # http://stackoverflow.com/questions/6391280/simplehttprequesthandler-override-do-get
+# http://bytes.com/topic/python/answers/158332-persistent-xmlrpc-connection
 
 class HTTP(output.Output):
 	requiredData = ["wwwPath"]
-	optionalData = ["port", "history", "title", "about", "calibration", "historySize", "historyInterval", "historyCalibrated"]
+	optionalData = ["port", "history", "title", "about", "calibration", "historySize", "historyInterval", "historyCalibrated", "httpVersion"]
 
 	details = """
 <div class="panel panel-default">
@@ -98,6 +99,9 @@ class HTTP(output.Output):
 		self.tempHistoryAt = 0
 
 		self.handler = requestHandler
+		if "httpVersion" in data and data["httpVersion"] == "1.1":
+			self.handler.protocol_version = "HTTP/1.1"
+		# else it's automatically 1.0
 		self.server = httpServer(self, ("", self.port), self.handler)
 		self.thread = Thread(target = self.server.serve_forever)
 		self.thread.daemon = True
@@ -345,11 +349,20 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				self.send_header("Content-Type", "text/html")
 		else:
 			self.send_header("Content-Type", "text/html")
-		self.send_header("Content-length", len(page)-1)
+		self.send_header("Content-length", str(len(page)-1))
 		if index == 1 or rss == 1 or graph == 1:
 			lm = self.server.httpoutput.lastUpdate
 		self.send_header("Last-Modified", lm)
 		self.end_headers()
 		if self.command != 'HEAD':
 			self.wfile.write(page)
-		self.wfile.close()
+
+		if self.protocol_version == "HTTP/1.1":
+			self.wfile.flush()
+			if self.close_connection:
+				self.connection.shutdown(1)
+		else:
+			self.wfile.close()
+
+
+
