@@ -7,7 +7,7 @@ class BMP085(sensor.Sensor):
 	bmpClass = None
 	requiredData = ["measurement", "i2cbus"]
 	optionalData = ["altitude", "mslp", "unit"]
-	def __init__(self,data):
+	def __init__(self, data):
 		self.sensorName = "BMP085"
 		if "temp" in data["measurement"].lower():
 			self.valName = "Temperature"
