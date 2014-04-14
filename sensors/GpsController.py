@@ -1,7 +1,6 @@
 from gps import *
 import time
 import threading
-import math
 
 class GpsController(threading.Thread):
     def __init__(self):
