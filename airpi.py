@@ -10,6 +10,7 @@ import time
 import inspect
 import os
 from sys import exit
+import math
 from sensors import sensor
 from outputs import output
 
@@ -222,21 +223,20 @@ while True:
             #Collect the data from each sensor
             for i in sensorPlugins:
                 dataDict = {}
+                val = i.getVal()
                 if i == gpsPluginInstance:
-                    val = i.getVal()
-                    logger.debug("GPS output", val)
-                    if val[1] == None: #this means it has no data to upload.
+                    if math.isnan(val[2]): # this means it has no data to upload.
                         continue
+                    logger.debug("GPS output %s" % (val,))
                     # handle GPS data
                     dataDict["name"] = "Location"
-                    dataDict["Latitude"] = val[1]
-                    dataDict["Longitude"] = val[2]
-                    dataDict["Altitude"] = val[3]
-                    dataDict["Disposition"] = val[4]
-                    dataDict["Exposure"] = val[5]
+                    dataDict["Latitude"] = val[0]
+                    dataDict["Longitude"] = val[1]
+                    dataDict["Altitude"] = val[2]
+                    dataDict["Disposition"] = val[3]
+                    dataDict["Exposure"] = val[4]
                 else:
-                    val = i.getVal()
-                    if val == None: #this means it has no data to upload.
+                    if val == None: # this means it has no data to upload.
                         continue
                     dataDict["value"] = val
                     dataDict["unit"] = i.valUnit
@@ -256,11 +256,10 @@ while True:
                     print "Failed to upload"
                     logger.info("Failed to upload")
                     GPIO.output(redPin, GPIO.HIGH)
+            except KeyboardInterrupt:
+                raise
             except Exception as e:
                 logger.error("Exception: %s, %d" % (e, time.time()))
-                # # set correct time if SSL certificate verify error
-                # if "certificate verify failed" in e and time.time() < 5000:
-                #     os.system("getTime.sh")
             else:
                 time.sleep(1)
                 GPIO.output(greenPin, GPIO.LOW)
@@ -269,4 +268,4 @@ while True:
         print "KeyboardInterrupt detected"
         if gpsPluginInstance:
             gpsPluginInstance.stopController()
-        sys.exit(1)
+        exit(1)

@@ -18,15 +18,17 @@ class GPS(sensor.Sensor):
             # start controller
             gpsc.start()
         # Error
-        except:
-            print "Unexpected error:", sys.exc_info()[0]
+        except Exception as e:
+            print "Exception: ", e
             raise
 
     def getVal(self):
         global gpsc
-        print "Getting gps values", gpsc.fix.latitude, gpsc.fix.longitude, gpsc.fix.altitude, gpsc.fix.speed
         # we're mobile and outside if speed is above 1.0 m/s
-        return (gpsc.fix.latitude, gpsc.fix.longitude, gpsc.fix.altitude, "mobile", "outdoor" if gpsc.fix.speed > 1.0 else  "fixed", "indoor")
+        if gpsc.fix.speed > 1.0:
+            return (gpsc.fix.latitude, gpsc.fix.longitude, gpsc.fix.altitude, "mobile", "outdoor")
+        else:
+            return (gpsc.fix.latitude, gpsc.fix.longitude, gpsc.fix.altitude, "fixed", "indoor")
 
     def stopController(self):
         global gpsc
