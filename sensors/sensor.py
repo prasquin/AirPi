@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 class Sensor():
-	def __init__(data):
+	def __init__(self, data):
 		raise NotImplementedError
-	
-	def getData():
+
+	def getVal(self):
 		raise NotImplementedError
