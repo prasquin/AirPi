@@ -10,7 +10,7 @@ import time
 import inspect
 import os
 from sys import exit
-import math
+from math import isnan
 from sensors import sensor
 from outputs import output
 
@@ -225,16 +225,17 @@ while True:
                 dataDict = {}
                 val = i.getVal()
                 if i == gpsPluginInstance:
-                    if math.isnan(val[2]): # this means it has no data to upload.
+                    if isnan(val[2]): # this means it has no data to upload.
                         continue
                     logger.debug("GPS output %s" % (val,))
                     # handle GPS data
-                    dataDict["name"] = "Location"
-                    dataDict["Latitude"] = val[0]
-                    dataDict["Longitude"] = val[1]
-                    dataDict["Altitude"] = val[2]
-                    dataDict["Disposition"] = val[3]
-                    dataDict["Exposure"] = val[4]
+                    dataDict["latitude"] = val[0]
+                    dataDict["longitude"] = val[1]
+                    dataDict["altitude"] = val[2]
+                    dataDict["disposition"] = val[3]
+                    dataDict["exposure"] = val[4]
+                    dataDict["name"] = i.valName
+                    dataDict["sensor"] = i.sensorName
                 else:
                     if val == None: # this means it has no data to upload.
                         continue
@@ -259,8 +260,9 @@ while True:
             except KeyboardInterrupt:
                 raise
             except Exception as e:
-                logger.error("Exception: %s, %d" % (e, time.time()))
+                logger.error("Exception: %s" % e)
             else:
+                # delay before turning off LED
                 time.sleep(1)
                 GPIO.output(greenPin, GPIO.LOW)
                 GPIO.output(redPin, GPIO.LOW)

@@ -13,7 +13,7 @@ class Print(output.Output):
         print "Time: " + str(datetime.datetime.now())
         for i in dataPoints:
             if i["name"] == "Location":
-                # print i["name"] + ": " + "Disposition:" + i["Disposition"] + "Altitude: " + i["Altitude"] + "Exposure: " + i["Exposure"] + "Latitude: " + i["Latitude"] + "Longitude: " + i["Longitude"]
+                # print i["name"] + ": " + "Disposition:" + i["disposition"] + "Elevation: " + i["altitude"] + "Exposure: " + i["exposure"] + "Latitude: " + i["latitude"] + "Longitude: " + i["longitude"]
                 pprint(i)
             else:
                 print i["name"] + ": " + str(i["value"]) + " " + i["symbol"]
