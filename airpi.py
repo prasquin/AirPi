@@ -264,6 +264,9 @@ while True:
                 time.sleep(1)
                 GPIO.output(greenPin, GPIO.LOW)
                 GPIO.output(redPin, GPIO.LOW)
+        # wait for remainder of delayTime
+        logger.debug("Waiting for %d seconds" % (delayTime - (time.time() - lastUpdated)) + 1)
+        time.sleep((delayTime - (time.time() - lastUpdated)) + 1)
     except KeyboardInterrupt:
         print "KeyboardInterrupt detected"
         if gpsPluginInstance:
