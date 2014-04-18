@@ -10,7 +10,7 @@ class GpsController(threading.Thread):
         # start the gps daemon first
         try:
             daemon = subprocess.Popen(["gpsd","-P","/var/run/gpsd.pid", device])
-        except
+        except:
             print "Unexpected error, starting daemon:", sys.exc_info()[0]
             raise
 
