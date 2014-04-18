@@ -115,8 +115,8 @@ for i in sensorNames:
             print ("Success: Loaded sensor plugin " + i)
             logger.info("Success: Loaded sensor plugin %s" % i)
     except Exception as e: #add specific exception for missing module
-        print("Error: Did not import sensor plugin " + i )
-        logger.error("Error: Did not import sensor plugin %s" % i)
+        print("Error: Did not import sensor plugin " + i)
+        logger.error("Error: Did not import sensor plugin %s: [%s]" % (i, e))
         raise e
 
 

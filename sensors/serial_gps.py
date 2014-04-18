@@ -13,8 +13,8 @@ class GPS(sensor.Sensor):
         self.valName = "Location"
         # start the GPS data polling
         global gpsc
-        gpsc = GpsController.GpsController()
         try:
+            gpsc = GpsController.GpsController()
             # start controller
             gpsc.start()
         # Error
