@@ -5,14 +5,13 @@ import threading
 
 daemon = None
 class GpsController(threading.Thread):
-    def __init__(self):
+    def __init__(self, device="/dev/ttyAMA0"):
         global daemon
         # start the gps daemon first
         try:
-            subprocess.Popen(["chown",":dialout", "/dev/ttyAMA0"]) # make UART device accessible to gpsd
-            daemon = subprocess.Popen(["gpsd","-P","/var/run/gpsd.pid", "/dev/ttyAMA0"])
+            daemon = subprocess.Popen(["gpsd","-P","/var/run/gpsd.pid", device])
         except
-            print "Unexpected error, starting the daemon:", sys.exc_info()[0]
+            print "Unexpected error, starting daemon:", sys.exc_info()[0]
             raise
 
         threading.Thread.__init__(self)
@@ -29,7 +28,7 @@ class GpsController(threading.Thread):
         self.running = False
         # stop the gps daemon
         global daemon
-        self.daemon.terminate()
+        daemon.terminate()
 
     @property
     def fix(self):
