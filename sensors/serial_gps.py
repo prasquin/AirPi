@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sensor
+from time import sleep
 import GpsController
 
 gpsc = None # define gps data structure
@@ -15,11 +16,15 @@ class GPS(sensor.Sensor):
         global gpsc
         try:
             gpsc = GpsController.GpsController()
+            # start the daemon
+            gpsc.startDaemon()
+            # allow daemon to startup
+            sleep(2)
             # start controller
             gpsc.start()
         # Error
         except Exception as e:
-            print "Exception: ", e
+            print "Exception:", e
             raise
 
     def getVal(self):
@@ -32,7 +37,8 @@ class GPS(sensor.Sensor):
 
     def stopController(self):
         global gpsc
-        print "Stopping gps controller"
+        print "Stopping gps controller & daemon"
         gpsc.stopController()
+        gpsc.stopDaemon()
         # wait for the thread to finish
         gpsc.join()
