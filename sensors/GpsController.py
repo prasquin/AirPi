@@ -1,12 +1,9 @@
 from gps import *
 from time import sleep
-import subprocess
 import threading
 
-daemon = None
-daemonDelay = 2
 class GpsController(threading.Thread):
-    def __init__(self, device="/dev/ttyAMA0"):
+    def __init__(self):
         threading.Thread.__init__(self)
         self.gpsd = gps(mode=WATCH_ENABLE) # starting the stream of info
         self.running = False
@@ -19,20 +16,6 @@ class GpsController(threading.Thread):
 
     def stopController(self):
         self.running = False
-
-    def startDaemon(self):
-        # start the gps daemon
-        global daemon
-        try:
-            daemon = subprocess.Popen(["gpsd","-P","/var/run/gpsd.pid", device])
-        except:
-            print "Unexpected error, starting daemon:", sys.exc_info()[0]
-            raise
-
-    def stopDaemon(self):
-        # stop the gps daemon
-        global daemon
-        daemon.terminate()
 
     @property
     def fix(self):
@@ -50,8 +33,6 @@ if __name__ == '__main__':
     # create the controller
     gpsc = GpsController()
     try:
-        gpsc.startDaemon()
-        sleep(daemonDelay)
         # start controller
         gpsc.start()
         while True:
@@ -82,7 +63,6 @@ if __name__ == '__main__':
     finally:
         print "Stopping gps controller"
         gpsc.stopController()
-        gpsc.stopDaemon()
         # wait for the thread to finish
         gpsc.join()
 
