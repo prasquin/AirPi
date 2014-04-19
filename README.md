@@ -11,8 +11,8 @@ Some of the files are based off code for the Raspberry Pi written by Adafruit: h
 
 For installation instructions, see airpi.es/kit.php
 
-### Changes
-========
+Changes
+--------
 This development branch of the AirPi code adds several features and bugfixes that I've developed as part of my http://pi.gate.ac.uk/ AirPi project.
 
 New features:
