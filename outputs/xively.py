@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import output
 import requests
 import json
@@ -18,6 +20,9 @@ class Xively(output.Output):
 			dataPoints = self.cal.calibrate(dataPoints)
 		arr = []
 		for i in dataPoints:
+			# handle GPS data
+			if i["name"] == "Location":
+				arr.append({"location": {"disposition": i["Disposition"], "ele": i["Altitude"], "exposure": i["Exposure"], "domain": "physical", "lat": i["Latitude"], "lon": i["Longitude"]}})
 			if i["value"] != None: #this means it has no data to upload.
 				arr.append({"id":i["name"],"current_value":i["value"]})
 		a = json.dumps({"version":"1.0.0","datastreams":arr})

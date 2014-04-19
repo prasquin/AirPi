@@ -1,8 +1,11 @@
+#!/usr/bin/env python
+
 import mcp3008
 import sensor
+
 class Analogue(sensor.Sensor):
-	requiredData = ["adcPin","measurement","sensorName"]
-	optionalData = ["pullUpResistance","pullDownResistance","sensorVoltage","description"]
+	requiredData = ["adcPin", "measurement", "sensorName"]
+	optionalData = ["pullUpResistance", "pullDownResistance", "sensorVoltage", "description"]
 	def __init__(self, data):
 		self.adc = mcp3008.MCP3008.sharedClass
 		self.adcPin = int(data["adcPin"])
@@ -19,12 +22,12 @@ class Analogue(sensor.Sensor):
 		else:
 			self.sensorVoltage = 3.3
 		class ConfigError(Exception): pass
-		if self.pullUp!=None and self.pullDown!=None:
+		if self.pullUp != None and self.pullDown != None:
 			print "Please choose whether there is a pull up or pull down resistor for the " + self.valName + " measurement by only entering one of them into the settings file"
 			raise ConfigError
 		self.valUnit = "Ohms"
 		self.valSymbol = "Ohms"
-		if self.pullUp==None and self.pullDown==None:
+		if self.pullUp == None and self.pullDown == None:
 			self.valUnit = "millvolts"
 			self.valSymbol = "mV"
 		if "description" in data:
@@ -34,7 +37,7 @@ class Analogue(sensor.Sensor):
 		
 	def getVal(self):
 		result = self.adc.readADC(self.adcPin)
-		if result==0:
+		if result == 0:
 			print "Check wiring for the " + self.sensorName + " measurement, no voltage detected on ADC input " + str(self.adcPin)
 			return None
 		if result == 1023:
@@ -44,10 +47,10 @@ class Analogue(sensor.Sensor):
 		
 		if self.pullDown!=None:
 			#Its a pull down resistor
-			resOut = (self.pullDown*self.sensorVoltage)/vout - self.pullDown
+			resOut = (self.pullDown * self.sensorVoltage) / vout - self.pullDown
 		elif self.pullUp!=None:
-			resOut = self.pullUp/((self.sensorVoltage/vout)-1)
+			resOut = self.pullUp / ((self.sensorVoltage / vout) - 1)
 		else:
-			resOut = vout*1000
+			resOut = vout * 1000
 		return resOut
 		

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sensor
 import dhtreader
 import time
@@ -6,7 +8,7 @@ import threading
 # https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code/blob/master/Adafruit_DHT_Driver_Python/dhtreader.c
 
 class DHT22(sensor.Sensor):
-	requiredData = ["measurement","pinNumber"]
+	requiredData = ["measurement", "pinNumber"]
 	optionalData = ["unit","description"]
 	def __init__(self,data):
 		dhtreader.init()
@@ -20,7 +22,7 @@ class DHT22(sensor.Sensor):
 			self.valUnit = "Celsius"
 			self.valSymbol = "C"
 			if "unit" in data:
-				if data["unit"]=="F":
+				if data["unit"] == "F":
 					self.valUnit = "Fahrenheit"
 					self.valSymbol = "F"
 		elif "h" in data["measurement"].lower():
