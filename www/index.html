@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>$title$</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="$title$">
+		<meta http-equiv="refresh" content="300">
+
+		<link href="css/bootstrap.min.css" rel="stylesheet">
+		<link rel="alternate" type="application/rss+xml" title="$title$" href="/rss.xml" />
+
+		<style>
+			body {
+				padding-top: 60px;
+			}
+			.panel-heading .accordion-toggle:after {
+				font-family: 'Glyphicons Halflings';
+				content: "\e114";
+				float: right;
+				color: grey;
+			}
+			.panel-heading .accordion-toggle.collapsed:after {
+				content: "\e080";
+			}
+			.aspect-ratio {
+				position: relative;
+				width: 100%;
+				height: 0;
+				padding-bottom: 51%;
+			}
+			.aspect-ratio iframe {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				left: 0; top: 0;
+				border: 0;
+				overflow: hidden;
+			}
+		</style>
+
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+			<script src="js/html5shiv.js"></script>
+		<![endif]-->
+
+	</head>
+
+	<body>
+
+		<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="sr-only">Toggle navigation</span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="#">$title$</a>
+				</div>
+				<div class="collapse navbar-collapse">
+					<ul class="nav navbar-nav">
+						<li><a href="#current"><span class="glyphicon glyphicon-home"></span> Sensor Readings</a></li>
+						<li><a href="#about"><span class="glyphicon glyphicon-question-sign"></span> About</a></li>
+					</ul>
+					<ul class="nav navbar-nav pull-right">
+						<li><a href="/rss.xml"><img src="img/rss_icon.png" /> RSS</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+
+
+
+		<div class="container">
+
+			<div class="panel-group" id="accordion">
+				<a name="current"></a>
+				<h1>Sensor Readings</h1>
+				<p>Last update: $time$</p>
+				$details$
+			</div>
+			<div>
+				<a name="about"></a>
+				<h1>About</h1>
+				<p>$about$</p>
+			</div>
+
+		</div>
+
+
+		<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+		<script src="js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+
+$(document).ready(function(){
+
+    var changed=new Array();
+
+    $('.panel-collapse').on('show.bs.collapse', function () {
+	id = $(this).attr('id');
+	if (changed[id] != 1) {
+		changed[id] = 1;
+		t = $(this).children().html();
+		t += $graph$;
+		$(this).children().html(t);
+	}
+
+    });
+
+});
+
+</script>
+
+	</body>
+</html>
+

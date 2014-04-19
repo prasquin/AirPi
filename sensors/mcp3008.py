@@ -61,6 +61,3 @@ class MCP3008(sensor.Sensor):
 
 		GPIO.output(self.SPICS, True)
 		return adcout
-	
-	def getVal(self):
-		return None #not that kind of plugin, this is to be used by other plugins
