@@ -2,12 +2,13 @@ import mcp3008
 import sensor
 class Analogue(sensor.Sensor):
 	requiredData = ["adcPin","measurement","sensorName"]
-	optionalData = ["pullUpResistance","pullDownResistance","sensorVoltage"]
+	optionalData = ["pullUpResistance","pullDownResistance","sensorVoltage","description"]
 	def __init__(self, data):
 		self.adc = mcp3008.MCP3008.sharedClass
 		self.adcPin = int(data["adcPin"])
 		self.valName = data["measurement"]
 		self.sensorName = data["sensorName"]
+		self.readingType = "sample"
 		self.pullUp, self.pullDown = None, None
 		if "pullUpResistance" in data:
 			self.pullUp = int(data["pullUpResistance"])
@@ -26,6 +27,10 @@ class Analogue(sensor.Sensor):
 		if self.pullUp==None and self.pullDown==None:
 			self.valUnit = "millvolts"
 			self.valSymbol = "mV"
+		if "description" in data:
+			self.description = data["description"]
+		else:
+			self.description = "An analogue sensor."
 		
 	def getVal(self):
 		result = self.adc.readADC(self.adcPin)

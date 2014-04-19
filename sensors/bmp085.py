@@ -4,9 +4,10 @@ import bmpBackend
 class BMP085(sensor.Sensor):
 	bmpClass = None
 	requiredData = ["measurement","i2cbus"]
-	optionalData = ["altitude","mslp","unit"]
+	optionalData = ["altitude","mslp","unit","description"]
 	def __init__(self,data):
 		self.sensorName = "BMP085"
+		self.readingType = "sample"
 		if "temp" in data["measurement"].lower():
 			self.valName = "Temperature"
 			self.valUnit = "Celsius"
@@ -29,6 +30,10 @@ class BMP085(sensor.Sensor):
 					else:
 						print "To calculate MSLP, please provide an 'altitude' config setting (in m) for the BMP085 pressure module"
 						self.mslp = False
+		if "description" in data:
+			self.description = data["description"]
+		else:
+			self.description = "BOSCH combined temperature and pressure sensor."
 		if (BMP085.bmpClass==None):
 			BMP085.bmpClass = bmpBackend.BMP085(bus=int(data["i2cbus"]))
 		return
