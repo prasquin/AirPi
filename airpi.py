@@ -154,8 +154,12 @@ for i in outputNames:
 					pluginData[optionalField]=outputConfig.get(i,optionalField)
 			instClass = outputClass(pluginData)
 			instClass.async = async
-			outputPlugins.append(instClass)
-			print ("Success: Loaded output plugin " + i)
+			# check for a outputData function
+			if callable(getattr(instClass, "outputData", None)):
+				outputPlugins.append(instClass)
+				print ("Success: Loaded output plugin " + i)
+			else:
+				print ("Success: Loaded support plugin " + i)
 	except Exception as e: #add specific exception for missing module
 		print("Error: Did not import output plugin " + i )
 		raise e

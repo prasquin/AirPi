@@ -1,14 +1,21 @@
 import output
 import datetime
+import calibration
 
 class Print(output.Output):
 	requiredData = []
-	optionalData = []
+	optionalData = ["calibration"]
+
 	def __init__(self,data):
-		pass
+		self.cal = calibration.Calibration.sharedClass
+		self.docal = calibration.calCheck(data)
+
 	def outputData(self,dataPoints):
-		print ""
+		if self.docal == 1:
+			dataPoints = self.cal.calibrate(dataPoints)
+
 		print "Time: " + str(datetime.datetime.now())
 		for i in dataPoints:
 			print i["name"] + ": " + str(i["value"]) + " " + i["symbol"]
+		print ""
 		return True
