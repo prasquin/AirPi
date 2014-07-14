@@ -9,7 +9,8 @@ import ConfigParser
 import time
 import inspect
 import os
-from sys import exit
+import signal
+import sys
 from math import isnan
 from sensors import sensor
 from outputs import output
@@ -31,6 +32,12 @@ cfgdir = "/home/pi/AirPi"
 sensorcfg = os.path.join(cfgdir, 'sensors.cfg')
 outputscfg = os.path.join(cfgdir, 'outputs.cfg')
 settingscfg = os.path.join(cfgdir, 'settings.cfg')
+
+def signal_handler(signal, frame):
+        print os.linesep
+	print("Stopping sampling as requested...")
+        sys.exit(0)
+
 
 def get_subclasses(mod,cls):
     for name, obj in inspect.getmembers(mod):
@@ -220,13 +227,27 @@ mainConfig = ConfigParser.SafeConfigParser()
 mainConfig.read(settingscfg)
 
 lastUpdated = 0
-delayTime = mainConfig.getfloat("Main", "uploadDelay")
+delayTime = mainConfig.getfloat("Main", "sampleFreq")
 redPin = mainConfig.getint("Main", "redPin")
 greenPin = mainConfig.getint("Main", "greenPin")
+printErrors = mainConfig.getboolean("Main","printErrors")
+successLED = mainConfig.get("Main","successLED")
+failLED = mainConfig.get("Main","failLED")
+outputSuccessSoFar = False
+outputFailSoFar = False
+
 if redPin:
     GPIO.setup(redPin,GPIO.OUT,initial = GPIO.LOW)
 if greenPin:
     GPIO.setup(greenPin,GPIO.OUT,initial = GPIO.LOW)
+
+print "Success: Setup complete - starting to sample..."
+print "Press Ctrl + C to stop sampling."
+
+# Register the signal handler
+signal.signal(signal.SIGINT, signal_handler)
+
+
 while True:
     try:
         curTime = time.time()
@@ -263,15 +284,17 @@ while True:
                 for i in outputPlugins:
                     working = working and i.outputData(data)
                 if working:
-                    print "Uploaded successfully"
-                    logger.info("Uploaded successfully")
-                    if greenPin:
+                    logger.info("SUCCESS: Data output in all requested formats.")
+                    if greenPin and (successLED == "all") or (successLED == "first" and outputSuccessSoFar == False):
                         GPIO.output(greenPin, GPIO.HIGH)
+			outputSuccessSoFar = True
                 else:
-                    print "Failed to upload"
-                    logger.info("Failed to upload")
-                    if redPin:
+		    if printErrors == True:
+                    	print "ERROR: Failed to output in all requested formats."
+                    logger.info("Failed to output in all requested formats.")
+                    if redPin and (failLED == "all") or (failLED == "first" and outputFailSoFar == False) or (failLED == "constant"):
                         GPIO.output(redPin, GPIO.HIGH)
+			outputFailSoFar = True
             except KeyboardInterrupt:
                 raise
             except Exception as e:
@@ -281,7 +304,7 @@ while True:
                 time.sleep(1)
                 if greenPin:
                     GPIO.output(greenPin, GPIO.LOW)
-                if redPin:
+                if redPin and failLED != "constant":
                     GPIO.output(redPin, GPIO.LOW)
             try:
                 time.sleep(delayTime-(time.time()-curTime)-0.01)

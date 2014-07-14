@@ -9,6 +9,7 @@ import calibration
 import numpy
 import re
 import csv
+import socket
 
 # useful resources:
 # http://unixunique.blogspot.co.uk/2011/06/simple-python-http-web-server.html
@@ -79,13 +80,24 @@ class HTTP(output.Output):
 		else:
 			self.historyCalibrated = 0
 
+                if socket.gethostname().find('.')>=0:
+                       	hostname = socket.gethostname()
+                else:
+                       	hostname = socket.gethostbyaddr(socket.gethostname())[0]
+
 		if "title" in data:
-			self.title = data["title"]
+			if "<hostname>" in data["title"]:
+                 		self.title = data["title"].replace("<hostname>", hostname)
+  			else:
+				self.title = data["title"]
 		else:
 			self.title = "AirPi"
 
 		if "about" in data:
-			self.about = data["about"]
+                        if "<hostname>" in data["about"]:
+ 	               		self.about = data["about"].replace("<hostname>", hostname)
+ 			else:
+				self.about = data["about"]
 		else:
 			self.about = "An AirPi weather station."
 

@@ -2,12 +2,22 @@ import output
 import datetime
 import time
 import calibration
+import socket
 
 class CSVOutput(output.Output):
 	requiredData = ["outputFile"]
 	optionalData = ["calibration"]
 
 	def __init__(self,data):
+		if "<date>" in data["outputFile"]:
+                        filenamedate = time.strftime("%Y%m%d-%H%M")
+                        data["outputFile"] = data["outputFile"].replace("<date>", filenamedate)
+ 		if "<hostname>" in data["outputFile"]:
+                        if socket.gethostname().find('.')>=0:
+                                filenamehost = socket.gethostname()
+                        else:
+                                filenamehost = socket.gethostbyaddr(socket.gethostname())[0]
+                	data["outputFile"] = data["outputFile"].replace("<hostname>", filenamehost)
 		# open the file persistently for append
 		self.file = open(data["outputFile"], "a")
 		# write a header line so we know which sensor is which?
