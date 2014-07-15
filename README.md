@@ -11,8 +11,8 @@ Some of the files are based off code for the Raspberry Pi written by Adafruit: h
 
 For installation instructions, see airpi.es/kit.php
 
-Changes
---------
+Changes - Fred Sonnenwald
+-------------------------
 This development branch of the AirPi code adds several features and bugfixes that I've developed as part of my http://pi.gate.ac.uk/ AirPi project.
 
 It additionally incorporates changes by Jon Hogg (jncl), which include code cleanups, error logging, and GPS sensor support.
@@ -38,3 +38,18 @@ Bugfixes:
 * Don't just ignore failed readings (record 0 instead)
 * High CPU usage
 * Hopefully fixed an issue with readings hanging on DHT22
+
+
+Changes - Haydn Williams
+------------------------
+It additionally incorporates changes by Haydn Williams (github.com/haydnw), which include the following:
+
+* Greater control of LED behaviour.
+* Can disable error messages printed to screen.
+* Can print to screen in CSV format.
+* Standard print-to-screen format tidied up and made more digestable.
+* Can automatically name CSV files and HTTP titles using date and hostname.
+* Added ThingSpeak integration.
+* Rounded Xively output to 2dp.
+* Can kill the process a bit more nicely using Ctrl+C.
+* Output modules requiring internet access will not be loaded if there is no connection available.
