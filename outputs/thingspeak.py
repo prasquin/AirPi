@@ -3,7 +3,7 @@ import requests
 import calibration
 
 class Thingspeak(output.Output):
-	requiredData = ["APIKey"]
+	requiredData = ["APIKey","needsinternet"]
 	optionalData = ["calibration"]
 
 	def __init__(self,data):
@@ -25,7 +25,7 @@ class Thingspeak(output.Output):
 			z = requests.get(url, params=arr)
 			if z.text=="0": 
 				print "ThingSpeak Error: " + z.text
-				print "URL: " + z.url
+				print "ThingSpeak URL: " + z.url
 				return False
 		except Exception:
 			return False

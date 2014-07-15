@@ -6,7 +6,7 @@ import json
 import calibration
 
 class Xively(output.Output):
-	requiredData = ["APIKey","FeedID"]
+	requiredData = ["APIKey","FeedID","needsinternet"]
 	optionalData = ["calibration"]
 
 	def __init__(self,data):

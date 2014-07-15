@@ -11,6 +11,7 @@ import inspect
 import os
 import signal
 import sys
+import urllib2
 from math import isnan
 from sensors import sensor
 from outputs import output
@@ -38,12 +39,17 @@ def signal_handler(signal, frame):
 	print("Stopping sampling as requested...")
         sys.exit(0)
 
-
 def get_subclasses(mod,cls):
     for name, obj in inspect.getmembers(mod):
         if hasattr(obj, "__bases__") and cls in obj.__bases__:
             return obj
 
+def check_conn():
+    try:
+	urllib2.urlopen("http://www.google.com", timeout=5)
+	return True
+    except urllib2.URLError as err: pass
+    return False
 
 if not os.path.isfile(sensorcfg):
     print "Unable to access config file: sensors.cfg"
@@ -185,7 +191,7 @@ for i in outputNames:
                 opt = []
 
             if outputConfig.has_option(i, "async"):
-                async = outputConfig.getbool(i, "async")
+                async = outputConfig.getboolean(i, "async")
             else:
                 async = False
 
@@ -203,16 +209,23 @@ for i in outputNames:
             for optionalField in opt:
                 if outputConfig.has_option(i, optionalField):
                     pluginData[optionalField] = outputConfig.get(i, optionalField)
-            instClass = outputClass(pluginData)
-            instClass.async = async
-            # check for a outputData function
-            if callable(getattr(instClass, "outputData", None)):
-                outputPlugins.append(instClass)
-                print ("Success: Loaded output plugin " + i)
-                logger.info("Success: Loaded output plugin %s" % i)
+	    
+	    if ((outputConfig.has_option(i, "needsinternet") == True) and (outputConfig.getboolean(i, "needsinternet") == True) and (check_conn() == False)):
+		print ("ERROR: Skipping output plugin " + i + " because no internet connectivity.")
+		logger.info("ERROR: Skipping output plugin " + i + " because no internet connectivity.")
             else:
-                print ("Success: Loaded support plugin " + i)
-                logger.info("Success: Loaded support plugin %s" % i)
+    		instClass = outputClass(pluginData)
+       		instClass.async = async
+
+                # check for a outputData function
+       		if callable(getattr(instClass, "outputData", None)):
+              		outputPlugins.append(instClass)
+               		print ("Success: Loaded output plugin " + i)
+               		logger.info("Success: Loaded output plugin %s" % i)
+       		else:
+               		print ("Success: Loaded support plugin " + i)
+               		logger.info("Success: Loaded support plugin %s" % i)
+
     except Exception as e: #add specific exception for missing module
         print("Error: Did not import output plugin " + i)
         logger.error("Error: Did not import output plugin %s" % i)
