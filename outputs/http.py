@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import output
 import os
 import BaseHTTPServer
