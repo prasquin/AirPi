@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-#This file takes in inputs from a variety of sensor files, and outputs information to a variety of services
+"""This file takes in inputs from a variety of sensor files,
+   and outputs information to a variety of services.
+
+"""
 import sys
 sys.dont_write_bytecode = True
 
@@ -10,7 +13,6 @@ import time
 import inspect
 import os
 import signal
-import sys
 import urllib2
 from math import isnan
 from sensors import sensor
@@ -34,26 +36,55 @@ sensorcfg = os.path.join(cfgdir, 'sensors.cfg')
 outputscfg = os.path.join(cfgdir, 'outputs.cfg')
 settingscfg = os.path.join(cfgdir, 'settings.cfg')
 
-def signal_handler(signal, frame):
-        print os.linesep
-	print("Stopping sampling as requested...")
-        sys.exit(0)
+def interrupt_handler(signal, frame):
+    """Handle the Ctrl+C KeyboardInterrupt by exiting."""
+    if gpsPluginInstance:
+        gpsPluginInstance.stopController()
+    print os.linesep
+    print("Stopping sampling as requested...")
+    sys.exit(1)
 
-def get_subclasses(mod,cls):
+def get_subclasses(mod, cls):
+    """Load subclasses for a module.
+
+    Load the named subclasses for a specified module.
+
+    Args:
+        mod: Module from which subclass should be loaded.
+        cls: Subclass to load
+
+    Returns:
+        The subclass.
+
+    """
     for name, obj in inspect.getmembers(mod):
         if hasattr(obj, "__bases__") and cls in obj.__bases__:
             return obj
 
 def check_conn():
+    """Check internet connectivity.
+
+    Check whether there is internet connectivity by trying to connect to a website.
+
+    Returns:
+        Boolean True if successfully connects to the site within five seconds.
+        Boolean False if fails to connect to the site within five seconds.
+
+    """
     try:
-	urllib2.urlopen("http://www.google.com", timeout=5)
-	return True
-    except urllib2.URLError as err: pass
+        urllib2.urlopen("http://www.google.com", timeout=5)
+        return True
+    except urllib2.URLError as err:
+        pass
     return False
+
+class MissingField(Exception):
+    """Exception to be raised when an imported plugin is missing a required field.  """
+    pass
 
 if not os.path.isfile(sensorcfg):
     print "Unable to access config file: sensors.cfg"
-    logger.error("Unable to access config file: %s" % sensorscfg)
+    logger.error("Unable to access config file: %s" % sensorcfg)
     exit(1)
 
 sensorConfig = ConfigParser.SafeConfigParser()
@@ -66,6 +97,7 @@ GPIO.setmode(GPIO.BCM) #Use BCM GPIO numbers.
 
 sensorPlugins = []
 gpsPluginInstance = None
+
 for i in sensorNames:
     try:
         try:
@@ -93,8 +125,9 @@ for i in sensorNames:
                 if sensorClass == None:
                     raise AttributeError
             except Exception:
-                print("Error: could not find a subclass of sensor.Sensor in module " + filename)
-                logger.error("Error: could not find a subclass of sensor.Sensor in module %s" % filename)
+                msg = "Error: could not find a subclass of sensor.Sensor in module + filename"
+                print(msg)
+                logger.error(msg)
                 raise
 
             try:
@@ -108,14 +141,14 @@ for i in sensorNames:
 
             pluginData = {}
 
-            class MissingField(Exception): pass
-
             for requiredField in reqd:
                 if sensorConfig.has_option(i, requiredField):
                     pluginData[requiredField] = sensorConfig.get(i, requiredField)
                 else:
-                    print "Error: Missing required field '" + requiredField + "' for sensor plugin " + i
-                    logger.error("Error: Missing required field %s for sensor plugin %s" % (requiredField, i))
+                    msg = "Error: Missing required field '" + requiredField
+                    msg = msg + "' for sensor plugin " + i
+                    print(msg)
+                    logger.error(msg)
                     raise MissingField
             for optionalField in opt:
                 if sensorConfig.has_option(i, optionalField):
@@ -178,8 +211,9 @@ for i in outputNames:
                 if outputClass == None:
                     raise AttributeError
             except Exception:
-                print("Error: could not find a subclass of output.Output in module " + filename)
-                logger.error("Error: could not find a subclass of output.Output in module %s" % filename)
+                msg = "Error: could not find a subclass of output.Output in module " + filename
+                print(msg)
+                logger.error(msg)
                 raise
             try:
                 reqd = outputClass.requiredData
@@ -197,34 +231,35 @@ for i in outputNames:
 
             pluginData = {}
 
-            class MissingField(Exception): pass
-
             for requiredField in reqd:
                 if outputConfig.has_option(i, requiredField):
                     pluginData[requiredField] = outputConfig.get(i, requiredField)
                 else:
-                    print "Error: Missing required field '" + requiredField + "' for output plugin " + i
-                    logger.error("Error: Missing required field %s for output plugin %s" % (requiredField, i))
+                    msg = "Error: Missing required field '" + requiredField
+                    msg = msg + "' for output plugin " + i
+                    print(msg)
+                    logger.error(msg)
                     raise MissingField
             for optionalField in opt:
                 if outputConfig.has_option(i, optionalField):
                     pluginData[optionalField] = outputConfig.get(i, optionalField)
-	    
-	    if ((outputConfig.has_option(i, "needsinternet") == True) and (outputConfig.getboolean(i, "needsinternet") == True) and (check_conn() == False)):
-		print ("ERROR: Skipping output plugin " + i + " because no internet connectivity.")
-		logger.info("ERROR: Skipping output plugin " + i + " because no internet connectivity.")
+
+            if outputConfig.has_option(i, "needsinternet") and outputConfig.getboolean(i, "needsinternet") and not check_conn():
+                msg = "Error: Skipping output plugin " + i + " because no internet connectivity."
+                print (msg)
+                logger.info(msg)
             else:
-    		instClass = outputClass(pluginData)
-       		instClass.async = async
+                instClass = outputClass(pluginData)
+                instClass.async = async
 
                 # check for a outputData function
-       		if callable(getattr(instClass, "outputData", None)):
-              		outputPlugins.append(instClass)
-               		print ("Success: Loaded output plugin " + i)
-               		logger.info("Success: Loaded output plugin %s" % i)
-       		else:
-               		print ("Success: Loaded support plugin " + i)
-               		logger.info("Success: Loaded support plugin %s" % i)
+                if callable(getattr(instClass, "outputData", None)):
+                    outputPlugins.append(instClass)
+                    print ("Success: Loaded output plugin " + i)
+                    logger.info("Success: Loaded output plugin %s" % i)
+                else:
+                    print ("Success: Loaded support plugin " + i)
+                    logger.info("Success: Loaded support plugin %s" % i)
 
     except Exception as e: #add specific exception for missing module
         print("Error: Did not import output plugin " + i)
@@ -250,15 +285,15 @@ outputSuccessSoFar = False
 outputFailSoFar = False
 
 if redPin:
-    GPIO.setup(redPin,GPIO.OUT,initial = GPIO.LOW)
+    GPIO.setup(redPin, GPIO.OUT, initial = GPIO.LOW)
 if greenPin:
-    GPIO.setup(greenPin,GPIO.OUT,initial = GPIO.LOW)
+    GPIO.setup(greenPin, GPIO.OUT, initial = GPIO.LOW)
 
 print "Success: Setup complete - starting to sample..."
 print "Press Ctrl + C to stop sampling."
 
 # Register the signal handler
-signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGINT, interrupt_handler)
 
 
 while True:
@@ -297,17 +332,17 @@ while True:
                 for i in outputPlugins:
                     working = working and i.outputData(data)
                 if working:
-                    logger.info("SUCCESS: Data output in all requested formats.")
-                    if greenPin and (successLED == "all") or (successLED == "first" and outputSuccessSoFar == False):
+                    logger.info("Success: Data output in all requested formats.")
+                    if greenPin and (successLED == "all" or (successLED == "first" and not outputSuccessSoFar)):
                         GPIO.output(greenPin, GPIO.HIGH)
-			outputSuccessSoFar = True
+                    outputSuccessSoFar = True
                 else:
-		    if printErrors == True:
-                    	print "ERROR: Failed to output in all requested formats."
+                    if printErrors:
+                        print "Error: Failed to output in all requested formats."
                     logger.info("Failed to output in all requested formats.")
-                    if redPin and (failLED == "all") or (failLED == "first" and outputFailSoFar == False) or (failLED == "constant"):
+                    if redPin and (failLED in ["all", "constant"] or (failLED == "first" and not outputFailSoFar)):
                         GPIO.output(redPin, GPIO.HIGH)
-			outputFailSoFar = True
+                    outputFailSoFar = True
             except KeyboardInterrupt:
                 raise
             except Exception as e:
@@ -326,7 +361,4 @@ while True:
             except Exception:
                 pass # fall back on old method...
     except KeyboardInterrupt:
-        print "KeyboardInterrupt detected"
-        if gpsPluginInstance:
-            gpsPluginInstance.stopController()
-        exit(1)
+        interrupt_handler()
