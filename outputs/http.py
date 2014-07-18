@@ -102,8 +102,8 @@ class HTTP(output.Output):
 			self.about = "An AirPi weather station."
 
 		self.cal = calibration.Calibration.sharedClass
-		self.docal = calibration.calCheck(data)
-		self.sensorIds = []
+		self.docal = self.checkCal(data)
+                self.sensorIds = []
 		self.readingTypes = dict()
 		self.historicData = []
 		self.historicAt = 0

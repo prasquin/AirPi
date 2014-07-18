@@ -9,7 +9,7 @@ class Print(output.Output):
 
     def __init__(self,data):
         self.cal = calibration.Calibration.sharedClass
-        self.docal = calibration.calCheck(data)
+        self.docal = self.checkCal(data)
 	self.format = data["format"]
 
     def outputData(self,dataPoints):

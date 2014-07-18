@@ -9,7 +9,7 @@ class Thingspeak(output.Output):
 	def __init__(self,data):
 		self.APIKey=data["APIKey"]
 		self.cal = calibration.Calibration.sharedClass
-		self.docal = calibration.calCheck(data)
+                self.docal = self.checkCal(data)
 
 	def outputData(self,dataPoints):
 		if self.docal == 1:

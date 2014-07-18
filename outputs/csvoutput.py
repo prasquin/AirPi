@@ -23,7 +23,7 @@ class CSVOutput(output.Output):
 		# write a header line so we know which sensor is which?
 		self.header = False;
 		self.cal = calibration.Calibration.sharedClass
-		self.docal = calibration.calCheck(data)
+                self.docal = self.checkCal(data)
 
 	def outputData(self,dataPoints):
 		if self.docal == 1:

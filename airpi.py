@@ -4,6 +4,10 @@
    and outputs information to a variety of services.
 
 """
+
+#TODO: Warn if no outputs enabeld
+#TODO: Put metadata into files or print
+
 import sys
 sys.dont_write_bytecode = True
 
@@ -14,12 +18,11 @@ import inspect
 import os
 import signal
 import urllib2
+import logging, logging.handlers
 from math import isnan
 from sensors import sensor
 from outputs import output
 
-# add logging support
-import logging, logging.handlers
 LOG_FILENAME = os.path.join("/home/pi/AirPi" , 'airpi.log')
 # Set up a specific logger with our desired output level
 logger = logging.getLogger(__name__)
@@ -30,6 +33,7 @@ logger.addHandler(handler)
 # create formatter and add it to the handler
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
+logging.basicConfig(level=logging.DEBUG)
 
 cfgdir = "/home/pi/AirPi"
 sensorcfg = os.path.join(cfgdir, 'sensors.cfg')

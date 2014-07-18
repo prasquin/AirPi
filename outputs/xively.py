@@ -11,7 +11,7 @@ class Xively(output.Output):
 		self.APIKey=data["APIKey"]
 		self.FeedID=data["FeedID"]
 		self.cal = calibration.Calibration.sharedClass
-		self.docal = calibration.calCheck(data)
+                self.docal = self.checkCal(data)
 
 	def outputData(self,dataPoints):
 		if self.docal == 1:
