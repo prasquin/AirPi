@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import output
 import requests
 import json
