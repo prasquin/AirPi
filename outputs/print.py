@@ -4,13 +4,13 @@ import time
 import calibration
 
 class Print(output.Output):
-    requiredData = ["format"]
-    optionalData = ["calibration"]
+    requiredParams = ["format"]
+    optionalParams = ["calibration"]
 
-    def __init__(self,data):
+    def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkCal(data)
-	self.format = data["format"]
+        self.docal = self.checkCal(params)
+	self.format = params["format"]
 
     def outputData(self,dataPoints):
         if self.docal == 1:

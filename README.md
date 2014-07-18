@@ -53,3 +53,7 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
 * Rounded Xively output to 2dp.
 * Can kill the process a bit more nicely using Ctrl+C.
 * Output modules requiring internet access will not be loaded if there is no connection available.
+* Code tidying:
+  * Moved the check whether calibration is required into a super function called from each output subclass now.
+  * Made multiple changes to all .py files in line with Pylint recommendations as per PEP 8 style guide.
+  * Renamed 'data' to 'params' in output subclasses, to reflect their true nature and reduce confusion with data produced by sensors.

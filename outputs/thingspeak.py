@@ -3,15 +3,15 @@ import requests
 import calibration
 
 class Thingspeak(output.Output):
-	requiredData = ["APIKey","needsinternet"]
-	optionalData = ["calibration"]
+	requiredParams = ["APIKey","needsinternet"]
+	optionalParams = ["calibration"]
 
-	def __init__(self,data):
-		self.APIKey=data["APIKey"]
+	def __init__(self, params):
+		self.APIKey=params["APIKey"]
 		self.cal = calibration.Calibration.sharedClass
-                self.docal = self.checkCal(data)
+                self.docal = self.checkCal(params)
 
-	def outputData(self,dataPoints):
+	def outputData(self, dataPoints):
 		if self.docal == 1:
 			dataPoints = self.cal.calibrate(dataPoints)
 		arr ={} 

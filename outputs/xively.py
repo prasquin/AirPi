@@ -4,16 +4,16 @@ import json
 import calibration
 
 class Xively(output.Output):
-	requiredData = ["APIKey","FeedID","needsinternet"]
-	optionalData = ["calibration"]
+	requiredParams = ["APIKey","FeedID","needsinternet"]
+	optionalParams = ["calibration"]
 
-	def __init__(self,data):
-		self.APIKey=data["APIKey"]
-		self.FeedID=data["FeedID"]
+	def __init__(self, params):
+		self.APIKey=params["APIKey"]
+		self.FeedID=params["FeedID"]
 		self.cal = calibration.Calibration.sharedClass
-                self.docal = self.checkCal(data)
+                self.docal = self.checkCal(params)
 
-	def outputData(self,dataPoints):
+	def outputData(self, dataPoints):
 		if self.docal == 1:
 			dataPoints = self.cal.calibrate(dataPoints)
 		arr = []

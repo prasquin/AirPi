@@ -22,8 +22,8 @@ import socket
 # http://bytes.com/topic/python/answers/158332-persistent-xmlrpc-connection
 
 class HTTP(output.Output):
-	requiredData = ["wwwPath"]
-	optionalData = ["port", "history", "title", "about", "calibration", "historySize", "historyInterval", "historyCalibrated", "httpVersion"]
+	requiredParams = ["wwwPath"]
+	optionalParams = ["port", "history", "title", "about", "calibration", "historySize", "historyInterval", "historyCalibrated", "httpVersion"]
 
 	details = """
 <div class="panel panel-default">
@@ -42,36 +42,36 @@ class HTTP(output.Output):
 
 	rssItem = "<item><title>$sensorName$</title><description>$reading$ $units$</description></item>\n"
 
-	def __init__(self,data):
-		self.www = data["wwwPath"]
+	def __init__(self, params):
+		self.www = params["wwwPath"]
 
-		if "port" in data:
-			self.port = int(data["port"])
+		if "port" in params:
+			self.port = int(params["port"])
 		else:
 			self.port = 8080
 
-		if "history" in data:
-			if data["history"].lower() in ["off","false","0","no"]:
+		if "history" in params:
+			if params["history"].lower() in ["off","false","0","no"]:
 				self.history = 0
-			elif os.path.isfile(data["history"]):
+			elif os.path.isfile(params["history"]):
 				#it's a file to load, check if it exists
 				self.history = 2
-				self.historyFile = data["history"];
+				self.historyFile = params["history"];
 			else:
 				# short-term history
 				self.history = 1
 		else:
 			self.history = 0
-		if "historySize" in data:
-			self.historySize = int(data["historySize"])
+		if "historySize" in params:
+			self.historySize = int(params["historySize"])
 		else:
 			self.historySize = 2880
-		if "historyInterval" in data:
-			self.historyInterval = int(data["historyInterval"])
+		if "historyInterval" in params:
+			self.historyInterval = int(params["historyInterval"])
 		else:
 			self.historyInterval = 30
-		if "historyCalibrated" in data:
-			if data["historyCalibrated"].lower() in ["on","true","1","yes"]:
+		if "historyCalibrated" in params:
+			if params["historyCalibrated"].lower() in ["on","true","1","yes"]:
 				self.historyCalibrated = 1
 				self.cal = calibration.Calibration.sharedClass
 			else:
@@ -85,24 +85,24 @@ class HTTP(output.Output):
                 else:
                        	hostname = socket.gethostbyaddr(socket.gethostname())[0]
 
-		if "title" in data:
-			if "<hostname>" in data["title"]:
-                 		self.title = data["title"].replace("<hostname>", hostname)
+		if "title" in params:
+			if "<hostname>" in params["title"]:
+                 		self.title = params["title"].replace("<hostname>", hostname)
   			else:
-				self.title = data["title"]
+				self.title = params["title"]
 		else:
 			self.title = "AirPi"
 
-		if "about" in data:
-                        if "<hostname>" in data["about"]:
- 	               		self.about = data["about"].replace("<hostname>", hostname)
+		if "about" in params:
+                        if "<hostname>" in params["about"]:
+ 	               		self.about = params["about"].replace("<hostname>", hostname)
  			else:
-				self.about = data["about"]
+				self.about = params["about"]
 		else:
 			self.about = "An AirPi weather station."
 
 		self.cal = calibration.Calibration.sharedClass
-		self.docal = self.checkCal(data)
+		self.docal = self.checkCal(params)
                 self.sensorIds = []
 		self.readingTypes = dict()
 		self.historicData = []
@@ -111,7 +111,7 @@ class HTTP(output.Output):
 		self.tempHistoryAt = 0
 
 		self.handler = requestHandler
-		if "httpVersion" in data and data["httpVersion"] == "1.1":
+		if "httpVersion" in params and params["httpVersion"] == "1.1":
 			self.handler.protocol_version = "HTTP/1.1"
 		# else it's automatically 1.0
 		self.server = httpServer(self, ("", self.port), self.handler)
@@ -375,6 +375,3 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 				self.connection.shutdown(1)
 		else:
 			self.wfile.close()
-
-
-

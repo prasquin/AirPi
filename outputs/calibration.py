@@ -8,17 +8,17 @@ Calibration terms are specified in the AirPi settings config file (usually AirPi
 import output
 
 class Calibration(output.Output):
-    requiredData = []
-    optionalData = ["Light_Level", "Air_Quality", "Nitrogen_Dioxide", "Carbon_Monoxide", "Volume", "UVI", "Bucket_tips"]
+    requiredParams = []
+    optionalParams = ["Light_Level", "Air_Quality", "Nitrogen_Dioxide", "Carbon_Monoxide", "Volume", "UVI", "Bucket_tips"]
     sharedClass = None
 
-    def __init__(self, data):
+    def __init__(self, params):
         self.calibrations = []
         self.last = []
         self.lastpassed = []
-        for i in self.optionalData:
+        for i in self.optionalParams:
             if i in data:
-                [f, s] = data[i].rsplit(',', 1)
+                [f, s] = params[i].rsplit(',', 1)
                 self.calibrations.append({'name': i, 'function': eval("lambda x: " + f), 'symbol': s})
 
         if Calibration.sharedClass == None:

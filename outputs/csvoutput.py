@@ -5,25 +5,25 @@ import calibration
 import socket
 
 class CSVOutput(output.Output):
-	requiredData = ["outputFile"]
-	optionalData = ["calibration"]
+	requiredParams = ["outputFile"]
+	optionalParams = ["calibration"]
 
-	def __init__(self,data):
-		if "<date>" in data["outputFile"]:
+	def __init__(self, params):
+		if "<date>" in params["outputFile"]:
                         filenamedate = time.strftime("%Y%m%d-%H%M")
-                        data["outputFile"] = data["outputFile"].replace("<date>", filenamedate)
- 		if "<hostname>" in data["outputFile"]:
+                        params["outputFile"] = params["outputFile"].replace("<date>", filenamedate)
+ 		if "<hostname>" in params["outputFile"]:
                         if socket.gethostname().find('.')>=0:
                                 filenamehost = socket.gethostname()
                         else:
                                 filenamehost = socket.gethostbyaddr(socket.gethostname())[0]
-                	data["outputFile"] = data["outputFile"].replace("<hostname>", filenamehost)
+                	params["outputFile"] = params["outputFile"].replace("<hostname>", filenamehost)
 		# open the file persistently for append
-		self.file = open(data["outputFile"], "a")
+		self.file = open(params["outputFile"], "a")
 		# write a header line so we know which sensor is which?
 		self.header = False;
 		self.cal = calibration.Calibration.sharedClass
-                self.docal = self.checkCal(data)
+                self.docal = self.checkCal(params)
 
 	def outputData(self,dataPoints):
 		if self.docal == 1:

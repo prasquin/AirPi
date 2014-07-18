@@ -23,7 +23,12 @@ from math import isnan
 from sensors import sensor
 from outputs import output
 
-LOG_FILENAME = os.path.join("/home/pi/AirPi" , 'airpi.log')
+cfgdir = "/home/pi/AirPi"
+sensorcfg = os.path.join(cfgdir, 'sensors.cfg')
+outputscfg = os.path.join(cfgdir, 'outputs.cfg')
+settingscfg = os.path.join(cfgdir, 'settings.cfg')
+
+LOG_FILENAME = os.path.join(cfgdir, 'airpi.log')
 # Set up a specific logger with our desired output level
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -34,11 +39,6 @@ logger.addHandler(handler)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logging.basicConfig(level=logging.DEBUG)
-
-cfgdir = "/home/pi/AirPi"
-sensorcfg = os.path.join(cfgdir, 'sensors.cfg')
-outputscfg = os.path.join(cfgdir, 'outputs.cfg')
-settingscfg = os.path.join(cfgdir, 'settings.cfg')
 
 def interrupt_handler(signal, frame):
     """Handle the Ctrl+C KeyboardInterrupt by exiting."""
