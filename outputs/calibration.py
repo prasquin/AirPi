@@ -17,7 +17,7 @@ class Calibration(output.Output):
         self.last = []
         self.lastpassed = []
         for i in self.optionalParams:
-            if i in data:
+            if i in params:
                 [f, s] = params[i].rsplit(',', 1)
                 self.calibrations.append({'name': i, 'function': eval("lambda x: " + f), 'symbol': s})
 

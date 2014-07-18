@@ -22,11 +22,13 @@ import logging, logging.handlers
 from math import isnan
 from sensors import sensor
 from outputs import output
+from alerts import alert
 
 cfgdir = "/home/pi/AirPi"
 sensorcfg = os.path.join(cfgdir, 'sensors.cfg')
 outputscfg = os.path.join(cfgdir, 'outputs.cfg')
 settingscfg = os.path.join(cfgdir, 'settings.cfg')
+alertscfg = os.path.join(cfgdir, 'alerts.cfg')
 
 LOG_FILENAME = os.path.join(cfgdir, 'airpi.log')
 # Set up a specific logger with our desired output level
@@ -38,12 +40,15 @@ logger.addHandler(handler)
 # create formatter and add it to the handler
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
-logging.basicConfig(level=logging.DEBUG)
+# Uncomment below for more verbose logging output
+#logging.basicConfig(level=logging.DEBUG)
 
 def interrupt_handler(signal, frame):
     """Handle the Ctrl+C KeyboardInterrupt by exiting."""
     if gpsPluginInstance:
         gpsPluginInstance.stopController()
+    GPIO.output(greenPin, GPIO.LOW)
+    GPIO.output(redPin, GPIO.LOW)
     print os.linesep
     print("Stopping sampling as requested...")
     sys.exit(1)
@@ -219,22 +224,21 @@ for i in outputNames:
                 print(msg)
                 logger.error(msg)
                 raise
+
             try:
-                reqd = outputClass.requiredData
+                reqd = outputClass.requiredParams
             except Exception:
                 reqd = []
             try:
-                opt = outputClass.optionalData
+                opt = outputClass.optionalParams
             except Exception:
                 opt = []
-
             if outputConfig.has_option(i, "async"):
                 async = outputConfig.getboolean(i, "async")
             else:
                 async = False
 
             pluginData = {}
-
             for requiredField in reqd:
                 if outputConfig.has_option(i, requiredField):
                     pluginData[requiredField] = outputConfig.get(i, requiredField)
@@ -269,6 +273,109 @@ for i in outputNames:
         print("Error: Did not import output plugin " + i)
         logger.error("Error: Did not import output plugin %s" % i)
         raise e
+
+if not outputPlugins:
+    msg = "There are no output plugins enabled! Please enable at least one in outputs.cfg and try again."
+    print(msg)
+    logger.error(msg)
+    sys.exit(1)
+
+if not os.path.isfile(alertscfg):
+    print "Unable to access config file: alerts.cfg"
+    logger.error("Unable to access config file: %s" % alertscfg)
+    exit(1)
+
+alertConfig = ConfigParser.SafeConfigParser()
+alertConfig.read(alertscfg)
+
+alertNames = alertConfig.sections()
+
+alertPlugins = []
+
+for i in alertNames:
+    try:
+        try:
+            filename = alertConfig.get(i, "filename")
+        except Exception:
+            print("Error: no filename config option found for alert plugin " + i)
+            logger.error("Error: no filename config option found for alert plugin %s" % i)
+            raise
+        try:
+            enabled = alertConfig.getboolean(i, "enabled")
+        except Exception:
+            enabled = True
+
+        #if enabled, load the plugin
+        if enabled:
+            try:
+                mod = __import__('alerts.' + filename, fromlist = ['a']) #Why does this work?
+            except Exception:
+                print("Error: could not import alert module " + filename)
+                logger.error("Error: could not import alert module %s" % filename)
+                raise
+
+            try:
+                alertClass = get_subclasses(mod, alert.Alert)
+                if alertClass == None:
+                    raise AttributeError
+            except Exception:
+                msg = "Error: could not find a subclass of alert.Alert in module " + filename
+                print(msg)
+                logger.error(msg)
+                raise
+            try:
+                reqd = alertClass.requiredParams
+            except Exception:
+                reqd = []
+            try:
+                opt = alertClass.optionalParams
+            except Exception:
+                opt = []
+
+            if alertConfig.has_option(i, "async"):
+                async = alertConfig.getboolean(i, "async")
+            else:
+                async = False
+
+            pluginData = {}
+
+            for requiredField in reqd:
+                if alertConfig.has_option(i, requiredField):
+                    pluginData[requiredField] = alertConfig.get(i, requiredField)
+                else:
+                    msg = "Error: Missing required field '" + requiredField
+                    msg = msg + "' for alert plugin " + i
+                    print(msg)
+                    logger.error(msg)
+                    raise MissingField
+
+            for optionalField in opt:
+                if alertConfig.has_option(i, optionalField):
+                    pluginData[optionalField] = alertConfig.get(i, optionalField)
+
+            if alertConfig.has_option(i, "needsinternet") and alertConfig.getboolean(i, "needsinternet") and not check_conn():
+                msg = "Error: Skipping alert plugin " + i + " because no internet connectivity."
+                print (msg)
+                logger.info(msg)
+            else:
+                instClass = alertClass(pluginData)
+                instClass.async = async
+
+                # check for a sendAlert function
+                if callable(getattr(instClass, "sendAlert", None)):
+                    alertPlugins.append(instClass)
+                    print ("Success: Loaded alert plugin " + i)
+                    logger.info("Success: Loaded alert plugin %s" % i)
+                else:
+                    print ("Error: no callable alert function for alert plugin " + i)
+                    logger.info("Error: no callable alert function for alert plugin " + i)
+
+    except Exception as e:
+        print("Error: Did not import alert plugin " + i)
+        logger.error("Error: Did not import alert plugin " + i)
+        raise e
+
+
 
 if not os.path.isfile(settingscfg):
     print "Unable to access config file: settings.cfg"
@@ -341,6 +448,9 @@ while True:
                         GPIO.output(greenPin, GPIO.HIGH)
                     outputSuccessSoFar = True
                 else:
+                    if not outputFailSoFar:
+                        for j in alertPlugins:
+                            j.sendAlert()
                     if printErrors:
                         print "Error: Failed to output in all requested formats."
                     logger.info("Failed to output in all requested formats.")
