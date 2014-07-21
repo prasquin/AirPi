@@ -5,7 +5,7 @@ import calibration
 import socket
 
 class CSVOutput(output.Output):
-	requiredParams = ["outputFile"]
+	requiredParams = ["outputDir", "outputFile"]
 	optionalParams = ["calibration"]
 
 	def __init__(self, params):
@@ -19,7 +19,8 @@ class CSVOutput(output.Output):
                                 filenamehost = socket.gethostbyaddr(socket.gethostname())[0]
                 	params["outputFile"] = params["outputFile"].replace("<hostname>", filenamehost)
 		# open the file persistently for append
-		self.file = open(params["outputFile"], "a")
+		filename = params["outputDir"] + "/" + params["outputFile"]
+                self.file = open(filename, "a")
 		# write a header line so we know which sensor is which?
 		self.header = False;
 		self.cal = calibration.Calibration.sharedClass

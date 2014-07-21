@@ -1,0 +1,50 @@
+#! /bin/bash
+# /etc/init.d/AirPiBootStart
+
+### BEGIN INIT INFO
+# Provides:          airpi
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Simple script to start AirPi at boot
+# Description:       Checks AirPi config file to see if AirPi should start sampling automatically on booting.
+### END INIT INFO
+
+case "$1" in
+    start)
+        # This script uses the "bootstart" option in the AirPi settings file to decide
+        # whether the AirPi should start sampling automatically.
+
+        # Set path to Airpi directory and settings file
+        AIRPI_DIR=/home/pi/AirPi
+        AIRPI_SETTINGS=settings.cfg
+
+        # Start the main AirPi script if requested in the settings file 
+        echo "[AirPi] Checking whether AirPi should start sampling automatically..."
+        if grep -q "bootstart = True" $AIRPI_DIR/$AIRPI_SETTINGS; then
+            echo "[AirPi] Will start automatic sampling in three minutes."
+            sleep 180
+            echo "[AirPi] Starting automatic AirPi sampling in background process."
+            sudo python $AIRPI_DIR/airpi.py &
+        else
+            echo "[AirPi] Automatic AirPi sampling not requested." 
+        fi
+    ;;
+    stop)
+        echo "[AirPi] Stopping all AirPi sampling."
+        # Remember AirPi could be started any number of ways, including:
+        # sudo python airpi.py
+        # sudo python ./airpi.py
+        # sudo ./airpi.py
+        if `ps aux | grep -v "grep" | grep -q "sudo.*airpi.py"`; then
+            kill `ps aux | grep -v "grep" | grep "sudo.*airpi.py" | awk '{print $2}'`
+        fi
+    ;;
+    *)
+        echo "Usage: /etc/init.d/AirPiBootStart {start|stop}"
+        exit 1
+    ;;
+esac
+
+exit 0

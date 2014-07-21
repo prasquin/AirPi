@@ -5,7 +5,6 @@
 
 """
 
-#TODO: Warn if no outputs enabeld
 #TODO: Put metadata into files or print
 
 import sys
@@ -275,7 +274,7 @@ for i in outputNames:
         raise e
 
 if not outputPlugins:
-    msg = "There are no output plugins enabled! Please enable at least one in outputs.cfg and try again."
+    msg = "There are no output plugins enabled! Please enable at least one in 'outputs.cfg' and try again."
     print(msg)
     logger.error(msg)
     sys.exit(1)
@@ -401,7 +400,9 @@ if greenPin:
     GPIO.setup(greenPin, GPIO.OUT, initial = GPIO.LOW)
 
 print "Success: Setup complete - starting to sample..."
-print "Press Ctrl + C to stop sampling."
+# Don't mention Ctrl+C if running from bootstart
+if os.getpgrp() == os.tcgetpgrp(sys.stdout.fileno()):
+    print "Press Ctrl + C to stop sampling."
 
 # Register the signal handler
 signal.signal(signal.SIGINT, interrupt_handler)

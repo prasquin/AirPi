@@ -44,6 +44,11 @@ Changes - Haydn Williams
 ------------------------
 It additionally incorporates changes by Haydn Williams (github.com/haydnw), which include the following:
 
+* Ability to start automatically at boot (does not require any user interaction).
+  * This is set using the 'bootstart' parameter in 'settings.cfg'.
+  * OutputDir parameter is now required, to avoid writing to /root when loading at boot.
+* Renamed 'data' array to 'parameters' to better reflect its content, and avoid confusion with actual data.
+* Added 'alerts' modules which allow messages to be sent when errors occur. Includes email and tweet to start.
 * Greater control of LED behaviour.
 * Can disable error messages printed to screen.
 * Can print to screen in CSV format.
@@ -53,6 +58,7 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
 * Rounded Xively output to 2dp.
 * Can kill the process a bit more nicely using Ctrl+C.
 * Output modules requiring internet access will not be loaded if there is no connection available.
+* Abort and inform user if no output modules are enabled.
 * Code tidying:
   * Moved the check whether calibration is required into a super function called from each output subclass now.
   * Made multiple changes to all .py files in line with Pylint recommendations as per PEP 8 style guide.
