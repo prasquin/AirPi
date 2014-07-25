@@ -403,6 +403,7 @@ print "Success: Setup complete - starting to sample..."
 # Don't mention Ctrl+C if running from bootstart
 if os.getpgrp() == os.tcgetpgrp(sys.stdout.fileno()):
     print "Press Ctrl + C to stop sampling."
+print "============================================================"
 
 # Register the signal handler
 signal.signal(signal.SIGINT, interrupt_handler)

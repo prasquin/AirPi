@@ -36,10 +36,10 @@ class Analogue(sensor.Sensor):
 	def getVal(self):
 		result = self.adc.readADC(self.adcPin)
 		if result == 0:
-			print "Check wiring for the " + self.sensorName + " measurement, no voltage detected on ADC input " + str(self.adcPin)
+			print "Error: Check wiring for the " + self.sensorName + " measurement, no voltage detected on ADC input " + str(self.adcPin)
 			return None
-		if result == 1023:
-			print "Check wiring for the " + self.sensorName + " measurement, full voltage detected on ADC input " + str(self.adcPin)
+		if result == 1023 or result == 1022:
+			print "Error: Check wiring for the " + self.sensorName + " measurement, full voltage detected on ADC input " + str(self.adcPin)
 			return None
 		vout = float(result)/1023 * 3.3
 		

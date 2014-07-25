@@ -24,7 +24,7 @@ class DHT22(sensor.Sensor):
 					self.valUnit = "Fahrenheit"
 					self.valSymbol = "F"
 		elif "h" in data["measurement"].lower():
-			self.valName = "Relative_Humidity"
+			self.valName = "Relative Humidity"
 			self.valSymbol = "%"
 			self.valUnit = "% Relative Humidity"
 		if "description" in data:
@@ -49,7 +49,7 @@ class DHT22(sensor.Sensor):
 			if self.valUnit == "Fahrenheit":
 				temp = temp * 1.8 + 32
 			return temp
-		elif self.valName == "Relative_Humidity":
+		elif self.valName == "Relative Humidity":
 			return h
 
 # http://softwareramblings.com/2008/06/running-functions-as-threads-in-python.html

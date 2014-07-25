@@ -1,1 +1,3 @@
 *.pyc
+airpi.log*
+*.csv
