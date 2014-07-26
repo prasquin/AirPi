@@ -6,7 +6,7 @@ import socket
 
 class CSVOutput(output.Output):
 	requiredParams = ["outputDir", "outputFile"]
-	optionalParams = ["calibration"]
+	optionalParams = ["calibration", "metadata"]
 
 	def __init__(self, params):
 		if "<date>" in params["outputFile"]:
@@ -25,6 +25,14 @@ class CSVOutput(output.Output):
 		self.header = False;
 		self.cal = calibration.Calibration.sharedClass
                 self.docal = self.checkCal(params)
+
+        def outputMetadata(self):
+                self.metadata = self.getMetadata()
+                metadata  = "\"Run started\",\"" + self.metadata['starttime'] + "\"\n"
+                metadata += "\"Operator\",\"" + self.metadata['operator'] + "\"\n"
+                metadata += "\"Raspberry Pi name\",\"" + self.metadata['piname'] + "\"\n"
+                metadata += "\"Raspberry Pi ID\",\"" +  self.metadata['piid'] + "\""
+                self.file.write(metadata + "\n")
 
 	def outputData(self,dataPoints):
 		if self.docal == 1:

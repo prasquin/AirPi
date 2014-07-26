@@ -17,10 +17,8 @@ import inspect
 import os
 import signal
 import urllib2
-import socket
 import logging, logging.handlers
 from math import isnan
-from subprocess import check_output
 from sensors import sensor
 from outputs import output
 from alerts import alert
@@ -270,6 +268,10 @@ for i in outputNames:
                     print ("Success: Loaded support plugin " + i)
                     logger.info("Success: Loaded support plugin %s" % i)
 
+                if outputConfig.has_option(i, "metadata") and outputConfig.getboolean(i, "metadata"):
+                    if callable(getattr(instClass, "outputMetadata", None)):
+                        instClass.outputMetadata();
+
     except Exception as e: #add specific exception for missing module
         print("Error: Did not import output plugin " + i)
         logger.error("Error: Did not import output plugin %s" % i)
@@ -406,17 +408,8 @@ if greenPin:
 print "Success: Setup complete - starting to sample..."
 print "Press Ctrl + C to stop sampling."
 print "=========================================================="
-if metadata:
-    piid = str(check_output('cat /proc/cpuinfo | grep Serial | awk \'{print $3}\'', shell=True))
-    if socket.gethostname().find('.')>=0:
-        host = socket.gethostname()
-    else:
-        host = socket.gethostbyaddr(socket.gethostname())[0]
-    print "Run started at " + time.strftime("%H:%M on %A %d %B %Y") + "."
-    print "Run set up by " + operator + "."
-    print "Raspberry Pi ID: " + piid[:piid.rfind('\n')]
-    print "Raspberry Pi Name: " + host
-    print "=========================================================="
+
+#TODO Print metadata here, instead of up there
 
 # Register the signal handler
 signal.signal(signal.SIGINT, interrupt_handler)

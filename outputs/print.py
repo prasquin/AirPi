@@ -5,12 +5,20 @@ import calibration
 
 class Print(output.Output):
     requiredParams = ["format"]
-    optionalParams = ["calibration"]
+    optionalParams = ["calibration", "metadata"]
 
     def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkCal(params)
 	self.format = params["format"]
+
+    def outputMetadata(self):
+        self.metadata = self.getMetadata()
+        print "Run started: " + self.metadata['starttime']
+        print "Operator: " + self.metadata['operator']
+        print "Raspberry Pi name: " + self.metadata['piname']
+        print "Raspberry Pi ID: " +  self.metadata['piid']
+        print "=========================================================="
 
     def outputData(self, dataPoints):
         if self.docal == 1:
