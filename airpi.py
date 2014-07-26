@@ -17,8 +17,10 @@ import inspect
 import os
 import signal
 import urllib2
+import socket
 import logging, logging.handlers
 from math import isnan
+from subprocess import check_output
 from sensors import sensor
 from outputs import output
 from alerts import alert
@@ -386,6 +388,8 @@ mainConfig.read(settingscfg)
 
 lastUpdated = 0
 delayTime = mainConfig.getfloat("Main", "sampleFreq")
+metadata = mainConfig.getboolean("Main", "metadata")
+operator = mainConfig.get("Main", "operator")
 redPin = mainConfig.getint("Main", "redPin")
 greenPin = mainConfig.getint("Main", "greenPin")
 printErrors = mainConfig.getboolean("Main","printErrors")
@@ -400,10 +404,19 @@ if greenPin:
     GPIO.setup(greenPin, GPIO.OUT, initial = GPIO.LOW)
 
 print "Success: Setup complete - starting to sample..."
-# Don't mention Ctrl+C if running from bootstart
-if os.getpgrp() == os.tcgetpgrp(sys.stdout.fileno()):
-    print "Press Ctrl + C to stop sampling."
-print "============================================================"
+print "Press Ctrl + C to stop sampling."
+print "=========================================================="
+if metadata:
+    piid = str(check_output('cat /proc/cpuinfo | grep Serial | awk \'{print $3}\'', shell=True))
+    if socket.gethostname().find('.')>=0:
+        host = socket.gethostname()
+    else:
+        host = socket.gethostbyaddr(socket.gethostname())[0]
+    print "Run started at " + time.strftime("%H:%M on %A %d %B %Y") + "."
+    print "Run set up by " + operator + "."
+    print "Raspberry Pi ID: " + piid[:piid.rfind('\n')]
+    print "Raspberry Pi Name: " + host
+    print "=========================================================="
 
 # Register the signal handler
 signal.signal(signal.SIGINT, interrupt_handler)

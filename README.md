@@ -52,6 +52,7 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
 * Greater control of LED behaviour.
 * Can disable error messages printed to screen.
 * Can print to screen in CSV format.
+* Can print metadata to screen at start of a run, including Raspberry Pi serial no. and operator name.
 * Standard print-to-screen format tidied up and made more digestable.
 * Can automatically name CSV files and HTTP titles using date and hostname.
 * Added ThingSpeak integration.
