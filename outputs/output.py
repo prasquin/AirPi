@@ -13,16 +13,30 @@ class Output():
                 docal = 1
         return doCal
 
+    def getserial(self):
+        # Extract serial from cpuinfo file
+        # From: http://raspberrypi.nxez.com/2014/01/19/getting-your-raspberry-pi-serial-number-using-python.html
+        cpuserial = "0000000000000000"
+        try:
+            f = open('/proc/cpuinfo','r')
+            for line in f:
+                if line[0:6]=='Serial':
+                    cpuserial = line[10:26]
+            f.close()
+        except:
+            cpuserial = "ERROR000000000"
+        return cpuserial
+
     def getMetadata(self):
         #TODO: Somehow grab the operator name
         operator = "Haydy"
-        piid = str(check_output('cat /proc/cpuinfo | grep Serial | awk \'{print $3}\'', shell=True))
+        piid = self.getserial()
         if socket.gethostname().find('.')>=0:
             host = socket.gethostname()
         else:
             host = socket.gethostbyaddr(socket.gethostname())[0]
         metadata  = {"starttime":time.strftime("%H:%M on %A %d %B %Y"), \
         "operator":operator, \
-        "piid":piid[:piid.rfind('\n')], \
+        "piid":piid, \
         "piname":host}
         return metadata

@@ -48,11 +48,11 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
   * This is set using the 'bootstart' parameter in 'settings.cfg'.
   * OutputDir parameter is now required, to avoid writing to /root when loading at boot.
 * Renamed 'data' array to 'parameters' to better reflect its content, and avoid confusion with actual data.
-* Added 'alerts' modules which allow messages to be sent when errors occur. Includes email and tweet to start.
+* Added 'notifications' module which allow messages to be sent when errors occur. Includes email and tweet to start.
 * Greater control of LED behaviour.
 * Can disable error messages printed to screen.
 * Can print to screen in CSV format.
-* Can print metadata to screen at start of a run, including Raspberry Pi serial no. and operator name.
+* Added ability to record metadata to screen or CSV at start of a run, including Raspberry Pi serial no. and operator name.
 * Standard print-to-screen format tidied up and made more digestable.
 * Can automatically name CSV files and HTTP titles using date and hostname.
 * Added ThingSpeak integration.

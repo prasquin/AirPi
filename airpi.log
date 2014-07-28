@@ -153,3 +153,64 @@
 2014-07-21 20:20:22,712 - __main__ - INFO - Success: Loaded alert plugin Tweet
 2014-07-21 20:20:23,324 - __main__ - INFO - Success: Data output in all requested formats.
 2014-07-21 20:20:38,331 - __main__ - INFO - Success: Data output in all requested formats.
+2014-07-28 23:28:10,455 - __main__ - INFO - Success: Loaded sensor plugin BMP085-temp
+2014-07-28 23:28:10,462 - __main__ - INFO - Success: Loaded sensor plugin BMP085-pres
+2014-07-28 23:28:10,478 - __main__ - INFO - Success: Loaded support plugin MCP3008
+2014-07-28 23:28:10,498 - __main__ - INFO - Success: Loaded sensor plugin DHT22
+2014-07-28 23:28:10,516 - __main__ - INFO - Success: Loaded sensor plugin LDR
+2014-07-28 23:28:10,524 - __main__ - INFO - Success: Loaded sensor plugin TGS2600
+2014-07-28 23:28:10,531 - __main__ - INFO - Success: Loaded sensor plugin MiCS-2710
+2014-07-28 23:28:10,539 - __main__ - INFO - Success: Loaded sensor plugin MiCS-5525
+2014-07-28 23:28:10,546 - __main__ - INFO - Success: Loaded sensor plugin Mic
+2014-07-28 23:28:10,587 - __main__ - INFO - Success: Loaded support plugin Calibration
+2014-07-28 23:28:10,607 - __main__ - INFO - Success: Loaded output plugin Print
+2014-07-28 23:28:10,640 - __main__ - INFO - Success: Loaded output plugin CSVOutput
+2014-07-28 23:28:11,189 - __main__ - INFO - Success: Loaded notification plugin Email
+2014-07-28 23:28:11,774 - __main__ - INFO - Success: Data output in all requested formats.
+2014-07-28 23:28:26,775 - __main__ - INFO - Success: Data output in all requested formats.
+2014-07-28 23:29:15,601 - __main__ - INFO - Success: Loaded sensor plugin BMP085-temp
+2014-07-28 23:29:15,608 - __main__ - INFO - Success: Loaded sensor plugin BMP085-pres
+2014-07-28 23:29:15,624 - __main__ - INFO - Success: Loaded support plugin MCP3008
+2014-07-28 23:29:15,643 - __main__ - INFO - Success: Loaded sensor plugin DHT22
+2014-07-28 23:29:15,661 - __main__ - INFO - Success: Loaded sensor plugin LDR
+2014-07-28 23:29:15,668 - __main__ - INFO - Success: Loaded sensor plugin TGS2600
+2014-07-28 23:29:15,675 - __main__ - INFO - Success: Loaded sensor plugin MiCS-2710
+2014-07-28 23:29:15,682 - __main__ - INFO - Success: Loaded sensor plugin MiCS-5525
+2014-07-28 23:29:15,688 - __main__ - INFO - Success: Loaded sensor plugin Mic
+2014-07-28 23:29:15,728 - __main__ - INFO - Success: Loaded support plugin Calibration
+2014-07-28 23:29:15,748 - __main__ - INFO - Success: Loaded output plugin Print
+2014-07-28 23:29:17,021 - __main__ - INFO - Success: Loaded output plugin Xively
+2014-07-28 23:29:17,046 - __main__ - INFO - Success: Loaded output plugin CSVOutput
+2014-07-28 23:29:17,483 - __main__ - INFO - Success: Loaded notification plugin Email
+2014-07-28 23:29:20,871 - __main__ - ERROR - Failed to output in all requested formats.
+2014-07-28 23:29:33,995 - __main__ - ERROR - Failed to output in all requested formats.
+2014-07-28 23:29:49,003 - __main__ - ERROR - Failed to output in all requested formats.
+2014-07-28 23:34:42,202 - __main__ - INFO - Success: Loaded sensor plugin BMP085-temp
+2014-07-28 23:34:42,209 - __main__ - INFO - Success: Loaded sensor plugin BMP085-pres
+2014-07-28 23:34:42,225 - __main__ - INFO - Success: Loaded support plugin MCP3008
+2014-07-28 23:34:42,244 - __main__ - INFO - Success: Loaded sensor plugin DHT22
+2014-07-28 23:34:42,262 - __main__ - INFO - Success: Loaded sensor plugin LDR
+2014-07-28 23:34:42,269 - __main__ - INFO - Success: Loaded sensor plugin TGS2600
+2014-07-28 23:34:42,276 - __main__ - INFO - Success: Loaded sensor plugin MiCS-2710
+2014-07-28 23:34:42,283 - __main__ - INFO - Success: Loaded sensor plugin MiCS-5525
+2014-07-28 23:34:42,289 - __main__ - INFO - Success: Loaded sensor plugin Mic
+2014-07-28 23:34:42,330 - __main__ - INFO - Success: Loaded support plugin Calibration
+2014-07-28 23:34:42,352 - __main__ - INFO - Success: Loaded output plugin Print
+2014-07-28 23:34:43,628 - __main__ - INFO - Success: Loaded output plugin Xively
+2014-07-28 23:34:44,064 - __main__ - INFO - Success: Loaded notification plugin Email
+2014-07-28 23:34:47,512 - __main__ - ERROR - Failed to output in all requested formats.
+2014-07-28 23:35:00,574 - __main__ - ERROR - Failed to output in all requested formats.
+2014-07-28 23:35:42,559 - __main__ - INFO - Success: Loaded sensor plugin BMP085-temp
+2014-07-28 23:35:42,566 - __main__ - INFO - Success: Loaded sensor plugin BMP085-pres
+2014-07-28 23:35:42,582 - __main__ - INFO - Success: Loaded support plugin MCP3008
+2014-07-28 23:35:42,602 - __main__ - INFO - Success: Loaded sensor plugin DHT22
+2014-07-28 23:35:42,619 - __main__ - INFO - Success: Loaded sensor plugin LDR
+2014-07-28 23:35:42,626 - __main__ - INFO - Success: Loaded sensor plugin TGS2600
+2014-07-28 23:35:42,633 - __main__ - INFO - Success: Loaded sensor plugin MiCS-2710
+2014-07-28 23:35:42,640 - __main__ - INFO - Success: Loaded sensor plugin MiCS-5525
+2014-07-28 23:35:42,647 - __main__ - INFO - Success: Loaded sensor plugin Mic
+2014-07-28 23:35:42,687 - __main__ - INFO - Success: Loaded support plugin Calibration
+2014-07-28 23:35:42,707 - __main__ - INFO - Success: Loaded output plugin Print
+2014-07-28 23:35:43,971 - __main__ - INFO - Success: Loaded output plugin Xively
+2014-07-28 23:35:44,412 - __main__ - INFO - Success: Loaded notification plugin Email
+2014-07-28 23:35:47,872 - __main__ - ERROR - Failed to output in all requested formats.

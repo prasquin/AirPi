@@ -5,8 +5,6 @@
 
 """
 
-#TODO: Put metadata into files or print
-
 import sys
 sys.dont_write_bytecode = True
 
@@ -21,13 +19,13 @@ import logging, logging.handlers
 from math import isnan
 from sensors import sensor
 from outputs import output
-from alerts import alert
+from notifications import notification
 
 cfgdir = "/home/pi/AirPi"
 sensorcfg = os.path.join(cfgdir, 'sensors.cfg')
 outputscfg = os.path.join(cfgdir, 'outputs.cfg')
 settingscfg = os.path.join(cfgdir, 'settings.cfg')
-alertscfg = os.path.join(cfgdir, 'alerts.cfg')
+notificationscfg = os.path.join(cfgdir, 'notifications.cfg')
 
 LOG_FILENAME = os.path.join(cfgdir, 'airpi.log')
 # Set up a specific logger with our desired output level
@@ -283,99 +281,99 @@ if not outputPlugins:
     logger.error(msg)
     sys.exit(1)
 
-if not os.path.isfile(alertscfg):
-    print "Unable to access config file: alerts.cfg"
-    logger.error("Unable to access config file: %s" % alertscfg)
+if not os.path.isfile(notificationscfg):
+    print "Unable to access config file: " + str(notificationscfg)
+    logger.error("Unable to access config file: %s" % notificationscfg)
     exit(1)
 
-alertConfig = ConfigParser.SafeConfigParser()
-alertConfig.read(alertscfg)
+notificationConfig = ConfigParser.SafeConfigParser()
+notificationConfig.read(notificationscfg)
 
-alertNames = alertConfig.sections()
+notificationNames = notificationConfig.sections()
 
-alertPlugins = []
+notificationPlugins = []
 
-for i in alertNames:
+for i in notificationNames:
     try:
         try:
-            filename = alertConfig.get(i, "filename")
+            filename = notificationConfig.get(i, "filename")
         except Exception:
-            print("Error: no filename config option found for alert plugin " + i)
-            logger.error("Error: no filename config option found for alert plugin %s" % i)
+            print("Error: no filename config option found for notification plugin " + i)
+            logger.error("Error: no filename config option found for notification plugin %s" % i)
             raise
         try:
-            enabled = alertConfig.getboolean(i, "enabled")
+            enabled = notificationConfig.getboolean(i, "enabled")
         except Exception:
             enabled = True
 
         #if enabled, load the plugin
         if enabled:
             try:
-                mod = __import__('alerts.' + filename, fromlist = ['a']) #Why does this work?
+                mod = __import__('notifications.' + filename, fromlist = ['a']) #Why does this work?
             except Exception:
-                print("Error: could not import alert module " + filename)
-                logger.error("Error: could not import alert module %s" % filename)
+                print("Error: could not import notification module " + filename)
+                logger.error("Error: could not import notification module %s" % filename)
                 raise
 
             try:
-                alertClass = get_subclasses(mod, alert.Alert)
-                if alertClass == None:
+                notificationClass = get_subclasses(mod, notification.Notification)
+                if notificationClass == None:
                     raise AttributeError
             except Exception:
-                msg = "Error: could not find a subclass of alert.Alert in module " + filename
+                msg = "Error: could not find a subclass of notification.Notification in module " + filename
                 print(msg)
                 logger.error(msg)
                 raise
             try:
-                reqd = alertClass.requiredParams
+                reqd = notificationClass.requiredParams
             except Exception:
                 reqd = []
             try:
-                opt = alertClass.optionalParams
+                opt = notificationClass.optionalParams
             except Exception:
                 opt = []
 
-            if alertConfig.has_option(i, "async"):
-                async = alertConfig.getboolean(i, "async")
+            if notificationConfig.has_option(i, "async"):
+                async = notificationConfig.getboolean(i, "async")
             else:
                 async = False
 
             pluginData = {}
 
             for requiredField in reqd:
-                if alertConfig.has_option(i, requiredField):
-                    pluginData[requiredField] = alertConfig.get(i, requiredField)
+                if notificationConfig.has_option(i, requiredField):
+                    pluginData[requiredField] = notificationConfig.get(i, requiredField)
                 else:
                     msg = "Error: Missing required field '" + requiredField
-                    msg = msg + "' for alert plugin " + i
+                    msg = msg + "' for notification plugin " + i
                     print(msg)
                     logger.error(msg)
                     raise MissingField
 
             for optionalField in opt:
-                if alertConfig.has_option(i, optionalField):
-                    pluginData[optionalField] = alertConfig.get(i, optionalField)
+                if notificationConfig.has_option(i, optionalField):
+                    pluginData[optionalField] = notificationConfig.get(i, optionalField)
 
-            if alertConfig.has_option(i, "needsinternet") and alertConfig.getboolean(i, "needsinternet") and not check_conn():
-                msg = "Error: Skipping alert plugin " + i + " because no internet connectivity."
+            if notificationConfig.has_option(i, "needsinternet") and notificationConfig.getboolean(i, "needsinternet") and not check_conn():
+                msg = "Error: Skipping notification plugin " + i + " because no internet connectivity."
                 print (msg)
                 logger.info(msg)
             else:
-                instClass = alertClass(pluginData)
+                instClass = notificationClass(pluginData)
                 instClass.async = async
 
-                # check for a sendAlert function
-                if callable(getattr(instClass, "sendAlert", None)):
-                    alertPlugins.append(instClass)
-                    print ("Success: Loaded alert plugin " + i)
-                    logger.info("Success: Loaded alert plugin %s" % i)
+                # check for a sendNotification function
+                if callable(getattr(instClass, "sendNotification", None)):
+                    notificationPlugins.append(instClass)
+                    print ("Success: Loaded notification plugin " + i)
+                    logger.info("Success: Loaded notification plugin %s" % i)
                 else:
-                    print ("Error: no callable alert function for alert plugin " + i)
-                    logger.info("Error: no callable alert function for alert plugin " + i)
+                    print ("Error: no callable sendNotification() function for notification plugin " + i)
+                    logger.info("Error: no callable sendNotification() function for notification plugin " + i)
 
     except Exception as e:
-        print("Error: Did not import alert plugin " + i)
-        logger.error("Error: Did not import alert plugin " + i)
+        print("Error: Did not import notification plugin " + i)
+        logger.error("Error: Did not import notification plugin " + i)
         raise e
 
 
@@ -457,11 +455,11 @@ while True:
                     outputSuccessSoFar = True
                 else:
                     if not outputFailSoFar:
-                        for j in alertPlugins:
-                            j.sendAlert()
+                        for j in notificationPlugins:
+                            j.sendNotification("alert")
                     if printErrors:
                         print "Error: Failed to output in all requested formats."
-                    logger.info("Failed to output in all requested formats.")
+                    logger.error("Failed to output in all requested formats.")
                     if redPin and (failLED in ["all", "constant"] or (failLED == "first" and not outputFailSoFar)):
                         GPIO.output(redPin, GPIO.HIGH)
                     outputFailSoFar = True

@@ -60,7 +60,8 @@ class Email(notification.Notification):
 
     def sendNotification(self, event):
 
-        msg  = "From: " + self.address["fromname"] + " <" + self.address["fromaddress"] + ">\n"
+        msg  = "X-Priority: 1\n"
+        msg += "From: " + self.address["fromname"] + " <" + self.address["fromaddress"] + ">\n"
         msg += "To: " + self.address["toaddress"] + "\n"
         if event == "alert":
             msg += "Subject: " + self.message["alertsubject"] + "\n"
