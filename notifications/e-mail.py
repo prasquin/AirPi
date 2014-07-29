@@ -4,8 +4,11 @@ import email.utils
 from email.mime.text import MIMEText
 
 class Email(notification.Notification):
+    # Note the filename for this Class cannot be email.py, as that is reserved by Python.
     requiredParams = ["toaddress", "fromname", "fromaddress", "smtpserver", "smtpuser", "smtppass"]
-    optionalParams = ["alertsubject", "alertbody", "databody", "datasubject", "smtpport", "smtptls"]
+    optionalParams = ["alertsubject", "datasubject", "smtpport", "smtptls"]
+    # Common params are defined in the parent "notification Class
+    commonParams = notification.Notification.commonParams
 
     def __init__(self, params):
 
@@ -13,27 +16,21 @@ class Email(notification.Notification):
         self.smtp = {}
         self.address = {}
 
-        #TODO: Put hostname in here
+        hostname = self.getHostname()
 
         # Set text for 'alert' email
         if "alertsubject" in params:
-            self.message["alertsubject"] = params["alertsubject"]
+            self.message["alertsubject"] = params["alertsubject"].replace("<hostname>", hostname)
         else:
-            self.message["alertsubject"] = "AirPi alert"
-        if "alertbody" in params:
-            self.message["alertbody"] = params["alertbody"]
-        else:
-            self.message["alertbody"] = "AirPi has reported an error. It apologises profusely."
+            self.message["alertsubject"] = "AirPi alert - " + hostname
+        self.message["msgalert"] = params["msgalert"].replace("<hostname>", hostname)
 
         # Set text for 'data notification' email
         if "datasubject" in params:
-            self.message["datasubject"] = params["datasubject"]
+            self.message["datasubject"] = params["datasubject"].replace("<hostname>", hostname)
         else:
-            self.message["datasubject"] = "AirPi data notification"
-        if "databody" in params:
-            self.message["databody"] = params["databody"]
-        else:
-            self.message["databody"] = "AirPi data has done something interesting."
+            self.message["datasubject"] = "AirPi data notification - " + hostname
+        self.message["msgdata"] = params["msgdata"].replace("<hostname>", hostname)
 
         # Set SMTP settings
         self.smtp['server'] = params["smtpserver"]
@@ -63,10 +60,10 @@ class Email(notification.Notification):
         msg  = "X-Priority: 1\n"
         msg += "From: " + self.address["fromname"] + " <" + self.address["fromaddress"] + ">\n"
         msg += "To: " + self.address["toaddress"] + "\n"
+        
         if event == "alert":
             msg += "Subject: " + self.message["alertsubject"] + "\n"
             msg += self.message["alertbody"]
-
         else:
             msg += "Subject: " + self.message["datasubject"] + "\n"
             msg += self.message["databody"]

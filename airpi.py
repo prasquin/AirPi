@@ -151,8 +151,9 @@ for i in sensorNames:
                 if sensorConfig.has_option(i, requiredField):
                     pluginData[requiredField] = sensorConfig.get(i, requiredField)
                 else:
-                    msg = "Error: Missing required field '" + requiredField
-                    msg = msg + "' for sensor plugin " + i
+                    msg  = "Error: Missing required field '" + requiredField
+                    msg += "' for sensor plugin " + i + "." + os.linesep
+                    msg += "Error: This should be found in file: " + sensorcfg
                     print(msg)
                     logger.error(msg)
                     raise MissingField
@@ -189,6 +190,8 @@ outputConfig.read(outputscfg)
 outputNames = outputConfig.sections()
 
 outputPlugins = []
+
+metadata = None
 
 for i in outputNames:
     try:
@@ -240,8 +243,9 @@ for i in outputNames:
                 if outputConfig.has_option(i, requiredField):
                     pluginData[requiredField] = outputConfig.get(i, requiredField)
                 else:
-                    msg = "Error: Missing required field '" + requiredField
-                    msg = msg + "' for output plugin " + i
+                    msg  = "Error: Missing required field '" + requiredField
+                    msg += "' for output plugin " + i + "." + os.linesep
+                    msg += "Error: This should be found in file: " + outputscfg
                     print(msg)
                     logger.error(msg)
                     raise MissingField
@@ -266,9 +270,11 @@ for i in outputNames:
                     print ("Success: Loaded support plugin " + i)
                     logger.info("Success: Loaded support plugin %s" % i)
 
-                if outputConfig.has_option(i, "metadata") and outputConfig.getboolean(i, "metadata"):
+                # Check for an outputMetadata function
+                if outputConfig.has_option(i, "metadatareqd") and outputConfig.getboolean(i, "metadatareqd"):
                     if callable(getattr(instClass, "outputMetadata", None)):
-                        instClass.outputMetadata();
+                        # We'll print this later on
+                        metadata = instClass.outputMetadata();
 
     except Exception as e: #add specific exception for missing module
         print("Error: Did not import output plugin " + i)
@@ -290,6 +296,7 @@ notificationConfig = ConfigParser.SafeConfigParser()
 notificationConfig.read(notificationscfg)
 
 notificationNames = notificationConfig.sections()
+notificationNames.remove("Common")
 
 notificationPlugins = []
 
@@ -332,6 +339,10 @@ for i in notificationNames:
                 opt = notificationClass.optionalParams
             except Exception:
                 opt = []
+            try:
+                common = notificationClass.commonParams
+            except Exception:
+                common = []
 
             if notificationConfig.has_option(i, "async"):
                 async = notificationConfig.getboolean(i, "async")
@@ -344,8 +355,9 @@ for i in notificationNames:
                 if notificationConfig.has_option(i, requiredField):
                     pluginData[requiredField] = notificationConfig.get(i, requiredField)
                 else:
-                    msg = "Error: Missing required field '" + requiredField
-                    msg = msg + "' for notification plugin " + i
+                    msg  = "Error: Missing required field '" + requiredField
+                    msg += "' for notification plugin " + i + "." + os.linesep
+                    msg += "Error: This should be found in file: " + notificationscfg
                     print(msg)
                     logger.error(msg)
                     raise MissingField
@@ -354,6 +366,16 @@ for i in notificationNames:
                 if notificationConfig.has_option(i, optionalField):
                     pluginData[optionalField] = notificationConfig.get(i, optionalField)
 
+            for commonField in common:
+                if notificationConfig.has_option("Common", commonField):
+                    pluginData[commonField] = notificationConfig.get("Common", commonField)
+                else:
+                    msg  = "Error: Missing common field '" + commonField
+                    msg += "' for notification plugin " + i + "." + os.linesep
+                    msg += "Error: This should be found in file: " + notificationscfg
+                    print(msg)
+                    logger.error(msg)
+                    raise MissingField
             if notificationConfig.has_option(i, "needsinternet") and notificationConfig.getboolean(i, "needsinternet") and not check_conn():
                 msg = "Error: Skipping notification plugin " + i + " because no internet connectivity."
                 print (msg)
@@ -376,8 +398,6 @@ for i in notificationNames:
         logger.error("Error: Did not import notification plugin " + i)
         raise e
 
-
-
 if not os.path.isfile(settingscfg):
     print "Unable to access config file: settings.cfg"
     logger.error("Unable to access config file: %s" % settingscfg)
@@ -388,7 +408,6 @@ mainConfig.read(settingscfg)
 
 lastUpdated = 0
 delayTime = mainConfig.getfloat("Main", "sampleFreq")
-metadata = mainConfig.getboolean("Main", "metadata")
 operator = mainConfig.get("Main", "operator")
 redPin = mainConfig.getint("Main", "redPin")
 greenPin = mainConfig.getint("Main", "greenPin")
@@ -406,8 +425,9 @@ if greenPin:
 print "Success: Setup complete - starting to sample..."
 print "Press Ctrl + C to stop sampling."
 print "=========================================================="
-
-#TODO Print metadata here, instead of up there
+if metadata is not None:
+    print metadata
+    print "=========================================================="
 
 # Register the signal handler
 signal.signal(signal.SIGINT, interrupt_handler)

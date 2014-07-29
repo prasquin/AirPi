@@ -9,7 +9,6 @@ import calibration
 import numpy
 import re
 import csv
-import socket
 
 # useful resources:
 # http://unixunique.blogspot.co.uk/2011/06/simple-python-http-web-server.html
@@ -80,10 +79,7 @@ class HTTP(output.Output):
 		else:
 			self.historyCalibrated = 0
 
-                if socket.gethostname().find('.')>=0:
-                       	hostname = socket.gethostname()
-                else:
-                       	hostname = socket.gethostbyaddr(socket.gethostname())[0]
+                hostname = self.getHostname()
 
 		if "title" in params:
 			if "<hostname>" in params["title"]:

@@ -27,16 +27,19 @@ class Output():
             cpuserial = "ERROR000000000"
         return cpuserial
 
-    def getMetadata(self):
-        #TODO: Somehow grab the operator name
-        operator = "Haydy"
-        piid = self.getserial()
+    def getHostname(self):
         if socket.gethostname().find('.')>=0:
             host = socket.gethostname()
         else:
             host = socket.gethostbyaddr(socket.gethostname())[0]
+        return host
+
+    def getMetadata(self):
+        #TODO: Somehow grab the operator name
+        operator = "Haydy"
+        piid = self.getserial()
         metadata  = {"starttime":time.strftime("%H:%M on %A %d %B %Y"), \
         "operator":operator, \
         "piid":piid, \
-        "piname":host}
+        "piname":self.getHostname()}
         return metadata

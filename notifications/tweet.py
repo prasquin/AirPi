@@ -1,12 +1,13 @@
 import notification
 import os
 import time
-import socket
 from twitter import *
 
 class Tweet(notification.Notification):
     requiredParams = ["consumerkey", "consumersecret"]
-    optionalParams = ["msgalert", "msgdata"]
+    optionalParams = []
+    # Common params are defined in the parent "notification" Class
+    commonParams = notification.Notification.commonParams
 
     def __init__(self, params):
 
@@ -23,28 +24,20 @@ class Tweet(notification.Notification):
         auth = OAuth(oauth_token, oauth_token_secret, CONSUMER_KEY, CONSUMER_SECRET)
         self.twitter = Twitter(auth=auth)
 
-        # Set up standard messages
-        if socket.gethostname().find('.')>=0:
-            host = socket.gethostname()
-        else:
-            host = socket.gethostbyaddr(socket.gethostname())[0]
+        hostname = self.getHostname()
 
-        # Set default messages 
-        self.msgalert = host + " has experienced an error! Nobody panic."
-        self.msgdata  = host + " has just had something interesting happen with its data."
-
-        # Set custom messages if present
+        # Set messages 
+        hostname = self.getHostname()
+        
         if "msgalert" in params:
-            if "hostname" in params["msgalert"]:
-                self.msgalert = params["msgalert"].replace("<hostname>", host)
-            else:
-                self.msgalert = params["msgalert"]
+            self.msgalert = params["msgalert"].replace("<hostname>", hostname)
+        else:
+            self.msgalert = hostname + " has experienced an error! Nobody panic."
 
         if "msgdata" in params:
-            if "hostname" in params["msgdata"]:
-                self.msgdata = params["msgdata"].replace("<hostname>", host)
-            else:
-                self.msgdata = params["msgdata"]
+            self.msgdata = params["msgdata"].replace("<hostname>", hostname)
+        else:
+            self.msgdata  = hostname + " has just had something interesting happen with its data."
 
     def sendNotification(self, event):
         # We must include a timestamp as insurance:

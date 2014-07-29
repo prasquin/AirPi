@@ -2,7 +2,6 @@ import output
 import datetime
 import time
 import calibration
-import socket
 
 class CSVOutput(output.Output):
 	requiredParams = ["outputDir", "outputFile"]
@@ -13,11 +12,7 @@ class CSVOutput(output.Output):
                         filenamedate = time.strftime("%Y%m%d-%H%M")
                         params["outputFile"] = params["outputFile"].replace("<date>", filenamedate)
  		if "<hostname>" in params["outputFile"]:
-                        if socket.gethostname().find('.')>=0:
-                                filenamehost = socket.gethostname()
-                        else:
-                                filenamehost = socket.gethostbyaddr(socket.gethostname())[0]
-                	params["outputFile"] = params["outputFile"].replace("<hostname>", filenamehost)
+                	params["outputFile"] = params["outputFile"].replace("<hostname>", self.getHostname())
 		# open the file persistently for append
 		filename = params["outputDir"] + "/" + params["outputFile"]
                 self.file = open(filename, "a")

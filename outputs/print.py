@@ -2,6 +2,7 @@ import output
 import datetime
 import time
 import calibration
+import os
 
 class Print(output.Output):
     requiredParams = ["format"]
@@ -13,12 +14,12 @@ class Print(output.Output):
 	self.format = params["format"]
 
     def outputMetadata(self):
-        self.metadata = self.getMetadata()
-        print "Run started: " + self.metadata['starttime']
-        print "Operator: " + self.metadata['operator']
-        print "Raspberry Pi name: " + self.metadata['piname']
-        print "Raspberry Pi ID: " +  self.metadata['piid']
-        print "=========================================================="
+        metadata = self.getMetadata()
+        toprint  = "Run started: " + metadata['starttime'] + os.linesep
+        toprint += "Operator: " + metadata['operator'] + os.linesep
+        toprint += "Raspberry Pi name: " + metadata['piname'] + os.linesep
+        toprint += "Raspberry Pi ID: " +  metadata['piid']
+        return toprint
 
     def outputData(self, dataPoints):
         if self.docal == 1:
