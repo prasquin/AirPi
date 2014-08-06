@@ -47,6 +47,6 @@ class Print(output.Output):
                                                 theValue = round(i["value"], 2)
                                 else:
                                         theValue = "-"
-                                print (i["name"].ljust(17)) + ": " + str(theValue).ljust(8) + " " + i["symbol"]
+                                print (i["name"].ljust(17)).replace("_", " ") + ": " + str(theValue).ljust(8) + " " + i["symbol"]
                 print "=========================================================="
         return True

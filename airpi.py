@@ -369,13 +369,7 @@ for i in notificationNames:
             for commonField in common:
                 if notificationConfig.has_option("Common", commonField):
                     pluginData[commonField] = notificationConfig.get("Common", commonField)
-                else:
-                    msg  = "Error: Missing common field '" + commonField
-                    msg += "' for notification plugin " + i + "." + os.linesep
-                    msg += "Error: This should be found in file: " + notificationscfg
-                    print(msg)
-                    logger.error(msg)
-                    raise MissingField
+            
             if notificationConfig.has_option(i, "needsinternet") and notificationConfig.getboolean(i, "needsinternet") and not check_conn():
                 msg = "Error: Skipping notification plugin " + i + " because no internet connectivity."
                 print (msg)
@@ -414,8 +408,8 @@ greenPin = mainConfig.getint("Main", "greenPin")
 printErrors = mainConfig.getboolean("Main","printErrors")
 successLED = mainConfig.get("Main","successLED")
 failLED = mainConfig.get("Main","failLED")
-outputSuccessSoFar = False
-outputFailSoFar = False
+greenHasLit = False
+redHasLit = False
 
 if redPin:
     GPIO.setup(redPin, GPIO.OUT, initial = GPIO.LOW)
@@ -439,7 +433,9 @@ while True:
         if (curTime - lastUpdated) > delayTime:
             lastUpdated = curTime
             data = []
+            alreadySentSensorAlerts = False
             #Collect the data from each sensor
+            sensorsWorking = True
             for i in sensorPlugins:
                 dataDict = {}
                 if i == gpsPluginInstance:
@@ -457,6 +453,9 @@ while True:
                     dataDict["sensor"] = i.sensorName
                 else:
                     dataDict["value"] = i.getVal()
+                    # TODO: Ensure this is robust
+                    if dataDict["value"] is None or isnan(float(dataDict["value"])) or dataDict["value"] == 0:
+                        sensorsWorking = False
                     dataDict["unit"] = i.valUnit
                     dataDict["symbol"] = i.valSymbol
                     dataDict["name"] = i.valName
@@ -464,25 +463,36 @@ while True:
                     dataDict["description"] = i.description
                     dataDict["readingType"] = i.readingType
                 data.append(dataDict)
-            working = True
+            if sensorsWorking:
+                logger.info("Success: Data obtained from all sensors.")
+            else:
+                if not alreadySentSensorAlerts:
+                    for j in notificationPlugins:
+                        j.sendNotification("alertsensor")
+                    alreadySentSensorAlerts = True
+                if printErrors:
+                    print "Error: Failed to obtain data from all sensors."
+                logger.error("Failed to obtain data from all sensors.")
             try:
+                outputsWorking = True
                 for i in outputPlugins:
-                    working = working and i.outputData(data)
-                if working:
+                    outputsWorking = i.outputData(data)
+                if outputsWorking:
                     logger.info("Success: Data output in all requested formats.")
-                    if greenPin and (successLED == "all" or (successLED == "first" and not outputSuccessSoFar)):
+                    if greenPin and (successLED == "all" or (successLED == "first" and not greenHasLit)):
                         GPIO.output(greenPin, GPIO.HIGH)
-                    outputSuccessSoFar = True
+                        greenHasLit = True
                 else:
-                    if not outputFailSoFar:
+                    if not alreadySentOutputAlerts:
                         for j in notificationPlugins:
-                            j.sendNotification("alert")
+                            j.sendNotification("alertoutput")
+                        alreadySentOutputAlerts = True
                     if printErrors:
                         print "Error: Failed to output in all requested formats."
                     logger.error("Failed to output in all requested formats.")
-                    if redPin and (failLED in ["all", "constant"] or (failLED == "first" and not outputFailSoFar)):
+                    if redPin and (failLED in ["all", "constant"] or (failLED == "first" and not redHasLit)):
                         GPIO.output(redPin, GPIO.HIGH)
-                    outputFailSoFar = True
+                        redHasLit = True
             except KeyboardInterrupt:
                 raise
             except Exception as e:
@@ -494,11 +504,11 @@ while True:
                     GPIO.output(greenPin, GPIO.LOW)
                 if redPin and failLED != "constant":
                     GPIO.output(redPin, GPIO.LOW)
-            try:
-                time.sleep(delayTime-(time.time()-curTime)-0.01)
-            except KeyboardInterrupt:
-                raise
-            except Exception:
-                pass # fall back on old method...
+        try:
+            time.sleep(delayTime-(time.time()-curTime)-0.01)
+        except KeyboardInterrupt:
+            raise
+        except Exception:
+            pass # fall back on old method...
     except KeyboardInterrupt:
         interrupt_handler()

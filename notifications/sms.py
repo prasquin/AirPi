@@ -17,15 +17,18 @@ class SMS(notification.Notification):
 	hostname = self.getHostname()
 
         # Set messages
-        if "msgalert" in params:
-            self.msgalert = params["msgalert"].replace("<hostname>", hostname)
+        if "msgalertsensor" in params:
+            self.msgalertsensor = params["msgalertsensor"].replace("<hostname>", hostname)
         else:
-            self.msgalert = "AirPi " + hostname + " has experienced an error! Nobody panic."
-
+            self.msgalertsensor = "AirPi " + hostname + " has experienced a sensor error! It apologises profusely."
+        if "msgalertoutput" in params:
+            self.msgalertoutput = params["msgalertoutput"].replace("<hostname>", hostname)
+        else:
+            self.msgalertoutput = "AirPi " + hostname + " has experienced an output error! It apologises profusely."
         if "msgdata" in params:
             self.msgdata = params["msgdata"].replace("<hostname>", hostname)
         else:
-            self.msgdata  = "AirPi " + hostname + " has just had something interesting happen with its data."
+            self.msgdata  = "Something interesting has happened with AirPi " + hostname + ". You'd better come see this..."
 
         # Set recipient and sender info
         self.to = (params["to"])
@@ -43,8 +46,10 @@ class SMS(notification.Notification):
         print("Info: SMS notifications enabled. Data costs will be incurred.")
 
     def sendNotification(self, event):
-        if event == "alert":
-            params =  {'username': self.auth["user"], 'hash': self.auth["hash"], 'numbers': self.to, 'message' : self.msgalert[:160], 'sender': self.sender}
+        if event == "alertsensor":
+            params =  {'username': self.auth["user"], 'hash': self.auth["hash"], 'numbers': self.to, 'message' : self.msgalertsensor[:160], 'sender': self.sender}
+        elif event == "alertoutput":
+            params =  {'username': self.auth["user"], 'hash': self.auth["hash"], 'numbers': self.to, 'message' : self.msgalertoutput[:160], 'sender': self.sender}
         else:
             params =  {'username': self.auth["user"], 'hash': self.auth["hash"], 'numbers': self.to, 'message' : self.msgdata[:160], 'sender': self.sender}
         #data = urllib.parse.urlencode(params)

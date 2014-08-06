@@ -24,28 +24,31 @@ class Tweet(notification.Notification):
         auth = OAuth(oauth_token, oauth_token_secret, CONSUMER_KEY, CONSUMER_SECRET)
         self.twitter = Twitter(auth=auth)
 
-        hostname = self.getHostname()
-
         # Set messages 
         hostname = self.getHostname()
         
-        if "msgalert" in params:
-            self.msgalert = params["msgalert"].replace("<hostname>", hostname)
+        if "msgalertsensor" in params:
+            self.msgalertsensor = params["msgalertsensor"].replace("<hostname>", hostname)
         else:
-            self.msgalert = hostname + " has experienced an error! Nobody panic."
+            self.msgalertsensor = "AirPi " + hostname + " has experienced a sensor error. It apologies profusely."
+        if "msgalertoutput" in params:
+            self.msgalertoutput = params["msgalertoutput"].replace("<hostname>", hostname)
+        else:
+            self.msgalertoutput = "AirPi" + hostname + " has experienced an output error! It apologises profusely."
 
         if "msgdata" in params:
             self.msgdata = params["msgdata"].replace("<hostname>", hostname)
         else:
-            self.msgdata  = hostname + " has just had something interesting happen with its data."
+            self.msgdata = "Something interesting has happened with AirPi " + hostname + ". You'd better come see this..."
 
     def sendNotification(self, event):
         # We must include a timestamp as insurance:
         # Twitter won't let you repeat the same Tweet twice in a row
         stamp = time.strftime("%H:%M: ")
-        if event == "alert":
-                msg = (stamp + self.msgalert)[:140]
-                self.twitter.statuses.update(status=msg)
-        if event == "data" and self.data == True:
-                msg = (stamp + self.msgalert)[:140]
-                self.twitter.statuses.update(status=msg)
+        if event == "alertsensor":
+                msg = (stamp + self.msgalertsensor)[:140]
+        elif event == "alertoutput":
+                msg = (stamp + self.msgalertoutput)[:140]
+        elif event == "data":
+                msg = (stamp + self.msgdata)[:140]
+        self.twitter.statuses.update(status=msg)

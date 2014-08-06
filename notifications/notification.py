@@ -1,7 +1,7 @@
 import socket
 
 class Notification():
-    commonParams = ["msgalert", "msgdata"]
+    commonParams = ["msgalertsensor", "msgalertoutput", "msgdata"]
 
     def __init__(self, params):
         raise NotImplementedError

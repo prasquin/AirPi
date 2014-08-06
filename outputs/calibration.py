@@ -6,6 +6,7 @@ Calibration terms are specified in the AirPi settings config file (usually AirPi
 """
 
 import output
+import math
 
 class Calibration(output.Output):
     requiredParams = []
@@ -42,6 +43,7 @@ class Calibration(output.Output):
         return self.last
 
     def findVal(key):
+        print "finding val"
         found = 0
         num = 0
         for i in Calibration.sharedClass.last:

@@ -18,19 +18,31 @@ class Email(notification.Notification):
 
         hostname = self.getHostname()
 
-        # Set text for 'alert' email
+        # Set subject text
         if "alertsubject" in params:
             self.message["alertsubject"] = params["alertsubject"].replace("<hostname>", hostname)
         else:
             self.message["alertsubject"] = "AirPi alert - " + hostname
-        self.message["msgalert"] = params["msgalert"].replace("<hostname>", hostname)
-
-        # Set text for 'data notification' email
         if "datasubject" in params:
             self.message["datasubject"] = params["datasubject"].replace("<hostname>", hostname)
         else:
             self.message["datasubject"] = "AirPi data notification - " + hostname
-        self.message["msgdata"] = params["msgdata"].replace("<hostname>", hostname)
+
+        # Set body text
+        if "msgalertsensor" in params:
+            self.message["msgalertsensor"] = params["msgalertsensor"].replace("<hostname>", hostname)
+        else:
+            self.message["msgalertsensor"] = "AirPi " + hostname + " has experienced a sensor error. It apologises profusely."
+        if "msgalertoutput" in params:
+            self.message["msgalertoutput"] = params["msgalertoutput"].replace("<hostname>", hostname) 
+        else:
+            self.message["msgalertoutput"] = "AirPi " + hostname + " has experienced an output error. It apologises profusely."
+        if "msgdata" in params:
+            self.message["msgdata"] = params["msgdata"].replace("<hostname>", hostname)
+        else:
+            self.message["msgdata"] = "Something interesting has happened with AirPi " + hostname + ". You'd better come see this..."
+
+
 
         # Set SMTP settings
         self.smtp['server'] = params["smtpserver"]
@@ -61,12 +73,15 @@ class Email(notification.Notification):
         msg += "From: " + self.address["fromname"] + " <" + self.address["fromaddress"] + ">\n"
         msg += "To: " + self.address["toaddress"] + "\n"
         
-        if event == "alert":
+        if "alert" in event:
             msg += "Subject: " + self.message["alertsubject"] + "\n"
-            msg += self.message["alertbody"]
+            if event == "alertsensor":
+                msg += self.message["msgalertsensor"]
+            else:
+                msg += self.message["msgalertoutput"]
         else:
             msg += "Subject: " + self.message["datasubject"] + "\n"
-            msg += self.message["databody"]
+            msg += self.message["msgdata"]
 
         if "port" in self.smtp:
             s = smtplib.SMTP(self.smtp['server'], self.smtp['port'])

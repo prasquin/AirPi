@@ -7,20 +7,20 @@ class Output():
         raise NotImplementedError
 
     def checkCal(self, params):
-	doCal = 0;
+        doCal = 0;
         if "calibration" in params:
             if params["calibration"].lower() in ["on", "yes", "true", "1"]:
-                docal = 1
+                doCal = 1
         return doCal
 
     def getserial(self):
-        # Extract serial from cpuinfo file
+        # Extract CPU serial number from cpuinfo
         # From: http://raspberrypi.nxez.com/2014/01/19/getting-your-raspberry-pi-serial-number-using-python.html
         cpuserial = "0000000000000000"
         try:
-            f = open('/proc/cpuinfo','r')
+            f = open('/proc/cpuinfo', 'r')
             for line in f:
-                if line[0:6]=='Serial':
+                if line[0:6] == 'Serial':
                     cpuserial = line[10:26]
             f.close()
         except:
@@ -41,5 +41,6 @@ class Output():
         metadata  = {"starttime":time.strftime("%H:%M on %A %d %B %Y"), \
         "operator":operator, \
         "piid":piid, \
-        "piname":self.getHostname()}
+        "piname":self.getHostname() \
+        }
         return metadata
