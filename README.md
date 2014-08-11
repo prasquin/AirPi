@@ -44,11 +44,12 @@ Changes - Haydn Williams
 ------------------------
 It additionally incorporates changes by Haydn Williams (github.com/haydnw), which include the following:
 
+* Started porting to Python 3 in 'python3' branch.
+* Added 'sample_bg.sh' script to start sampling in the background (so you can SSH into your Pi, start it, then quit).
 * Ability to start automatically at boot (does not require any user interaction).
   * This is set using the 'bootstart' parameter in 'settings.cfg'.
   * OutputDir parameter is now required, to avoid writing to /root when loading at boot.
-* Renamed 'data' array to 'parameters' to better reflect its content, and avoid confusion with actual data.
-* Added 'notifications' module which allow messages to be sent when errors occur. Includes email and tweet to start.
+* Added 'notifications' module which allow messages to be sent when errors occur. Includes email, sms and tweet.
 * Greater control of LED behaviour.
 * Can disable error messages printed to screen.
 * Can print to screen in CSV format.
@@ -60,6 +61,7 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
 * Can kill the process a bit more nicely using Ctrl+C.
 * Output modules requiring internet access will not be loaded if there is no connection available.
 * Abort and inform user if no output modules are enabled.
+* Renamed 'data' array to 'parameters' to better reflect its content, and avoid confusion with actual data.
 * Code tidying:
   * Moved the check whether calibration is required into a super function called from each output subclass now.
   * Made multiple changes to all .py files in line with Pylint recommendations as per PEP 8 style guide.
