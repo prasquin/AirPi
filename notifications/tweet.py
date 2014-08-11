@@ -51,4 +51,7 @@ class Tweet(notification.Notification):
                 msg = (stamp + self.msgalertoutput)[:140]
         elif event == "data":
                 msg = (stamp + self.msgdata)[:140]
-        self.twitter.statuses.update(status=msg)
+        try:
+            self.twitter.statuses.update(status=msg)
+        except Exception as excep:
+            print(excep)

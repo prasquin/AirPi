@@ -22,7 +22,7 @@ from sensors import sensor
 from outputs import output
 from notifications import notification
 
-CFGDIR = "/home/pi/AirPi2.7"
+CFGDIR = "/home/pi/AirPi"
 SENSORSCFG = os.path.join(CFGDIR, 'sensors.cfg')
 OUTPUTSCFG = os.path.join(CFGDIR, 'outputs.cfg')
 SETTINGSCFG = os.path.join(CFGDIR, 'settings.cfg')
@@ -268,15 +268,14 @@ for i in OUTPUTNAMES:
                 if OUTPUTCONFIG.has_option(i, optField):
                     pluginData[optField] = OUTPUTCONFIG.get(i, optField)
 
-            if OUTPUTCONFIG.has_option(i, "needsinternet"):
-                if OUTPUTCONFIG.getboolean(i, "needsinternet") and not check_conn():
+            if OUTPUTCONFIG.has_option(i, "needsinternet") and OUTPUTCONFIG.getboolean(i, "needsinternet") and not check_conn():
                     msg = "Error: Skipping output plugin " + i + " because no internet connectivity."
                     print (msg)
                     LOGGER.info(msg)
             else:
                 instClass = outputClass(pluginData)
                 instClass.async = async
-
+                
                 # check for a outputData function
                 if callable(getattr(instClass, "outputData", None)):
                     outputPlugins.append(instClass)
@@ -291,8 +290,12 @@ for i in OUTPUTNAMES:
                 # Check for an outputMetadata function
                 if OUTPUTCONFIG.has_option(i, "metadatareqd") and OUTPUTCONFIG.getboolean(i, "metadatareqd"):
                     if callable(getattr(instClass, "outputMetadata", None)):
-                        # We'll print this later on
-                        metadata = instClass.outputMetadata();
+                        # For CSVOutput it writes to file immediately.
+                        # For printing, we have to save it and use it later
+                        if filename != "print":
+                            instClass.outputMetadata()
+                        else:
+                            metadata = instClass.outputMetadata()
 
     except Exception as excep: #add specific exception for missing module
         msg = "Error: Did not import output plugin " + str(i) + ": " + str(excep)
@@ -448,6 +451,7 @@ if GREENPIN:
 signal.signal(signal.SIGINT, interrupt_handler)
 
 print("Success: Setup complete.")
+
 if metadata is not None:
     print("==========================================================")
     print(metadata)
@@ -521,7 +525,8 @@ while True:
             try:
                 outputsWorking = True
                 for i in outputPlugins:
-                    outputsWorking = i.outputData(data)
+                    if i.outputData(data) == False:
+                        outputsWorking = False
                 # Record the outcome
                 if outputsWorking:
                     LOGGER.info("Success: Data output in all requested formats.")

@@ -99,6 +99,6 @@ class Email(notification.Notification):
         
         try:
             s.sendmail(self.address["fromaddress"], [self.address["toaddress"]], msg)
-        except Exception as e:
-            print e
+        except Exception as excep:
+            print(excep)
         s.quit()

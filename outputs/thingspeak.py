@@ -1,9 +1,11 @@
 import output
 import requests
+import httplib
+import urllib
 import calibration
 
 class Thingspeak(output.Output):
-	requiredParams = ["APIKey","needsinternet"]
+	requiredParams = ["APIKey", "needsinternet"]
 	optionalParams = ["calibration"]
 
 	def __init__(self, params):
@@ -20,13 +22,18 @@ class Thingspeak(output.Output):
 			if i["value"] != None: #this means it has no data to upload.
 				arr["field" + str(counter)] = round(i["value"],2)
 			counter += 1
-		url = "https://api.thingspeak.com/update?key="+self.APIKey
+		url = "https://api.thingspeak.com/update?key=" + self.APIKey
+                headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
 		try:
-			z = requests.get(url, params=arr)
-			if z.text=="0": 
-				print "ThingSpeak Error: " + z.text
-				print "ThingSpeak URL: " + z.url
-				return False
+			f = httplib.HTTPConnection("api.thingspeak.com:80")
+                        f.request("POST", "/update", urllib.urlencode(arr), headers)
+                        resonse = f.getresponse()
+                        f.close
+                        #z = requests.post(url, params=arr)
+			#if z.text == "0": 
+				#print "Error: ThingSpeak error - " + z.text
+				#print "Error: ThingSpeak URL  - " + z.url
+				#return False
 		except Exception:
 			return False
 		return True

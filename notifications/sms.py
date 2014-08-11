@@ -57,6 +57,9 @@ class SMS(notification.Notification):
         data = data.encode('utf-8')
         #request = urllib.request.Request("https://api.txtlocal.com/send/?")
         #f = urllib.request.urlopen(request, data)
-        request = urllib2.Request("https://api.txtlocal.com/send/?")
-        f = urllib2.urlopen(request, data)
-        fr = f.read()
+        try:
+            request = urllib2.Request("https://api.txtlocal.com/send/?")
+            f = urllib2.urlopen(request, data)
+            fr = f.read()
+        except Exception as excep:
+            print(excep)
