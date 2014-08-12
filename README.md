@@ -47,7 +47,8 @@ Changes - Haydn Williams
 It additionally incorporates changes by Haydn Williams (github.com/haydnw), which include the following:
 
 * Started porting to Python 3 in 'python3' branch.
-* Added 'sample_bg.sh' script to start sampling in the background (so you can SSH into your Pi, start it, then quit).
+* Added 'airpictl.sh' script to control sampling in different modes
+  (including background and unattanded, so you can SSH into your Pi, start it, then quit).
 * Ability to start automatically at boot (does not require any user interaction).
   * This is set using the 'bootstart' parameter in 'settings.cfg'.
   * OutputDir parameter is now required, to avoid writing to /root when loading at boot.
