@@ -473,7 +473,7 @@ while True:
     try:
         curTime = time.time()
         sampleTime = None
-        if (curTime - lastUpdated) > SAMPLEFREQ:
+        if (curTime - lastUpdated) > (SAMPLEFREQ - 0.01):
             lastUpdated = curTime
             data = []
             alreadySentSensorAlerts = False
@@ -557,7 +557,7 @@ while True:
                 if REDPIN and FAILLED != "constant":
                     GPIO.output(REDPIN, GPIO.LOW)
         try:
-            time.sleep(SAMPLEFREQ -(time.time()-curTime)-0.01)
+            time.sleep(SAMPLEFREQ - (time.time() - curTime))
         except KeyboardInterrupt:
             raise
         except Exception:
