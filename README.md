@@ -11,6 +11,8 @@ Some of the files are based off code for the Raspberry Pi written by Adafruit: h
 
 For installation instructions, see airpi.es/kit.php
 
+For ease of use when working with scripts, you may want to add the AirPi folder to your $PATH.
+
 Changes - Fred Sonnenwald
 -------------------------
 This development branch of the AirPi code adds several features and bugfixes that I've developed as part of my http://pi.gate.ac.uk/ AirPi project.

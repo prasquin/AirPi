@@ -16,6 +16,11 @@ case "$1" in
         # This script uses the "bootstart" option in the AirPi settings file to decide
         # whether the AirPi should start sampling automatically.
 
+        if `ps aux | grep -v "grep" | grep -q "sudo.*airpi.py"`; then
+            echo "[AirPi] Error - it looks like the AirPi is already running."
+            exit 1
+        fi
+
         # Set path to Airpi directory and settings file
         AIRPI_DIR=/home/pi/AirPi
         AIRPI_SETTINGS=settings.cfg

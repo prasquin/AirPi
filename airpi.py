@@ -22,13 +22,16 @@ from sensors import sensor
 from outputs import output
 from notifications import notification
 
-CFGDIR = "/home/pi/AirPi"
+BASEDIR = "/home/pi/AirPi"
+CFGDIR = os.path.join(BASEDIR, 'cfg')
+LOGDIR = os.path.join(BASEDIR, 'log')
+
 SENSORSCFG = os.path.join(CFGDIR, 'sensors.cfg')
 OUTPUTSCFG = os.path.join(CFGDIR, 'outputs.cfg')
 SETTINGSCFG = os.path.join(CFGDIR, 'settings.cfg')
 NOTIFICATIONSCFG = os.path.join(CFGDIR, 'notifications.cfg')
 
-LOG_FILENAME = os.path.join(CFGDIR, 'airpi.log')
+LOG_FILENAME = os.path.join(LOGDIR, 'airpi.log')
 # Set up a specific logger with our desired output level
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -464,7 +467,6 @@ DELAY = (60 - SECONDS)
 del RIGHTNOW
 del SECONDS
 print("Sampling will start in " + str(int(DELAY)) + " seconds...")
-print("Press Ctrl + C to stop sampling.")
 print("==========================================================")
 time.sleep(DELAY)
 del DELAY
