@@ -23,11 +23,12 @@ case "$1" in
 
         # Set path to Airpi directory and settings file
         AIRPI_DIR=/home/pi/AirPi
+        CFG_DIR=cfgs
         AIRPI_SETTINGS=settings.cfg
 
         # Start the main AirPi script if requested in the settings file 
         echo "[AirPi] Checking whether AirPi should start sampling automatically..."
-        if grep -q "bootstart = True" $AIRPI_DIR/$AIRPI_SETTINGS; then
+        if grep -q "bootstart = True" $AIRPI_DIR/$CFG_DIR/$AIRPI_SETTINGS; then
             echo "[AirPi] Will start automatic sampling in three minutes."
             sleep 180
             echo "[AirPi] Starting automatic AirPi sampling in background process."
