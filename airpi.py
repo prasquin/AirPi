@@ -112,12 +112,14 @@ def check_cfg_file(filetocheck):
         LOGGER.error(msg)
         exit(1)
     else:
-        msg = "Loading config file " + filetocheck
-        print(msg)
+        msg = "Config file: " + filetocheck
         LOGGER.info(msg)
 
 def set_up_sensors():
     
+    print("==========================================================")
+    print("Loading SENSORS...")
+
     check_cfg_file(CFGPATHS['sensors'])
 
     SENSORCONFIG = ConfigParser.SafeConfigParser()
@@ -215,6 +217,9 @@ def set_up_sensors():
 
 def set_up_outputs():
     
+    print("==========================================================")
+    print("Loading OUTPUTS...")
+
     check_cfg_file(CFGPATHS['outputs'])
 
     OUTPUTCONFIG = ConfigParser.SafeConfigParser()
@@ -327,6 +332,9 @@ def set_up_outputs():
 
 def set_up_notifications():
 
+    print("==========================================================")
+    print("Loading NOTIFICATIONS...")
+
     check_cfg_file(CFGPATHS['notifications'])
 
     NOTIFICATIONCONFIG = ConfigParser.SafeConfigParser()
@@ -437,9 +445,15 @@ def set_up_notifications():
             raise excep
 
     # Don't run check_plugins_enabled here, because it's OK to not have any notifications
+    if not notificationPlugins:
+        print("Info: No Notifications requested.")
     return notificationPlugins
 
 def set_settings():
+
+    print("==========================================================")
+    print("Loading SETTINGS...")
+
     check_cfg_file(CFGPATHS['settings'])
     mainconfig = ConfigParser.SafeConfigParser()
     mainconfig.read(CFGPATHS['settings'])
@@ -457,9 +471,35 @@ def set_settings():
 def delay_start(timenow):
     SECONDS = float(timenow.second + (timenow.microsecond / 1000000))
     DELAY = (60 - SECONDS)
-    print("Sampling will start in " + str(int(DELAY)) + " seconds...")
-    print("==========================================================")
-    time.sleep(DELAY)
+    if DELAY != 60:
+        print("Info: Sampling will start in " + str(int(DELAY)) + " seconds...")
+        print("==========================================================")
+        time.sleep(DELAY)
+
+def read_sensor(sensorplugin):
+    reading = {}
+    reading["value"] = sensorplugin.getVal()
+    reading["unit"] = sensorplugin.valUnit
+    reading["symbol"] = sensorplugin.valSymbol
+    reading["name"] = sensorplugin.valName
+    reading["sensor"] = sensorplugin.sensorName
+    reading["description"] = sensorplugin.description
+    reading["readingType"] = sensorplugin.readingType
+    return reading
+
+def read_gps(sensorplugin):
+    reading = {}
+    val = i.getVal()
+    LOGGER.debug("GPS output %s" % (val,))
+    reading["latitude"] = val[0]
+    reading["longitude"] = val[1]
+    if not isnan(val[2]):
+        reading["altitude"] = val[2]
+    reading["disposition"] = val[3]
+    reading["exposure"] = val[4]
+    reading["name"] = i.valName
+    reading["sensor"] = i.sensorName
+    return reading
 
 def sample():
     lastupdated = 0;
@@ -473,42 +513,24 @@ def sample():
                 alreadySentSensorAlerts = False
                 alreadySentOutputAlerts = False
                 #Collect the data from each sensor
-                sensorsWorking = True
+                sensorsworking = True
                 for i in pluginsSensors:
-                    dataDict = {}
+                    datadict = {}
+                    sampletime = datetime.now()
                     if i == gpsPluginInstance:
-                        sampleTime = datetime.now()
-                        val = i.getVal()
-                        if isnan(val[2]): # this means it has no data to upload.
-                            continue
-                        LOGGER.debug("GPS output %s" % (val,))
-                        # handle GPS data
-                        dataDict["latitude"] = val[0]
-                        dataDict["longitude"] = val[1]
-                        dataDict["altitude"] = val[2]
-                        dataDict["disposition"] = val[3]
-                        dataDict["exposure"] = val[4]
-                        dataDict["name"] = i.valName
-                        dataDict["sensor"] = i.sensorName
+                        datadict = read_gps(i)
                     else:
-                        sampletime = datetime.now()
-                        dataDict["value"] = i.getVal()
+                        datadict = read_sensor(i)
                         # TODO: Ensure this is robust
-                        if dataDict["value"] is None or isnan(float(dataDict["value"])) or dataDict["value"] == 0:
-                            sensorsWorking = False
-                        dataDict["unit"] = i.valUnit
-                        dataDict["symbol"] = i.valSymbol
-                        dataDict["name"] = i.valName
-                        dataDict["sensor"] = i.sensorName
-                        dataDict["description"] = i.description
-                        dataDict["readingType"] = i.readingType
-                    data.append(dataDict)
+                        if datadict["value"] is None or isnan(float(datadict["value"])) or datadict["value"] == 0:
+                            sensorsworking = False
+                    data.append(datadict)
                 # Record the outcome
-                if sensorsWorking:
+                if sensorsworking:
                     LOGGER.info("Success: Data obtained from all sensors.")
                 else:
                     if not alreadySentSensorAlerts:
-                        for j in notificationPlugins:
+                        for j in pluginsNotifications:
                             j.sendNotification("alertsensor")
                         alreadySentSensorAlerts = True
                     msg = "Error: Failed to obtain data from all sensors."
@@ -529,7 +551,7 @@ def sample():
                             greenHasLit = True
                     else:
                         if not alreadySentOutputAlerts:
-                            for j in pluginsNotificaitons:
+                            for j in pluginsNotifications:
                                 j.sendNotification("alertoutput")
                             alreadySentOutputAlerts = True
                         msg = "Error: Failed to output in all requested formats."
@@ -579,7 +601,7 @@ metadata = None
 #Set up plugins
 pluginsSensors = set_up_sensors()
 pluginsOutputs = set_up_outputs()
-pluginsNotificatons = set_up_notifications()
+plugingsNotifications = set_up_notifications()
 settings = set_settings()
 
 greenHasLit = False
@@ -590,6 +612,7 @@ led_setup(settings['REDPIN'], settings['GREENPIN'])
 # Register the signal handler
 signal.signal(signal.SIGINT, interrupt_handler)
 
+print("==========================================================")
 print("Success: Setup complete.")
 
 if metadata is not None:
