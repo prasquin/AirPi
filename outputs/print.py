@@ -39,14 +39,14 @@ class Print(output.Output):
             		else:
                                 theValue = i["value"]
                                 if type(theValue) is float:
-                                        if theValue > 10000:
-                                                theValue = int(round(i["value"], 0))
-                                        elif theValue > 1000:
-                                                theValue = round(i["value"], 1)
-                                        else:
-                                                theValue = round(i["value"], 2)
+                                    if theValue > 10000:
+                                        theValue = int(round(i["value"], 0))
+                                    elif theValue > 1000:
+                                            theValue = round(i["value"], 1)
+                                    else:
+                                            theValue = round(i["value"], 2)
                                 else:
                                         theValue = "-"
-                                print (i["name"].ljust(17)).replace("_", " ") + ": " + str(theValue).ljust(8) + " " + i["symbol"]
+                                print (i["name"].ljust(17)).replace("_", " ") + ": " + str(theValue).ljust(8) + " " + i["symbol"].ljust(5) + "(" + i["readingType"] + ")"
                 print "=========================================================="
         return True
