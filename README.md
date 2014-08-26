@@ -71,6 +71,7 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
 * 'outputDir' parameter is now required for csvoutput, to avoid writing to /root when loading at boot.
   * Needs to be in [CSVOutput] section of 'cfg/outputs.cfg'.
 * Moved all config files to 'cfg' directory.
+* Moved all log files (and redirected output from airpictl.sh) to 'log' directory.
 * Output modules requiring internet access will not be loaded if there is no connection available.
 * Abort and inform user if no output modules are enabled.
 * Renamed 'data' array to 'parameters' to better reflect its content, and avoid confusion with actual data.
