@@ -8,6 +8,7 @@
 import sys
 sys.dont_write_bytecode = True
 
+import socket
 import RPi.GPIO as GPIO
 import ConfigParser
 import time
@@ -72,7 +73,7 @@ def check_conn():
         pass
     return False
 
-def check_plugins_enabled(plugins, type):
+def any_plugins_enabled(plugins, type):
     if not plugins:
         msg = "There are no " + type + " plugins enabled! Please enable at least one and try again."
         print(msg)
@@ -92,6 +93,26 @@ def led_on(pin):
 
 def led_off(pin):
     GPIO.output(pin, GPIO.LOW)
+
+def getserial():
+    # From: http://raspberrypi.nxez.com/2014/01/19/getting-your-raspberry-pi-serial-number-using-python.html
+    cpuserial = "0000000000000000"
+    try:
+        f = open('/proc/cpuinfo', 'r')
+        for line in f:
+            if line[0:6] == 'Serial':
+                cpuserial = line[10:26]
+        f.close()
+    except:
+        cpuserial = "ERROR000000000"
+    return cpuserial
+
+def getHostname():
+    if socket.gethostname().find('.')>=0:
+        host = socket.gethostname()
+    else:
+        host = socket.gethostbyaddr(socket.gethostname())[0]
+    return host
 
 def set_paths():
     cfgpaths = {}
@@ -212,7 +233,7 @@ def set_up_sensors():
             LOGGER.error(msg)
             raise excep
 
-    if check_plugins_enabled(sensorplugins, 'sensor'):
+    if any_plugins_enabled(sensorplugins, 'sensor'):
         return sensorplugins
 
 def set_up_outputs():
@@ -272,11 +293,7 @@ def set_up_outputs():
                     opt = outputclass.optionalParams
                 except Exception:
                     opt = []
-                if OUTPUTCONFIG.has_option(i, "async"):
-                    async = OUTPUTCONFIG.getboolean(i, "async")
-                else:
-                    async = False
-
+                
                 plugindata = {}
                 for reqdfield in reqd:
                     if OUTPUTCONFIG.has_option(i, reqdfield):
@@ -292,6 +309,16 @@ def set_up_outputs():
                     if OUTPUTCONFIG.has_option(i, optfield):
                         plugindata[optfield] = OUTPUTCONFIG.get(i, optfield)
 
+                if OUTPUTCONFIG.has_option(i, "metadatareqd") and OUTPUTCONFIG.getboolean(i, "metadatareqd"):
+                    plugindata['metadatareqd'] = True
+                else:
+                    plugindata['metadatareqd'] = False
+
+                if OUTPUTCONFIG.has_option(i, "async"):
+                    async = OUTPUTCONFIG.getboolean(i, "async")
+                else:
+                    async = False
+
                 if OUTPUTCONFIG.has_option(i, "needsinternet") and OUTPUTCONFIG.getboolean(i, "needsinternet") and not check_conn():
                         msg = "Error: Skipping output plugin " + i + " because no internet connectivity."
                         print (msg)
@@ -300,7 +327,7 @@ def set_up_outputs():
                     instclass = outputclass(plugindata)
                     instclass.async = async
                     
-                    # check for a outputdata function
+                    # check for an outputdata function
                     if callable(getattr(instclass, "outputData", None)):
                         outputplugins.append(instclass)
                         msg = "Success: Loaded output plugin " + str(i)
@@ -311,32 +338,13 @@ def set_up_outputs():
                         print(msg) 
                         LOGGER.info(msg)
 
-                    # Check for an outputMetadata function
-                    if OUTPUTCONFIG.has_option(i, "metadatareqd") and OUTPUTCONFIG.getboolean(i, "metadatareqd"):
-                        if callable(getattr(instclass, "outputMetadata", None)):
-                            # For CSVOutput it writes to file immediately.
-                            # For printing, we have to save it and use it later
-                            if filename != "print":
-                                instclass.outputMetadata()
-                            else:
-                                metadata = instclass.outputMetadata()
-
         except Exception as excep: #add specific exception for missing module
             msg = "Error: Did not import output plugin " + str(i) + ": " + str(excep)
             print(msg)
             LOGGER.error(msg)
             raise excep
 
-    if check_plugins_enabled(outputplugins, 'output'):
-        for plugin in outputplugins:
-            if callable(getattr(plugin, "outputMetadata", None)):
-                # For CSVOutput it writes to file immediately.
-                # For printing, we have to save it and use it later
-                if filename != "print":
-                    plugin.outputMetadata()
-                else:
-                    metadata = plugin.outputMetadata()
-                    print("metadata = " + metadata)
+    if any_plugins_enabled(outputplugins, 'output'):
         return outputplugins
 
 def set_up_notifications():
@@ -453,7 +461,7 @@ def set_up_notifications():
             LOGGER.error(msg)
             raise excep
 
-    # Don't run check_plugins_enabled here, because it's OK to not have any notifications
+    # Don't run any_plugins_enabled here, because it's OK to not have any notifications
     if not notificationPlugins:
         msg = "Info: No Notifications enabled."
         print(msg)
@@ -472,7 +480,8 @@ def set_settings():
 
     settingslist['AVERAGE'] = False
     settingslist['SAMPLEFREQ'] = mainconfig.getfloat("Sampling", "sampleFreq")
-    averagefreq = mainconfig.getint("Sampling", "averageFreq")
+    settingslist['AVERAGEFREQ'] = mainconfig.getint("Sampling", "averageFreq")
+    averagefreq = settingslist['AVERAGEFREQ']
     if averagefreq > 0:
         averagecount = averagefreq / settingslist['SAMPLEFREQ']
         if averagecount < 2:
@@ -490,12 +499,28 @@ def set_settings():
     settingslist['FAILLED'] = mainconfig.get("LEDs","failLED")
     settingslist['OPERATOR'] = mainconfig.get("Misc", "operator")
     settingslist['PRINTERRORS'] = mainconfig.getboolean("Misc","printErrors")
+
+    print("Success: Loaded settings.")
+
     return settingslist
+
+def set_metadata():
+    meta = {
+        "STARTTIME":time.strftime("%H:%M on %A %d %B %Y"),
+        "OPERATOR":settings['OPERATOR'],
+        "PIID":getserial(),
+        "PINAME":getHostname(),
+        "SAMPLEFREQ":"Sampling every " + str(int(settings['SAMPLEFREQ'])) + " seconds."
+        }
+    if settings['AVERAGE']:
+        meta['AVERAGEFREQ'] = "Averaging every " + str(settings['AVERAGEFREQ']) + " seconds."
+    return meta
 
 def delay_start(timenow):
     SECONDS = float(timenow.second + (timenow.microsecond / 1000000))
     DELAY = (60 - SECONDS)
     if DELAY != 60:
+        print("==========================================================")
         print("Info: Sampling will start in " + str(int(DELAY)) + " seconds...")
         print("==========================================================")
         time.sleep(DELAY)
@@ -658,6 +683,10 @@ def average_dataset(identifier, dataset):
         formatted.append(dataset[identifier])
     return formatted
 
+def output_metadata(plugins, meta):
+    for plugin in plugins:
+        plugin.output_metadata(meta)
+
 CFGPATHS = set_paths()
 
 # Set up logging
@@ -673,7 +702,6 @@ HANDLER.setFormatter(FORMATTER)
 
 #Set variables
 gpsplugininstance = None
-metadata = None
 
 #Set up plugins
 pluginssensors = set_up_sensors()
@@ -681,9 +709,12 @@ pluginsoutputs = set_up_outputs()
 pluginsnotifications = set_up_notifications()
 settings = set_settings()
 
+METADATA = set_metadata()
+if any_plugins_enabled(pluginsoutputs, 'output'):
+    output_metadata(pluginsoutputs, METADATA)
+
 greenhaslit = False
 redhaslit = False
-
 led_setup(settings['REDPIN'], settings['GREENPIN'])
 
 # Register the signal handler
@@ -691,12 +722,6 @@ signal.signal(signal.SIGINT, interrupt_handler)
 
 print("==========================================================")
 print("Success: Setup complete.")
-
-if metadata is not None:
-    print("==========================================================")
-    print(metadata)
-    print("==========================================================")
-    del metadata
 
 delay_start(datetime.now())
 

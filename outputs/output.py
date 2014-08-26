@@ -1,8 +1,8 @@
-import socket
 import time
+import socket
 from subprocess import check_output
 
-class Output():
+class Output(object):
     def __init__(self, params):
         raise NotImplementedError
 
@@ -13,34 +13,9 @@ class Output():
                 doCal = 1
         return doCal
 
-    def getserial(self):
-        # Extract CPU serial number from cpuinfo
-        # From: http://raspberrypi.nxez.com/2014/01/19/getting-your-raspberry-pi-serial-number-using-python.html
-        cpuserial = "0000000000000000"
-        try:
-            f = open('/proc/cpuinfo', 'r')
-            for line in f:
-                if line[0:6] == 'Serial':
-                    cpuserial = line[10:26]
-            f.close()
-        except:
-            cpuserial = "ERROR000000000"
-        return cpuserial
-
     def getHostname(self):
         if socket.gethostname().find('.')>=0:
             host = socket.gethostname()
         else:
             host = socket.gethostbyaddr(socket.gethostname())[0]
         return host
-
-    def getMetadata(self):
-        #TODO: Somehow grab the operator name
-        operator = "Haydy"
-        piid = self.getserial()
-        metadata  = {"starttime":time.strftime("%H:%M on %A %d %B %Y"), \
-        "operator":operator, \
-        "piid":piid, \
-        "piname":self.getHostname() \
-        }
-        return metadata

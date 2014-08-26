@@ -6,20 +6,26 @@ import os
 
 class Print(output.Output):
     requiredParams = ["format"]
-    optionalParams = ["calibration", "metadata"]
+    optionalParams = ["calibration", "metadatareqd"]
 
     def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkCal(params)
 	self.format = params["format"]
+        self.metadatareqd = params["metadatareqd"]
 
-    def outputMetadata(self):
-        metadata = self.getMetadata()
-        toprint  = "Run started: " + metadata['starttime'] + os.linesep
-        toprint += "Operator: " + metadata['operator'] + os.linesep
-        toprint += "Raspberry Pi name: " + metadata['piname'] + os.linesep
-        toprint += "Raspberry Pi ID: " +  metadata['piid']
-        return toprint
+    def output_metadata(self, metadata):
+        if self.metadatareqd:
+            toprint  = "Run started".ljust(23, '.') + metadata['STARTTIME'] + os.linesep
+            toprint += "Operator".ljust(23, '.') + metadata['OPERATOR'] + os.linesep
+            toprint += "Raspberry Pi name".ljust(23, '.') + metadata['PINAME'] + os.linesep
+            toprint += "Raspberry Pi ID".ljust(23, '.') +  metadata['PIID'] + os.linesep
+            toprint += "Sample frequency".ljust(23, '.') + metadata['SAMPLEFREQ'] + os.linesep
+            if "AVERAGEFREQ" in metadata:
+                toprint += "Averaging frequency".ljust(23, '.') + metadata['AVERAGEFREQ']
+            print("==========================================================")
+            print("Loading METADATA...")
+            print(toprint)
 
     def outputData(self, dataPoints):
         if self.docal == 1:

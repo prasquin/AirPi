@@ -5,7 +5,7 @@ import calibration
 
 class CSVOutput(output.Output):
 	requiredParams = ["outputDir", "outputFile"]
-	optionalParams = ["calibration", "metadata"]
+	optionalParams = ["calibration", "metadatareqd"]
 
 	def __init__(self, params):
 		if "<date>" in params["outputFile"]:
@@ -20,14 +20,18 @@ class CSVOutput(output.Output):
 		self.header = False;
 		self.cal = calibration.Calibration.sharedClass
                 self.docal = self.checkCal(params)
+                self.metadatareqd = params["metadatareqd"]
 
-        def outputMetadata(self):
-                self.metadata = self.getMetadata()
-                metadata  = "\"Run started\",\"" + self.metadata['starttime'] + "\"\n"
-                metadata += "\"Operator\",\"" + self.metadata['operator'] + "\"\n"
-                metadata += "\"Raspberry Pi name\",\"" + self.metadata['piname'] + "\"\n"
-                metadata += "\"Raspberry Pi ID\",\"" +  self.metadata['piid'] + "\""
-                self.file.write(metadata + "\n")
+        def output_metadata(self, metadata):
+            if self.metadatareqd:
+                towrite = "\"Run started\",\"" + metadata['STARTTIME'] + "\"\n"
+                towrite += "\"Operator\",\"" + metadata['OPERATOR'] + "\"\n"
+                towrite += "\"Raspberry Pi name\",\"" + metadata['PINAME'] + "\"\n"
+                towrite += "\"Raspberry Pi ID\",\"" +  metadata['PIID'] + "\"\n"
+                towrite += "\"Sampling frequency\",\"" + metadata['SAMPLEFREQ'] + "\"\n"
+                if "AVERAGEFREQ" in metadata:
+                    towrite += "\"Averaging frequency\",\"" + metadata['AVERAGEFREQ'] + "\"\n"
+                self.file.write(towrite + "\n")
 
 	def outputData(self,dataPoints):
 		if self.docal == 1:
