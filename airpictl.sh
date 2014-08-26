@@ -10,9 +10,6 @@ RUNDATE=`date +"%Y%m%d-%H%M"`
 HOST=`hostname`
 OUTPUT=$HOST-$RUNDATE.out
 
-# Start fresh
-clear;
-
 # Check whether anything is already running
 if `ps aux | grep -v "grep" | grep -q "sudo.*airpi.py"`; then
     case $1 in
@@ -31,12 +28,14 @@ fi
 # Run in the appropriate mode
 case $1 in 
     normal)
+        clear;
         echo "[AirPi] Starting normal AirPi sampling."
         echo "[AirPi] This run will end if you log out."
         echo "[AirPi] Press Ctrl +  C to stop."
         sudo python $DIR/airpi.py
         ;;
     bg)
+        clear;
         echo "[AirPi] Starting BACKGROUND AirPi sampling."
         echo "[AirPi] This run will end if you log out."
         echo "[AirPi] Saving screen output to $DIR/log/$OUTPUT."
@@ -44,6 +43,7 @@ case $1 in
         sudo python $DIR/airpi.py > $DIR/log/$OUTPUT &
         ;;
     unatt)
+        clear;
         echo "[AirPi] Starting UNATTENDED AirPi sampling."
         echo "[AirPi] This run will continue even if you log out."
         echo "[AirPi] Saving screen output to $DIR/log/$OUTPUT."
@@ -62,7 +62,6 @@ case $1 in
     status)
         if `ps aux | grep -v "grep" | grep -q "sudo.*airpi.py"`; then
             echo "[AirPi] Status: SAMPLING"
-            echo "[AirPi] To stop, use 'sudo ./airpictl.sh stop'"
         else
             echo "[AirPi] Status: Not currently sampling."
         fi
