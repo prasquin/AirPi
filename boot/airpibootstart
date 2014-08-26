@@ -29,8 +29,8 @@ case "$1" in
         # Start the main AirPi script if requested in the settings file 
         echo "[AirPi] Checking whether AirPi should start sampling automatically..."
         if grep -q "bootstart = True" $AIRPI_DIR/$CFG_DIR/$AIRPI_SETTINGS; then
-            echo "[AirPi] Will start automatic sampling in three minutes."
-            sleep 180
+            echo "[AirPi] Will start automatic sampling in one minute."
+            sleep 60
             echo "[AirPi] Starting automatic AirPi sampling in background process."
             sudo python $AIRPI_DIR/airpi.py &
         else
@@ -39,6 +39,7 @@ case "$1" in
     ;;
     stop)
         echo "[AirPi] Stopping all AirPi sampling."
+        echo "[AirPi] Alternatively you could use "./airpictl.sh stop"
         # Remember AirPi could be started any number of ways, including:
         # sudo python airpi.py
         # sudo python ./airpi.py
@@ -48,7 +49,7 @@ case "$1" in
         fi
     ;;
     *)
-        echo "Usage: /etc/init.d/AirPiBootStart {start|stop}"
+        echo "Usage: /etc/init.d/airpibootstart {start|stop}"
         exit 1
     ;;
 esac
