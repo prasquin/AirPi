@@ -46,26 +46,37 @@ Changes - Haydn Williams
 ------------------------
 It additionally incorporates changes by Haydn Williams (github.com/haydnw), which include the following:
 
-* Started porting to Python 3 in 'python3' branch.
-* Added 'airpictl.sh' script to control sampling in different modes
-  (including background and unattanded, so you can SSH into your Pi, start it, then quit).
-* Ability to start automatically at boot (does not require any user interaction).
-  * This is set using the 'bootstart' parameter in 'settings.cfg'.
-  * OutputDir parameter is now required, to avoid writing to /root when loading at boot.
-* Added 'notifications' module which allow messages to be sent when errors occur. Includes email, sms and tweet.
-* Greater control of LED behaviour.
-* Can disable error messages printed to screen.
-* Can print to screen in CSV format.
-* Added ability to record metadata to screen or CSV at start of a run, including Raspberry Pi serial no. and operator name.
+* Added 'airpictl.sh' script to control sampling in different modes.
+  * Run './airpictl.sh' to see options and usage.
+  * Includes 'background' and 'unattanded', so you can SSH into your Pi, start it, then quit.
+* Added ability to output average data (e.g. read every 1 min for 10 mins, then output the average for the 10 mins).
+  * Controlled by "averageFreq" parameter in 'cfg/settings.cfg' - set to at least twice sampleFreq to enable averaging.
+* Added ability to record metadata such as Raspberry Pi serial no. and operator name at start of run.
+  * Controlled by "metadatareqd" parameters in 'cfg/outputs.cfg' - set to True to output metadata.
+* Added ability to start automatically at boot for headless operation (does not require any user interaction).
+  * Controlled by 'bootstart' parameter in 'cfg/settings.cfg'.
+  * See the 'boot' directory for more info.
+* Added 'Notifications' module which allow messages to be sent when errors occur. Includes email, SMS and tweet.
+  * Controlled by 'cfgs/notifications.cfg'.
+* Added the following new options to 'cfg/settings.cfg':
+  * Greater control of LED behaviour.
+  * Can disable error messages printed to screen.
+  * Can print to screen in CSV format.
 * Standard print-to-screen format tidied up and made more digestable.
 * Can automatically name CSV files and HTTP titles using date and hostname.
+  * Controlled by use of '<date>' and '<hostname>' in 'cfg/outputs.cfg'
 * Added ThingSpeak integration.
 * Rounded Xively output to 2dp.
 * Can kill the process a bit more nicely using Ctrl+C.
+* 'outputDir' parameter is now required for csvoutput, to avoid writing to /root when loading at boot.
+  * Needs to be in [CSVOutput] section of 'cfg/outputs.cfg'.
+* Moved all config files to 'cfg' directory.
 * Output modules requiring internet access will not be loaded if there is no connection available.
 * Abort and inform user if no output modules are enabled.
 * Renamed 'data' array to 'parameters' to better reflect its content, and avoid confusion with actual data.
+* Started porting to Python 3 in 'python3' branch (work in progress; no feature parity between versions at present).
 * Code tidying:
   * Moved the check whether calibration is required into a super function called from each output subclass now.
   * Made multiple changes to all .py files in line with Pylint recommendations as per PEP 8 style guide.
   * Renamed 'data' to 'params' in output subclasses, to reflect their true nature and reduce confusion with data produced by sensors.
+  * Massive refactoring of airpi.py by extracting methods to facilitate code reuse and simplificaiton.
