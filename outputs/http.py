@@ -241,7 +241,7 @@ class HTTP(output.Output):
 			self.historicData[0:self.historicAt-1,:] = self.historicData[1:self.historicAt,:]
 			self.historicAt -= 1
 
-	def outputData(self,dataPoints):
+	def output_data(self,dataPoints):
 		if self.docal == 1:
 			dataPoints = self.cal.calibrate(dataPoints[:])
 		if len(self.sensorIds) == 0:

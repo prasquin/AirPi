@@ -13,7 +13,8 @@ class Thingspeak(output.Output):
 		self.cal = calibration.Calibration.sharedClass
                 self.docal = self.checkCal(params)
 
-	def outputData(self, dataPoints):
+# TODO: See if this can use requests instead of urllib and httplib
+	def output_data(self, dataPoints):
 		if self.docal == 1:
 			dataPoints = self.cal.calibrate(dataPoints)
 		arr ={} 
@@ -27,7 +28,7 @@ class Thingspeak(output.Output):
 		try:
 			f = httplib.HTTPConnection("api.thingspeak.com:80")
                         f.request("POST", "/update", urllib.urlencode(arr), headers)
-                        resonse = f.getresponse()
+                        response = f.getresponse()
                         f.close
                         #z = requests.post(url, params=arr)
 			#if z.text == "0": 

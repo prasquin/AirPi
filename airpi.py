@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 
-"""This file takes in inputs from a variety of sensor files,
-   and outputs information to a variety of services.
+"""Start sampling with an AirPi board.
+
+This is the main script file for sampling with an AirPi board. It takes
+configuration settings from a number of config files, and outputs data
+from the specified sensors in one or more requested formats. Errors
+notificaitons can be raised via several methods.
+
+See: http://airpi.es
+     http://github.com/haydnw/airpi
 
 """
 
@@ -24,9 +31,7 @@ from outputs import output
 from notifications import notification
 
 class MissingField(Exception):
-    """Exception to be raised when an imported plugin is missing a required field.
-
-    """
+    """Exception to raise when an imported plugin is missing a required field."""
     pass
 
 def interrupt_handler(signal, frame):
@@ -74,6 +79,18 @@ def check_conn():
     return False
 
 def any_plugins_enabled(plugins, type):
+    """Warn user if no plugins in a list are enabled.
+
+    Print and log a message if a plugin list doesn't
+    actually contain any loaded plugins.
+
+    Args:
+        plugins: Array of plugins to check.
+        type:    The type of plugin being checked.
+    Returns:
+        True if there are any plugins enabled.
+
+    """
     if not plugins:
         msg = "There are no " + type + " plugins enabled! Please enable at least one and try again."
         print(msg)
@@ -83,19 +100,52 @@ def any_plugins_enabled(plugins, type):
         return True
 
 def led_setup(redpin, greenpin):
+    """Set up AirPi LEDs.
+
+    Carry out initial setup of AirPi LEDs.
+
+    Args:
+        redpin:   GPIO pin number for red pin.
+        greenpin: GPIO pin number for green pin.
+
+    """
     if redpin:
         GPIO.setup(redpin, GPIO.OUT, initial=GPIO.LOW)
     if redpin:
         GPIO.setup(greenpin, GPIO.OUT, initial=GPIO.LOW)
 
 def led_on(pin):
+    """Turn LED on.
+
+    Turn on an AirPi LED.
+
+    Args:
+        pin: Pin number of the LED to turn on.
+
+    """
     GPIO.output(pin, GPIO.HIGH)
 
 def led_off(pin):
+    """Turn LED off.
+
+    Turn off an AirPi LED.
+
+    Args:
+        pin: Pin number of the LED to turn off.
+
+    """
     GPIO.output(pin, GPIO.LOW)
 
 def getserial():
-    # From: http://raspberrypi.nxez.com/2014/01/19/getting-your-raspberry-pi-serial-number-using-python.html
+    """Get Raspberry Pi serial no.
+
+    Get the serial number of the Raspberry Pi.
+    See: http://raspberrypi.nxez.com/2014/01/19/getting-your-raspberry-pi-serial-number-using-python.html
+
+    Returns:
+        True if there are any plugins enabled.
+
+    """
     cpuserial = "0000000000000000"
     try:
         f = open('/proc/cpuinfo', 'r')
@@ -107,14 +157,31 @@ def getserial():
         cpuserial = "ERROR000000000"
     return cpuserial
 
-def getHostname():
+def gethostname():
+    """Get current hostname.
+
+    Get the current hostname of the Raspberry Pi.
+
+    Returns:
+        The hostname.
+
+    """
     if socket.gethostname().find('.')>=0:
         host = socket.gethostname()
     else:
         host = socket.gethostbyaddr(socket.gethostname())[0]
     return host
 
-def set_paths():
+def set_cfg_paths():
+    """Set paths to cfg files.
+
+    Set the paths to config files. Assumes that they are in a sub-directory
+    called 'cfg', within the same directory as the current script (airpi.py).
+
+    Returns:
+        Dict containing paths to the various config files.
+
+    """
     cfgpaths = {}
     basedir = os.getcwd()
     cfgdir = os.path.join(basedir, 'cfg')
@@ -127,6 +194,18 @@ def set_paths():
     return cfgpaths
 
 def check_cfg_file(filetocheck):
+    """Check cfg file exists.
+
+    Check whether a specified cfg file exists. Print and log a warning if not.
+    Print and log the file name if it does exist.
+
+    Args:
+        filetocheck: The file to check the existence of.
+
+    Returns:
+        True if the file exists.
+
+    """
     if not os.path.isfile(filetocheck):
         msg = "Unable to access config file: " + filetocheck
         print(msg)
@@ -135,9 +214,19 @@ def check_cfg_file(filetocheck):
     else:
         msg = "Config file: " + filetocheck
         LOGGER.info(msg)
+        return True
 
 def set_up_sensors():
-    
+    """Set up AirPi sensors.
+
+    Set up AirPi sensors by reading sensors.cfg to determine which should be
+    enabled, then checking that all required fields are present.
+
+    Returns:
+        List containing the enabled 'sensor' objects.
+
+    """
+
     print("==========================================================")
     print("Loading SENSORS...")
 
@@ -237,7 +326,16 @@ def set_up_sensors():
         return sensorplugins
 
 def set_up_outputs():
-    
+    """Set up AirPi output plugins.
+
+    Set up AirPi output plugins by reading outputs.cfg to determine which
+    should be enabled, then checking that all required fields are present.
+
+    Returns:
+        List containing the enabled 'output' objects.
+
+    """
+
     print("==========================================================")
     print("Loading OUTPUTS...")
 
@@ -327,8 +425,8 @@ def set_up_outputs():
                     instclass = outputclass(plugindata)
                     instclass.async = async
                     
-                    # check for an outputdata function
-                    if callable(getattr(instclass, "outputData", None)):
+                    # check for an output_data function
+                    if callable(getattr(instclass, "output_data", None)):
                         outputplugins.append(instclass)
                         msg = "Success: Loaded output plugin " + str(i)
                         print(msg)
@@ -348,6 +446,16 @@ def set_up_outputs():
         return outputplugins
 
 def set_up_notifications():
+    """Set up AirPi notification plugins.
+
+    Set up AirPi notification plugins by reading notifications.cfg to
+    determine which should be enabled, then checking that all required
+    fields are present.
+
+    Returns:
+        List containing the enabled 'notification' objects.
+
+    """
 
     print("==========================================================")
     print("Loading NOTIFICATIONS...")
@@ -469,6 +577,14 @@ def set_up_notifications():
     return notificationPlugins
 
 def set_settings():
+    """Set up settings.
+
+    Set up settings by reading from settings.cfg.
+
+    Returns:
+        List containing the various settings.
+
+    """
 
     print("==========================================================")
     print("Loading SETTINGS...")
@@ -505,6 +621,14 @@ def set_settings():
     return settingslist
 
 def set_metadata():
+    """Set metadata.
+
+    Set up metadata for this run.
+
+    Returns:
+        Dict containing all metadata.
+
+    """
     meta = {
         "STARTTIME":time.strftime("%H:%M on %A %d %B %Y"),
         "OPERATOR":settings['OPERATOR'],
@@ -516,7 +640,30 @@ def set_metadata():
         meta['AVERAGEFREQ'] = "Averaging every " + str(settings['AVERAGEFREQ']) + " seconds."
     return meta
 
+def output_metadata(plugins, meta):
+    """Output metadata via enabled plugins.
+
+    Output metadata for the run via all enabled 'output' plugins.
+
+    Args:
+        plugins: List of enabled 'output' plugins.
+        meta: Metadata for the run.
+
+    """
+    for plugin in plugins:
+        plugin.output_metadata(meta)
+
 def delay_start(timenow):
+    """Delay sampling until start of the next minute.
+
+    Prevent sampling until the start of the next minute (i.e. 0 seconds)
+    by sleeping from 'timenow' until then. Print a message to the user
+    first.
+
+    Args:
+        timenow: Time from which the delay should begin.
+
+    """
     SECONDS = float(timenow.second + (timenow.microsecond / 1000000))
     DELAY = (60 - SECONDS)
     if DELAY != 60:
@@ -526,6 +673,19 @@ def delay_start(timenow):
         time.sleep(DELAY)
 
 def read_sensor(sensorplugin):
+    """Read from a non-GPS sensor.
+
+    Read info from a sensor. Note this is not just the value, but also
+    the sensor name, units, symbol etc.
+    N.B. GPS data is read using `read_gps`.
+
+    Args:
+        sensorplugin: The sensor plugin which should be read.
+
+    Returns:
+        Dict containing the sensor data.
+
+    """
     reading = {}
     reading["value"] = sensorplugin.getVal()
     reading["unit"] = sensorplugin.valUnit
@@ -537,6 +697,19 @@ def read_sensor(sensorplugin):
     return reading
 
 def read_gps(sensorplugin):
+    """Read from a GPS sensor.
+
+    Read info from a GPS sensor. Note this is not just the value, but also
+    the sensor name, units, symbol etc.
+    N.B. Non-GPS data is read using `read_sensor`.
+
+    Args:
+        sensorplugin: The sensor plugin which should be read.
+
+    Returns:
+        Dict containing the sensor data.
+
+    """
     reading = {}
     val = i.getVal()
     LOGGER.debug("GPS output %s" % (val,))
@@ -551,6 +724,13 @@ def read_gps(sensorplugin):
     return reading
 
 def sample():
+    """Sample from sensors and record output.
+
+    Commence and continue sampling from the enabled sensors and writing
+    to enabled 'output' plugins. Will continue until forceably stopped
+    with Ctrl+C.
+
+    """
     lastupdated = 0;
     if settings['AVERAGE']:
         countcurrent = 0
@@ -577,6 +757,7 @@ def sample():
                         # TODO: Ensure this is robust
                         if datadict["value"] is None or isnan(float(datadict["value"])) or datadict["value"] == 0:
                             sensorsworking = False
+                    # Average the data if required
                     if settings['AVERAGE'] and i != gpsplugininstance:
                         identifier = datadict['sensor'] + "-" + datadict['name']
                         if identifier not in dataset:
@@ -588,6 +769,7 @@ def sample():
                                     dataset[identifier][thekey] = thevalue
                             dataset[identifier]['values'] = []
                         dataset[identifier]['values'].append(datadict["value"])
+                    # Always record raw values
                     data.append(datadict)
                 # Record the outcome of reading sensors
                 if settings['AVERAGE']:
@@ -617,7 +799,7 @@ def sample():
                         outputsworking = True
                         for i in pluginsoutputs:
                             LOGGER.debug(data)
-                            if i.outputData(data) == False:
+                            if i.output_data(data) == False:
                                 outputsworking = False
                         # Record the outcome of outputting data
                         if outputsworking:
@@ -660,6 +842,20 @@ def sample():
             interrupt_handler()
 
 def average_dataset(identifier, dataset):
+    """Average a dataset.
+
+    Take a dataset consisting of 'n' separate readings, and calculate
+    the mean across those readings.
+
+    Args:
+        identifier: The unique identifier for the sensor and parameter
+            being averaged.
+        dataset: The list of 'n' separate readings to be averaged.
+
+    Returns:
+        List containing the averaged data.
+
+    """
     totals = {}
     avgs = {}
     numberofsamples = {}
@@ -676,53 +872,59 @@ def average_dataset(identifier, dataset):
     for identifier, total in totals.iteritems():
         dataset[identifier]['value'] = total / numberofsamples[identifier]
         dataset[identifier]['readingType'] = "average"
-    # Re-format to that expected by outputData methods of output plugins
+    # Re-format to that expected by output_data methods of output plugins
     formatted = []
     for identifier in dataset:
         dataset[identifier]['identifier'] = identifier
         formatted.append(dataset[identifier])
     return formatted
 
-def output_metadata(plugins, meta):
-    for plugin in plugins:
-        plugin.output_metadata(meta)
+def main():
+    """Execute a run.
 
-CFGPATHS = set_paths()
+    Set up and execute an AirPi sampling run.
 
-# Set up logging
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
-HANDLER = logging.handlers.RotatingFileHandler(CFGPATHS['log'], maxBytes=40960, backupCount=5)
-LOGGER.addHandler(HANDLER)
-FORMATTER = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-HANDLER.setFormatter(FORMATTER)
-# Uncomment below for logging output
-#logging.basicConfig(level=logging.DEBUG)
+    """
+
+    CFGPATHS = set_cfg_paths()
+
+    # Set up logging
+    LOGGER = logging.getLogger(__name__)
+    LOGGER.setLevel(logging.DEBUG)
+    HANDLER = logging.handlers.RotatingFileHandler(CFGPATHS['log'], maxBytes=40960, backupCount=5)
+    LOGGER.addHandler(HANDLER)
+    FORMATTER = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    HANDLER.setFormatter(FORMATTER)
+    # Uncomment below for logging output
+    #logging.basicConfig(level=logging.DEBUG)
 
 
-#Set variables
-gpsplugininstance = None
+    #Set variables
+    gpsplugininstance = None
 
-#Set up plugins
-pluginssensors = set_up_sensors()
-pluginsoutputs = set_up_outputs()
-pluginsnotifications = set_up_notifications()
-settings = set_settings()
+    #Set up plugins
+    pluginssensors = set_up_sensors()
+    pluginsoutputs = set_up_outputs()
+    pluginsnotifications = set_up_notifications()
+    settings = set_settings()
 
-METADATA = set_metadata()
-if any_plugins_enabled(pluginsoutputs, 'output'):
-    output_metadata(pluginsoutputs, METADATA)
+    METADATA = set_metadata()
+    if any_plugins_enabled(pluginsoutputs, 'output'):
+        output_metadata(pluginsoutputs, METADATA)
 
-greenhaslit = False
-redhaslit = False
-led_setup(settings['REDPIN'], settings['GREENPIN'])
+    greenhaslit = False
+    redhaslit = False
+    led_setup(settings['REDPIN'], settings['GREENPIN'])
 
-# Register the signal handler
-signal.signal(signal.SIGINT, interrupt_handler)
+    # Register the signal handler
+    signal.signal(signal.SIGINT, interrupt_handler)
 
-print("==========================================================")
-print("Success: Setup complete.")
+    print("==========================================================")
+    print("Success: Setup complete.")
 
-delay_start(datetime.now())
+    delay_start(datetime.now())
 
-sample()
+    sample()
+
+if __name__ == '__main__':
+    main()

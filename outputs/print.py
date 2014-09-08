@@ -27,7 +27,7 @@ class Print(output.Output):
             print("Loading METADATA...")
             print(toprint)
 
-    def outputData(self, dataPoints):
+    def output_data(self, dataPoints):
         if self.docal == 1:
             dataPoints = self.cal.calibrate(dataPoints)
         if self.format == "csv":

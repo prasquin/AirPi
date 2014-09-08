@@ -6,6 +6,9 @@ class Output(object):
     def __init__(self, params):
         raise NotImplementedError
 
+    def output_data():
+        raise NotImplementedError
+
     def checkCal(self, params):
         doCal = 0;
         if "calibration" in params:

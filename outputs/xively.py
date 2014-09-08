@@ -13,7 +13,7 @@ class Xively(output.Output):
 		self.cal = calibration.Calibration.sharedClass
                 self.docal = self.checkCal(params)
 
-	def outputData(self, dataPoints):
+	def output_data(self, dataPoints):
 		if self.docal == 1:
 			dataPoints = self.cal.calibrate(dataPoints)
 		arr = []

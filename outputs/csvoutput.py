@@ -33,7 +33,7 @@ class CSVOutput(output.Output):
                     towrite += "\"Averaging frequency\",\"" + metadata['AVERAGEFREQ'] + "\"\n"
                 self.file.write(towrite + "\n")
 
-	def outputData(self,dataPoints):
+	def output_data(self,dataPoints):
 		if self.docal == 1:
 			dataPoints = self.cal.calibrate(dataPoints)
 
