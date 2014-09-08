@@ -2,10 +2,11 @@
 
 """Start sampling with an AirPi board.
 
-This is the main script file for sampling with an AirPi board. It takes
-configuration settings from a number of config files, and outputs data
-from the specified sensors in one or more requested formats. Errors
-notificaitons can be raised via several methods.
+This is the main script file for sampling air quality and/or weather
+data with an AirPi board on a Raspberry Pi. It takes configuration
+settings from a number of config files, and outputs data from the specified
+sensors in one or more requested formats. Errors notifications can be raised
+via several methods.
 
 See: http://airpi.es
      http://github.com/haydnw/airpi
@@ -23,7 +24,8 @@ import inspect
 import os
 import signal
 import urllib2
-import logging, logging.handlers
+import logging
+from logging import handlers
 from datetime import datetime
 from math import isnan
 from sensors import sensor
