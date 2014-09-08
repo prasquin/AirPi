@@ -1,8 +1,13 @@
 #! /bin/bash
 
-# Control AirPi sampling.
-# It's really just a wrapper to make life easier for non-Linux people.
-# Haydn Williams 2014
+# =============================================================================
+# File:     airpictl.sh
+# Requires: airpi.py
+# Purpose:  Control AirPi sampling.
+# Comments: It's really just a wrapper to make life easier for non-Linux people.
+# Author:   Haydn Williams <pi@hwmail.co.uk>
+# Date:     August 2014
+# =============================================================================
 
 # Set variables
 DIR=`pwd`

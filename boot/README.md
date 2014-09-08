@@ -1,7 +1,7 @@
 AirPi 'bootstart' Feature
 =========================
 This directory is only concerned with the automatic recording of AirPi data when the Raspberry Pi boots.
-This is useful if, for example, you are running the unit with a battery and no monitor / keyboard, as
+This is useful if, for example, you are running the unit with a battery and no monitor / keyboard, because
 the AirPi will start sampling as soon as the Raspberry pi starts up; you do not need to log in, enter
 any text or confirm anything.
 

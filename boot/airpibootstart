@@ -1,5 +1,5 @@
 #! /bin/bash
-# /etc/init.d/AirPiBootStart
+# /etc/init.d/airpibootstart
 
 ### BEGIN INIT INFO
 # Provides:          airpi
@@ -7,9 +7,19 @@
 # Required-Stop:     $remote_fs $syslog
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: Simple script to start AirPi at boot
-# Description:       Checks AirPi config file to see if AirPi should start sampling automatically on booting.
+# Short-Description: Start AirPi at boot if required.
+# Description:       Check AirPi config file to see if AirPi should start sampling automatically on booting.
 ### END INIT INFO
+
+# =============================================================================
+# File:     airpibootstart
+# Requires: airpi.py
+# Purpose:  Start AirPi at boot if required.
+# Comments: Check AirPi config file to see if AirPi should start sampling
+#           automatically on booting. If so, start sampling.
+# Author:   Haydn Williams <pi@hwmail.co.uk>
+# Date:     August 2014
+# =============================================================================
 
 case "$1" in
     start)
