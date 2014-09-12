@@ -16,15 +16,15 @@ class Print(output.Output):
 
     def output_metadata(self, metadata):
         if self.metadatareqd:
+            print("==========================================================")
+            print("Loading METADATA...")
             toprint  = "Run started".ljust(23, '.') + metadata['STARTTIME'] + os.linesep
             toprint += "Operator".ljust(23, '.') + metadata['OPERATOR'] + os.linesep
             toprint += "Raspberry Pi name".ljust(23, '.') + metadata['PINAME'] + os.linesep
             toprint += "Raspberry Pi ID".ljust(23, '.') +  metadata['PIID'] + os.linesep
-            toprint += "Sample frequency".ljust(23, '.') + metadata['SAMPLEFREQ'] + os.linesep
+            toprint += "Sample frequency".ljust(23, '.') + metadata['SAMPLEFREQ']
             if "AVERAGEFREQ" in metadata:
-                toprint += "Averaging frequency".ljust(23, '.') + metadata['AVERAGEFREQ']
-            print("==========================================================")
-            print("Loading METADATA...")
+                toprint += os.linesep + "Averaging frequency".ljust(23, '.') + metadata['AVERAGEFREQ'] + os.linesep
             print(toprint)
 
     def output_data(self, dataPoints):

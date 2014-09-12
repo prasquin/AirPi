@@ -42,6 +42,12 @@ class Calibration(output.Output):
         self.lastpassed = dataPoints # update which object we last worked on
         return self.last
 
+    def output_metadata(self, metadata):
+        return True
+
+    def output_data(self, dataPoints):
+        return True
+
     def findVal(key):
         print "finding val"
         found = 0

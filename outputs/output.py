@@ -6,7 +6,7 @@ class Output(object):
     def __init__(self, params):
         raise NotImplementedError
 
-    def output_data():
+    def output_data(self, dataPoints):
         raise NotImplementedError
 
     def checkCal(self, params):

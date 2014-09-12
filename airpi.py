@@ -635,7 +635,7 @@ def set_metadata():
         "STARTTIME":time.strftime("%H:%M on %A %d %B %Y"),
         "OPERATOR":settings['OPERATOR'],
         "PIID":getserial(),
-        "PINAME":getHostname(),
+        "PINAME":gethostname(),
         "SAMPLEFREQ":"Sampling every " + str(int(settings['SAMPLEFREQ'])) + " seconds."
         }
     if settings['AVERAGE']:
@@ -670,9 +670,13 @@ def delay_start(timenow):
     DELAY = (60 - SECONDS)
     if DELAY != 60:
         print("==========================================================")
-        print("Info: Sampling will start in " + str(int(DELAY)) + " seconds...")
-        print("==========================================================")
-        time.sleep(DELAY)
+        remaining = DELAY
+        while remaining >= 10:
+            print("Info: Sampling will start in " + str(int(remaining)) + " seconds.")
+            time.sleep(10)
+            remaining -= 10
+        print("Info: Sampling will start in  " + str(int(remaining)) + " seconds.")
+        time.sleep(remaining)
 
 def read_sensor(sensorplugin):
     """Read from a non-GPS sensor.
@@ -733,6 +737,9 @@ def sample():
     with Ctrl+C.
 
     """
+
+    print("Info: Starting sampling...")
+    print("==========================================================")
     lastupdated = 0;
     if settings['AVERAGE']:
         countcurrent = 0
@@ -800,6 +807,7 @@ def sample():
                         # Output the data
                         outputsworking = True
                         for i in pluginsoutputs:
+                            LOGGER.debug("This is the dataset about to be output to " + str(i) + " :")
                             LOGGER.debug(data)
                             if i.output_data(data) == False:
                                 outputsworking = False
@@ -825,7 +833,7 @@ def sample():
                 except KeyboardInterrupt:
                     raise
                 except Exception as excep:
-                    LOGGER.error("Exception: %s" % excep)
+                    LOGGER.error("Exception during output: %s" % excep)
                 else:
                     # Delay before turning off LED
                     time.sleep(1)
@@ -881,7 +889,7 @@ def average_dataset(identifier, dataset):
         formatted.append(dataset[identifier])
     return formatted
 
-def main():
+if __name__ == '__main__':
     """Execute a run.
 
     Set up and execute an AirPi sampling run.
@@ -922,11 +930,8 @@ def main():
     signal.signal(signal.SIGINT, interrupt_handler)
 
     print("==========================================================")
-    print("Success: Setup complete.")
+    print("Info: Success - setup complete.")
 
     delay_start(datetime.now())
 
     sample()
-
-if __name__ == '__main__':
-    main()
