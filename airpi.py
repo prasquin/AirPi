@@ -433,6 +433,9 @@ def set_up_outputs():
                         msg = "Success: Loaded output plugin " + str(i)
                         print(msg)
                         LOGGER.info(msg)
+                        if "http" in str(instclass):
+                            print("         Data are (probably) at http://" + instclass.get_ip() + ":8080")
+                            # TODO: Make this get the port number as well - don't just assume 8080
                     else:
                         msg = "Success: Loaded support plugin " + str(i)
                         print(msg) 
@@ -670,13 +673,14 @@ def delay_start(timenow):
     DELAY = (60 - SECONDS)
     if DELAY != 60:
         print("==========================================================")
-        remaining = DELAY
-        while remaining >= 10:
+        print("Info: Sampling will start in " + str(int(DELAY)) + " seconds.")
+        remainder = DELAY % 10
+        remaining = DELAY - remainder
+        time.sleep(remainder)
+        while remaining >= 1:
             print("Info: Sampling will start in " + str(int(remaining)) + " seconds.")
             time.sleep(10)
             remaining -= 10
-        print("Info: Sampling will start in  " + str(int(remaining)) + " seconds.")
-        time.sleep(remaining)
 
 def read_sensor(sensorplugin):
     """Read from a non-GPS sensor.

@@ -9,6 +9,9 @@ class Output(object):
     def output_data(self, dataPoints):
         raise NotImplementedError
 
+    def output_metadata(self, metadata):
+        raise NotImplementedError
+
     def checkCal(self, params):
         doCal = 0;
         if "calibration" in params:
