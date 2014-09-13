@@ -33,7 +33,10 @@ from outputs import output
 from notifications import notification
 
 class MissingField(Exception):
-    """Exception to raise when an imported plugin is missing a required field."""
+    """Exception to raise when an imported plugin is missing a required
+    field.
+
+    """
     pass
 
 def interrupt_handler(signal, frame):
@@ -80,7 +83,7 @@ def check_conn():
         pass
     return False
 
-def any_plugins_enabled(plugins, type):
+def any_plugins_enabled(plugins, plugintype):
     """Warn user if no plugins in a list are enabled.
 
     Print and log a message if a plugin list doesn't
@@ -94,7 +97,8 @@ def any_plugins_enabled(plugins, type):
 
     """
     if not plugins:
-        msg = "There are no " + type + " plugins enabled! Please enable at least one and try again."
+        msg = "There are no " + plugintype + " plugins enabled!"
+        msg += " Please enable at least one and try again."
         print(msg)
         LOGGER.error(msg)
         sys.exit(1)
@@ -138,7 +142,7 @@ def led_off(pin):
     """
     GPIO.output(pin, GPIO.LOW)
 
-def getserial():
+def get_serial():
     """Get Raspberry Pi serial no.
 
     Get the serial number of the Raspberry Pi.
@@ -150,16 +154,16 @@ def getserial():
     """
     cpuserial = "0000000000000000"
     try:
-        f = open('/proc/cpuinfo', 'r')
-        for line in f:
+        thefile = open('/proc/cpuinfo', 'r')
+        for line in thefile:
             if line[0:6] == 'Serial':
                 cpuserial = line[10:26]
-        f.close()
+        thefile.close()
     except:
         cpuserial = "ERROR000000000"
     return cpuserial
 
-def gethostname():
+def get_hostname():
     """Get current hostname.
 
     Get the current hostname of the Raspberry Pi.
@@ -249,7 +253,8 @@ def set_up_sensors():
             try:
                 filename = SENSORCONFIG.get(i, "filename")
             except Exception:
-                msg = "Error: no filename config option found for sensor plugin " + str(i)
+                msg = "Error: no filename config option found for sensor"
+                msg += "plugin " + str(i)
                 print(msg)
                 LOGGER.error(msg)
                 raise
@@ -288,22 +293,11 @@ def set_up_sensors():
                     opt = sensorclass.optionalData
                 except Exception:
                     opt = []
+                # Sensors don't have any common params, so this is empty
+                common = []
 
-                plugindata = {}
+                plugindata = define_plugin_params(SENSORCONFIG, i, reqd, opt, common)
 
-                for reqdfield in reqd:
-                    if SENSORCONFIG.has_option(i, reqdfield):
-                        plugindata[reqdfield] = SENSORCONFIG.get(i, reqdfield)
-                    else:
-                        msg = "Error: Missing required field '" + reqdfield
-                        msg += "' for sensor plugin " + i + "." + os.linesep
-                        msg += "Error: This should be found in file: " + CFGPATHS['sensors']
-                        print(msg)
-                        LOGGER.error(msg)
-                        raise MissingField
-                for optfield in opt:
-                    if SENSORCONFIG.has_option(i, optfield):
-                        plugindata[optfield] = SENSORCONFIG.get(i, optfield)
                 instclass = sensorclass(plugindata)
                 # check for a getVal
                 if callable(getattr(instclass, "getVal", None)):
@@ -355,7 +349,8 @@ def set_up_outputs():
             try:
                 filename = OUTPUTCONFIG.get(i, "filename")
             except Exception:
-                msg = "Error: no filename config option found for output plugin " + str(i)
+                msg = "Error: no filename config option found for output"
+                msg += " plugin " + str(i)
                 print(msg)
                 LOGGER.error(msg)
                 raise
@@ -380,7 +375,8 @@ def set_up_outputs():
                     if outputclass == None:
                         raise AttributeError
                 except Exception:
-                    msg = "Error: could not find a subclass of output.Output in module " + filename
+                    msg = "Error: could not find a subclass of output.Output"
+                    msg += " in module " + filename
                     print(msg)
                     LOGGER.error(msg)
                     raise
@@ -393,39 +389,19 @@ def set_up_outputs():
                     opt = outputclass.optionalParams
                 except Exception:
                     opt = []
+                # Output plugins don't have any common params so this is empty
+                common = []
                 
-                plugindata = {}
-                for reqdfield in reqd:
-                    if OUTPUTCONFIG.has_option(i, reqdfield):
-                        plugindata[reqdfield] = OUTPUTCONFIG.get(i, reqdfield)
-                    else:
-                        msg = "Error: Missing required field '" + reqdfield
-                        msg += "' for output plugin " + i + "." + os.linesep
-                        msg += "Error: This should be found in file: " + CFGPATHS['outputs']
-                        print(msg)
-                        LOGGER.error(msg)
-                        raise MissingField
-                for optfield in opt:
-                    if OUTPUTCONFIG.has_option(i, optfield):
-                        plugindata[optfield] = OUTPUTCONFIG.get(i, optfield)
-
-                if OUTPUTCONFIG.has_option(i, "metadatareqd") and OUTPUTCONFIG.getboolean(i, "metadatareqd"):
-                    plugindata['metadatareqd'] = True
-                else:
-                    plugindata['metadatareqd'] = False
-
-                if OUTPUTCONFIG.has_option(i, "async"):
-                    async = OUTPUTCONFIG.getboolean(i, "async")
-                else:
-                    async = False
+                plugindata = define_plugin_params(OUTPUTCONFIG, i, reqd, opt, common)
 
                 if OUTPUTCONFIG.has_option(i, "needsinternet") and OUTPUTCONFIG.getboolean(i, "needsinternet") and not check_conn():
-                        msg = "Error: Skipping output plugin " + i + " because no internet connectivity."
-                        print (msg)
-                        LOGGER.info(msg)
+                    msg = "Error: Skipping output plugin " + i
+                    msg += " because no internet connectivity."
+                    print (msg)
+                    LOGGER.info(msg)
                 else:
                     instclass = outputclass(plugindata)
-                    instclass.async = async
+                    instclass.async = plugindata['async']
                     
                     # check for an output_data function
                     if callable(getattr(instclass, "output_data", None)):
@@ -434,7 +410,9 @@ def set_up_outputs():
                         print(msg)
                         LOGGER.info(msg)
                         if "http" in str(instclass):
-                            print("         Data are (probably) at http://" + instclass.get_ip() + ":8080")
+                            msg = "         Data are (probably) at http://"
+                            msg += instclass.get_ip() + ":8080"
+                            print(msg)
                             # TODO: Make this get the port number as well - don't just assume 8080
                     else:
                         msg = "Success: Loaded support plugin " + str(i)
@@ -449,6 +427,56 @@ def set_up_outputs():
 
     if any_plugins_enabled(outputplugins, 'output'):
         return outputplugins
+
+def define_plugin_params(config, name, reqd, opt, common):
+    """Define setup parameters for an plugin.
+
+    Define the required and optional parameters for a single plugin,
+    along with metadata and async parameters.
+
+    Args:
+        outputconfig: The configparser containing the parameters defined by
+                      the user.
+        outputname: The name of the plugin defined in the config file.
+        reqd: List of required parameters for the plugin.
+        opt: List of optional parameters for the plugin.
+        common: List of common parameters for the plugin.
+
+    Returns:
+        List containing the various parameters.
+
+    """
+    params = {}
+    for reqdfield in reqd:
+        if config.has_option(name, reqdfield):
+            params[reqdfield] = config.get(name, reqdfield)
+        else:
+            msg = "Error: Missing required field '" + reqdfield
+            msg += "' for plugin " + name + "." + os.linesep
+            msg += "Error: This should be found in file: "
+            msg += CFGPATHS['outputs']
+            print(msg)
+            LOGGER.error(msg)
+            raise MissingField
+    for optfield in opt:
+        if config.has_option(name, optfield):
+            params[optfield] = config.get(name, optfield)
+    for commonfield in common:
+        if config.has_option("Common", commonfield):
+            params[commonfield] = config.get("Common", commonfield)
+
+    # Only applies to output plugins
+    if config.has_option(name, "metadatareqd") and config.getboolean(name, "metadatareqd"):
+        params['metadatareqd'] = True
+    else:
+        params['metadatareqd'] = False
+
+    if config.has_option(name, "async"):
+        params['async'] = config.getboolean(name, "async")
+    else:
+        params['async'] = False
+
+    return params
 
 def set_up_notifications():
     """Set up AirPi notification plugins.
@@ -480,7 +508,8 @@ def set_up_notifications():
             try:
                 filename = NOTIFICATIONCONFIG.get(i, "filename")
             except Exception:
-                msg = "Error: no filename config option found for notification plugin " + str(i)
+                msg = "Error: no filename config option found for notification"
+                msg += " plugin " + str(i)
                 print(msg)
                 LOGGER.error(msg)
                 raise
@@ -505,7 +534,8 @@ def set_up_notifications():
                     if notificationclass == None:
                         raise AttributeError
                 except Exception:
-                    msg = "Error: could not find a subclass of notification.Notification in module " + filename
+                    msg = "Error: could not find a subclass of"
+                    msg += " notification.Notification in module " + filename
                     print(msg)
                     LOGGER.error(msg)
                     raise
@@ -522,40 +552,17 @@ def set_up_notifications():
                 except Exception:
                     common = []
 
-                if NOTIFICATIONCONFIG.has_option(i, "async"):
-                    async = NOTIFICATIONCONFIG.getboolean(i, "async")
-                else:
-                    async = False
-
-                plugindata = {}
-
-                for reqdfield in reqd:
-                    if NOTIFICATIONCONFIG.has_option(i, reqdfield):
-                        plugindata[reqdfield] = NOTIFICATIONCONFIG.get(i, reqdfield)
-                    else:
-                        msg = "Error: Missing required field '" + reqdfield
-                        msg += "' for notification plugin " + i + "." + os.linesep
-                        msg += "Error: This should be found in file: " + CFGPATHS['notifications']
-                        print(msg)
-                        LOGGER.error(msg)
-                        raise MissingField
-
-                for optfield in opt:
-                    if NOTIFICATIONCONFIG.has_option(i, optfield):
-                        plugindata[optfield] = NOTIFICATIONCONFIG.get(i, optfield)
-
-                for commonfield in common:
-                    if NOTIFICATIONCONFIG.has_option("Common", commonfield):
-                        plugindata[commonfield] = NOTIFICATIONCONFIG.get("Common", commonfield)
+                plugindata = define_plugin_params(NOTIFICATIONCONFIG, i, reqd, opt, common)
                 
                 if NOTIFICATIONCONFIG.has_option(i, "needsinternet"):
                     if NOTIFICATIONCONFIG.getboolean(i, "needsinternet") and not check_conn():
-                        msg = "Error: Skipping notification plugin " + i + " because no internet connectivity."
+                        msg = "Error: Skipping notification plugin " + i
+                        msg += " because no internet connectivity."
                         print (msg)
                         LOGGER.info(msg)
                     else:
                         instclass = notificationclass(plugindata)
-                        instclass.async = async
+                        instclass.async = plugindata['async']
 
                     # check for a sendNotification function
                     if callable(getattr(instclass, "sendNotification", None)):
@@ -564,12 +571,14 @@ def set_up_notifications():
                         print(msg)
                         LOGGER.info(msg)
                     else:
-                        msg = "Error: no callable sendNotification() function for notification plugin " + str(i)
+                        msg = "Error: no callable sendNotification() function"
+                        msg += " for notification plugin " + str(i)
                         print(msg)
                         LOGGER.info(msg)
 
         except Exception as excep:
-            msg = "Error: Did not import notification plugin " + str(i) + ": " + str(excep)
+            msg = "Error: Did not import notification plugin " + str(i) + ": "
+            msg += str(excep)
             print(msg)
             LOGGER.error(msg)
             raise excep
@@ -637,12 +646,13 @@ def set_metadata():
     meta = {
         "STARTTIME":time.strftime("%H:%M on %A %d %B %Y"),
         "OPERATOR":settings['OPERATOR'],
-        "PIID":getserial(),
-        "PINAME":gethostname(),
+        "PIID":get_serial(),
+        "PINAME":get_hostname(),
         "SAMPLEFREQ":"Sampling every " + str(int(settings['SAMPLEFREQ'])) + " seconds."
         }
     if settings['AVERAGE']:
-        meta['AVERAGEFREQ'] = "Averaging every " + str(settings['AVERAGEFREQ']) + " seconds."
+        meta['AVERAGEFREQ'] = "Averaging every " + str(settings['AVERAGEFREQ'])
+        meta['AVERAGEFREQ'] += " seconds."
     return meta
 
 def output_metadata(plugins, meta):
@@ -678,7 +688,9 @@ def delay_start(timenow):
         remaining = DELAY - remainder
         time.sleep(remainder)
         while remaining >= 1:
-            print("Info: Sampling will start in " + str(int(remaining)) + " seconds.")
+            msg = "Info: Sampling will start in " + str(int(remaining))
+            msg += " seconds."
+            print(msg)
             time.sleep(10)
             remaining -= 10
 
@@ -721,7 +733,7 @@ def read_gps(sensorplugin):
 
     """
     reading = {}
-    val = i.getVal()
+    val = sensorplugin.getVal()
     LOGGER.debug("GPS output %s" % (val,))
     reading["latitude"] = val[0]
     reading["longitude"] = val[1]
@@ -729,8 +741,8 @@ def read_gps(sensorplugin):
         reading["altitude"] = val[2]
     reading["disposition"] = val[3]
     reading["exposure"] = val[4]
-    reading["name"] = i.valName
-    reading["sensor"] = i.sensorName
+    reading["name"] = sensorplugin.valName
+    reading["sensor"] = sensorplugin.sensorName
     return reading
 
 def sample():
@@ -744,7 +756,9 @@ def sample():
 
     print("Info: Starting sampling...")
     print("==========================================================")
-    lastupdated = 0;
+    lastupdated = 0
+    alreadysentsensornotifications = False
+    alreadysentoutputnotifications = False
     if settings['AVERAGE']:
         countcurrent = 0
         counttarget = settings['AVERAGECOUNT']
@@ -756,8 +770,6 @@ def sample():
             if (curtime - lastupdated) > (settings['SAMPLEFREQ'] - 0.01):
                 lastupdated = curtime
                 data = []
-                alreadysentsensornotifications = False
-                alreadysentoutputnotifications = False
                 # Read the sensors
                 sensorsworking = True
                 for i in pluginssensors:
@@ -811,7 +823,7 @@ def sample():
                         # Output the data
                         outputsworking = True
                         for i in pluginsoutputs:
-                            LOGGER.debug("This is the dataset about to be output to " + str(i) + " :")
+                            LOGGER.debug("This is the dataset to be output to " + str(i) + " :")
                             LOGGER.debug(data)
                             if i.output_data(data) == False:
                                 outputsworking = False
@@ -824,9 +836,11 @@ def sample():
                         else:
                             if not alreadysentoutputnotifications:
                                 for j in pluginsnotifications:
-                                    j.sendNotification("alertoutput")
+                                    False
+                                    #j.sendNotification("alertoutput")
                                 alreadysentoutputnotifications = True
-                            msg = "Error: Failed to output in all requested formats."
+                            msg = "Error: Failed to output in all requested"
+                            msg += " formats."
                             LOGGER.error(msg)
                             if settings['PRINTERRORS']:
                                 print(msg)
@@ -873,8 +887,10 @@ def average_dataset(identifier, dataset):
     totals = {}
     avgs = {}
     numberofsamples = {}
-    # For each identifier, sum the indidivual values in the dataset[identifier]['values'] list
-    # Count the number of samples as we go along, in case one sensor has missed any readings
+    # For each identifier, sum the indidivual values in the
+    # dataset[identifier]['values'] list.
+    # Count the number of samples as we go along, in case one sensor has missed
+    # any readings.
     for identifier, properties in dataset.iteritems():
         totals[identifier] = 0
         numberofsamples[identifier] = 0
@@ -915,27 +931,32 @@ if __name__ == '__main__':
 
     #Set variables
     gpsplugininstance = None
+    settings = set_settings()
+    notificationsMade = {}
 
     #Set up plugins
     pluginssensors = set_up_sensors()
     pluginsoutputs = set_up_outputs()
     pluginsnotifications = set_up_notifications()
-    settings = set_settings()
 
+    # Set up metadata
     METADATA = set_metadata()
     if any_plugins_enabled(pluginsoutputs, 'output'):
         output_metadata(pluginsoutputs, METADATA)
 
+    #Set up LEDs
     greenhaslit = False
     redhaslit = False
     led_setup(settings['REDPIN'], settings['GREENPIN'])
 
-    # Register the signal handler
+    # Register the Ctrl+C signal handler
     signal.signal(signal.SIGINT, interrupt_handler)
 
     print("==========================================================")
     print("Info: Success - setup complete.")
 
+    # Wait until the start of the next minute
     delay_start(datetime.now())
 
+    # Sample!
     sample()

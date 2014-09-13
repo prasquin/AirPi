@@ -54,4 +54,4 @@ class Tweet(notification.Notification):
         try:
             self.twitter.statuses.update(status=msg)
         except Exception as excep:
-            print(excep)
+            print("Error: " + excep)
