@@ -27,9 +27,12 @@ class Dweet(output.Output):
                 print("Error: dweet.io URL  - " + z.url)
                 return False
         except Exception:
-            print("Error: Failed to Dweet")
+            print("Error: Failed to dweet")
             return False
         return True
 
     def output_metadata(self, metadata):
         return True
+
+    def get_url(self):
+        return "https://dweet.io/follow/" + self.thing 

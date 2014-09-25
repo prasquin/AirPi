@@ -410,10 +410,13 @@ def set_up_outputs():
                         print(msg)
                         LOGGER.info(msg)
                         if "http" in str(instclass):
-                            msg = "         Data are (probably) at http://"
+                            msg = "         Web data are (probably) at http://"
                             msg += instclass.get_ip() + ":8080"
                             print(msg)
                             # TODO: Make this get the port number as well - don't just assume 8080
+                        if "dweet" in str(instclass):
+                            msg = "         dweeting to " + instclass.get_url()
+                            print(msg)
                     else:
                         msg = "Success: Loaded support plugin " + str(i)
                         print(msg) 
