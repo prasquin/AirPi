@@ -18,7 +18,7 @@ class Dweet(output.Output):
             dataPoints = self.cal.calibrate(dataPoints)
         data = {}
         for i in dataPoints:
-            data[i["name"]] = round(i["value"], 2)
+            data[i["name"].replace(" ", "_")] = round(i["value"], 2)
         try:
             z = requests.get("https://dweet.io/dweet/for/" + self.thing, params=data)
             response = z.json()
