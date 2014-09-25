@@ -26,7 +26,7 @@ class Xively(output.Output):
         a = json.dumps({"version":"1.0.0","datastreams":arr})
         try:
             z = requests.put("https://api.xively.com/v2/feeds/"+self.FeedID+".json",headers={"X-ApiKey":self.APIKey},data=a)
-            if z.text!="": 
+            if z.text != "": 
                 print "Error: Xively message - " + z.text
                 print "Error: Xively URL - " + z.url
                 return False

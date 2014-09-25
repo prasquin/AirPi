@@ -1,7 +1,5 @@
 import output
 import requests
-import httplib
-import urllib
 import calibration
 
 class Thingspeak(output.Output):
@@ -27,11 +25,6 @@ class Thingspeak(output.Output):
         print(url)
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
         try:
-            #f = httplib.HTTPConnection("api.thingspeak.com:80")
-            #f.request("POST", "/update", urllib.urlencode(arr), headers)
-            #response = f.getresponse()
-            #print(response.text)
-            #f.close
             z = requests.post(url, params=arr)
             if z.text == "0": 
                 print "Error: ThingSpeak error - " + z.text

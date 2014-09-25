@@ -629,6 +629,7 @@ def set_settings():
     settingslist['FAILLED'] = mainconfig.get("LEDs","failLED")
     settingslist['OPERATOR'] = mainconfig.get("Misc", "operator")
     settingslist['PRINTERRORS'] = mainconfig.getboolean("Misc","printErrors")
+    settingslist['WAITTOSTART'] = mainconfig.getboolean("Misc","waittostart")
 
     print("Success: Loaded settings.")
 
@@ -956,7 +957,8 @@ if __name__ == '__main__':
     print("Info: Success - setup complete.")
 
     # Wait until the start of the next minute
-    delay_start(datetime.now())
+    if settings["WAITTOSTART"]:
+        delay_start(datetime.now())
 
     # Sample!
     sample()

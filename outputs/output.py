@@ -20,6 +20,14 @@ class Output(object):
         return doCal
 
     def getHostname(self):
+        """Get current hostname.
+
+        Get the current hostname of the Raspberry Pi.
+
+        Returns:
+            The hostname.
+
+        """
         if socket.gethostname().find('.')>=0:
             host = socket.gethostname()
         else:
