@@ -4,6 +4,7 @@ import sensor
 class Analogue(sensor.Sensor):
 	requiredData = ["adcPin", "measurement", "sensorName"]
 	optionalData = ["pullUpResistance", "pullDownResistance", "sensorVoltage", "description"]
+	
 	def __init__(self, data):
 		self.adc = mcp3008.MCP3008.sharedClass
 		self.adcPin = int(data["adcPin"])

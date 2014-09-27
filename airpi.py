@@ -41,12 +41,19 @@ class MissingField(Exception):
 
 def interrupt_handler(signal, frame):
     """Handle the Ctrl+C KeyboardInterrupt by exiting."""
+    print(os.linesep)
+    print("[AirPi] Sampling stopping at request of user...")
     if gpsplugininstance:
         gpsplugininstance.stopController()
     led_off(settings['GREENPIN'])
     led_off(settings['REDPIN'])
-    print(os.linesep)
-    print("Stopping sampling as requested...")
+    timedelta = datetime.utcnow() - starttime
+    hours, remainder = divmod(timedelta.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    print("[AirPi] This run lasted " + str(hours) + "h"),
+    print(str(minutes) + "m " + str(seconds)  + "s,"),
+    print("and consisted of " + str(samples) + " samples.")
+    print("[AirPi] Sampling stopped.")
     sys.exit(1)
 
 def get_subclasses(mod, cls):
@@ -251,24 +258,29 @@ def set_up_sensors():
     for i in SENSORNAMES:
         try:
             try:
-                filename = SENSORCONFIG.get(i, "filename")
-            except Exception:
-                msg = "Error: no filename config option found for sensor"
-                msg += "plugin " + str(i)
-                print(msg)
-                LOGGER.error(msg)
-                raise
-            try:
                 enabled = SENSORCONFIG.getboolean(i, "enabled")
-            except Exception:
+                LOGGER.info(str(i) + " enabled status is: " + str(enabled))
+            except Exception as excep:
                 enabled = True
 
             #if enabled, load the plugin
             if enabled:
+
+                try:
+                    filename = SENSORCONFIG.get(i, "filename")
+                    LOGGER.info("filename is " + filename)
+                except Exception:
+                    msg = "Error: no filename config option found for sensor"
+                    msg += "plugin " + str(i)
+                    print(msg)
+                    LOGGER.error(msg)
+                    raise
+
                 try:
                     # 'a' means nothing below, but argument must be non-null
+                    LOGGER.info("Trying to import sensors." + filename)
                     mod = __import__('sensors.' + filename, fromlist = ['a'])
-                except Exception:
+                except Exception as excep:
                     msg = "Error: could not import sensor module " + filename
                     print(msg)
                     LOGGER.error(msg)
@@ -303,7 +315,8 @@ def set_up_sensors():
                 if callable(getattr(instclass, "getVal", None)):
                     sensorplugins.append(instclass)
                     # store sensorplugins array length for GPS plugin
-                    if i == "GPS":
+                    if "serial_gps" in filename:
+                        global gpsplugininstance
                         gpsplugininstance = instclass
                     msg = "Success: Loaded sensor plugin " + str(i)
                     print(msg)
@@ -413,7 +426,7 @@ def set_up_outputs():
                             msg = "         Web data are (probably) at http://"
                             msg += instclass.get_ip() + ":8080"
                             print(msg)
-                            # TODO: Make this get the port number as well - don't just assume 8080
+                            # TODO: Make the above get the port number as well - don't just assume 8080
                         if "dweet" in str(instclass):
                             msg = "         dweeting to " + instclass.get_url()
                             print(msg)
@@ -798,7 +811,7 @@ def sample():
                                     dataset[identifier][thekey] = thevalue
                             dataset[identifier]['values'] = []
                         dataset[identifier]['values'].append(datadict["value"])
-                    # Always record raw values
+                    # Always record raw values for every sensor
                     data.append(datadict)
                 # Record the outcome of reading sensors
                 if settings['AVERAGE']:
@@ -814,6 +827,7 @@ def sample():
                     LOGGER.error(msg)
                     if settings['PRINTERRORS']:
                         print(msg)
+
                 # Output data
                 try:
                     # Averaging
@@ -863,7 +877,8 @@ def sample():
                         led_off(settings['GREENPIN'])
                     if settings['REDPIN'] and settings['FAILLED'] != "constant":
                         led_off(settings['REDPIN'])
-            
+            global samples
+            samples += 1
             try:
                 time.sleep(settings['SAMPLEFREQ'] - (time.time() - curtime))
             except KeyboardInterrupt:
@@ -937,6 +952,8 @@ if __name__ == '__main__':
     gpsplugininstance = None
     settings = set_settings()
     notificationsMade = {}
+    samples = 0
+    starttime = datetime.utcnow()
 
     #Set up plugins
     pluginssensors = set_up_sensors()

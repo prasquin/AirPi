@@ -61,7 +61,6 @@ if __name__ == '__main__':
         raise
 
     finally:
-        print "Stopping gps controller"
         gpsc.stopController()
         # wait for the thread to finish
         gpsc.join()

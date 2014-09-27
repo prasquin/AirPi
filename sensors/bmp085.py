@@ -5,11 +5,12 @@ class BMP085(sensor.Sensor):
 	bmpClass = None
 	requiredData = ["measurement", "i2cbus"]
 	optionalData = ["altitude", "mslp", "unit", "description"]
+	
 	def __init__(self, data):
 		self.sensorName = "BMP085"
 		self.readingType = "sample"
 		if "temp" in data["measurement"].lower():
-			self.valName = "Temperature"
+			self.valName = "Temperature-BMP"
 			self.valUnit = "Celsius"
 			self.valSymbol = "C"
 			if "unit" in data:
@@ -39,7 +40,7 @@ class BMP085(sensor.Sensor):
 		return
 
 	def getVal(self):
-		if self.valName == "Temperature":
+		if self.valName == "Temperature-BMP":
 			temp = BMP085.bmpClass.readTemperature()
 			if self.valUnit == "Fahrenheit":
 				temp = temp * 1.8 + 32

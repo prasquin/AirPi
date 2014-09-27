@@ -16,7 +16,7 @@ class DHT22(sensor.Sensor):
 		self.readingType = "sample"
 		self.pinNum = int(data["pinNumber"])
 		if "temp" in data["measurement"].lower():
-			self.valName = "Temperature"
+			self.valName = "Temperature-DHT"
 			self.valUnit = "Celsius"
 			self.valSymbol = "C"
 			if "unit" in data:
@@ -44,7 +44,7 @@ class DHT22(sensor.Sensor):
 			dhtreader.lastDataTime = time.time()
 
 		t, h = dhtreader.lastData
-		if self.valName == "Temperature":
+		if self.valName == "Temperature-DHT":
 			temp = t
 			if self.valUnit == "Fahrenheit":
 				temp = temp * 1.8 + 32

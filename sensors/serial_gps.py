@@ -3,9 +3,10 @@ import GpsController
 
 gpsc = None # define gps data structure
 
-class GPS(sensor.Sensor):
+class serial_gps(sensor.Sensor):
     requiredData = []
     optionalData = []
+
     def __init__(self, data):
         self.sensorName = "MTK3339"
         self.valName = "Location"
@@ -30,7 +31,8 @@ class GPS(sensor.Sensor):
 
     def stopController(self):
         global gpsc
-        print "Stopping gps controller"
+        print("[AirPi] GPS controller stopping...")
         gpsc.stopController()
         # wait for the thread to finish
         gpsc.join()
+        print("[AirPi] GPS controller stopped.")
