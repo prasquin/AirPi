@@ -33,8 +33,13 @@ class Print(output.Output):
         if self.format == "csv":
             theOutput = "\"" + time.strftime("%Y-%m-%d %H:%M:%S") + "\","
             for i in dataPoints:
-                theOutput += str(i["value"]) + ","
-                theOutput = theOutput[:-1]
+                if i["name"] == "Location":
+                    props=["latitude", "longitude", "altitude", "exposure", "disposition"]
+                    for prop in props:
+                        theOutput += str(i[prop]) + ","
+                else:
+                    theOutput += str(i["value"]) + ","
+            theOutput = theOutput[:-1]
             print theOutput
         else:
             print ("Time".ljust(17)) + ": " + time.strftime("%Y-%m-%d %H:%M:%S")
