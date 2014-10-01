@@ -32,13 +32,13 @@ class Print(output.Output):
             dataPoints = self.cal.calibrate(dataPoints)
         if self.format == "csv":
             theOutput = "\"" + time.strftime("%Y-%m-%d %H:%M:%S") + "\","
-            for i in dataPoints:
-                if i["name"] == "Location":
+            for point in dataPoints:
+                if point["name"] == "Location":
                     props=["latitude", "longitude", "altitude", "exposure", "disposition"]
                     for prop in props:
-                        theOutput += str(i[prop]) + ","
+                        theOutput += str(point[prop]) + ","
                 else:
-                    theOutput += str(i["value"]) + ","
+                    theOutput += str(point["value"]) + ","
             theOutput = theOutput[:-1]
             print theOutput
         else:

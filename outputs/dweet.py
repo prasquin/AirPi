@@ -17,8 +17,9 @@ class Dweet(output.Output):
         if self.docal == 1:
             dataPoints = self.cal.calibrate(dataPoints)
         data = {}
-        for i in dataPoints:
-            data[i["name"].replace(" ", "_")] = round(i["value"], 2)
+        for point in dataPoints:
+            if point["name"] != "Location":
+                data[point["name"].replace(" ", "_")] = round(point["value"], 2)
         try:
             z = requests.get("https://dweet.io/dweet/for/" + self.thing, params=data)
             response = z.json()

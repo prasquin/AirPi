@@ -17,10 +17,11 @@ class Thingspeak(output.Output):
             dataPoints = self.cal.calibrate(dataPoints)
         arr ={} 
         counter = 1
-        for i in dataPoints:
-            if i["value"] != None: #this means it has no data to upload.
-                arr["field" + str(counter)] = round(i["value"],2)
-            counter += 1
+        for point in dataPoints:
+            if point["name"] != "Location":
+                if point["value"] != None: #this means it has no data to upload.
+                    arr["field" + str(counter)] = round(point["value"],2)
+                counter += 1
         url = "https://api.thingspeak.com/update?key=" + self.APIKey
         print(url)
         headers = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}

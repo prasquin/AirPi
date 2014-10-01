@@ -40,12 +40,18 @@ class CSVOutput(output.Output):
         line = "\"" + str(datetime.datetime.now()) + "\"," + str(time.time())
         if self.header == False:
             header = "\"Date and time\",\"Unix time\"";
-
-        for i in dataPoints:
-            if self.header == False:
-                header = "%s,\"%s %s (%s) (%s)\"" % (header, i["sensor"], i["name"], i["symbol"], i["readingType"])
-            line = line + "," + str(i["value"])
-
+        for point in dataPoints:
+            if point["name"] != "Location":
+                if self.header == False:
+                    header = "%s,\"%s %s (%s) (%s)\"" % (header, point["sensor"], point["name"], point["symbol"], point["readingType"])
+                line += "," + str(point["value"])
+            else:
+                if self.header == False:
+                    header = "%s,\"Latitude (deg)\",\"Longitude (deg)\",\"Altitude (m)\",\"Exposure\",\"Disposition\"" % (header)
+                props=["latitude", "longitude", "altitude", "exposure", "disposition"]
+                for prop in props:
+                    line += "," + str(point[prop])
+        line = line[:-1]
         # if it's the first write of this instance do a header so we know what's what
         if self.header == False:
             self.file.write(header + "\n")
