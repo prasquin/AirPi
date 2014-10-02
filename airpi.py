@@ -79,8 +79,8 @@ def check_conn():
     Check for internet connectivity by trying to connect to a website.
 
     Returns:
-        Boolean True if successfully connects to the site within five seconds.
-        Boolean False if fails to connect to the site within five seconds.
+        boolean True if successfully connects to the site within five seconds.
+        boolean False if fails to connect to the site within five seconds.
 
     """
     try:
@@ -100,7 +100,7 @@ def any_plugins_enabled(plugins, plugintype):
         plugins: Array of plugins to check.
         type:    The type of plugin being checked.
     Returns:
-        True if there are any plugins enabled.
+        boolean True if there are any plugins enabled.
 
     """
     if not plugins:
@@ -156,7 +156,7 @@ def get_serial():
     See: http://raspberrypi.nxez.com/2014/01/19/getting-your-raspberry-pi-serial-number-using-python.html
 
     Returns:
-        True if there are any plugins enabled.
+        boolean True if there are any plugins enabled.
 
     """
     cpuserial = "0000000000000000"
@@ -176,7 +176,7 @@ def get_hostname():
     Get the current hostname of the Raspberry Pi.
 
     Returns:
-        The hostname.
+        string The hostname.
 
     """
     if socket.gethostname().find('.')>=0:
@@ -192,7 +192,7 @@ def set_cfg_paths():
     called 'cfg', within the same directory as the current script (airpi.py).
 
     Returns:
-        Dict containing paths to the various config files.
+        dict The paths to the various config files.
 
     """
     cfgpaths = {}
@@ -216,7 +216,7 @@ def check_cfg_file(filetocheck):
         filetocheck: The file to check the existence of.
 
     Returns:
-        True if the file exists.
+        boolean True if the file exists.
 
     """
     if not os.path.isfile(filetocheck):
@@ -236,7 +236,7 @@ def set_up_sensors():
     enabled, then checking that all required fields are present.
 
     Returns:
-        List containing the enabled 'sensor' objects.
+        list A list containing the enabled 'sensor' objects.
 
     """
 
@@ -341,7 +341,7 @@ def set_up_outputs():
     should be enabled, then checking that all required fields are present.
 
     Returns:
-        List containing the enabled 'output' objects.
+        list A list containing the enabled 'output' objects.
 
     """
 
@@ -459,7 +459,7 @@ def define_plugin_params(config, name, reqd, opt, common):
         common: List of common parameters for the plugin.
 
     Returns:
-        List containing the various parameters.
+        list A list containing the various parameters.
 
     """
     params = {}
@@ -502,7 +502,7 @@ def set_up_notifications():
     fields are present.
 
     Returns:
-        List containing the enabled 'notification' objects.
+        list A list containing the enabled 'notification' objects.
 
     """
 
@@ -612,7 +612,7 @@ def set_settings():
     Set up settings by reading from settings.cfg.
 
     Returns:
-        List containing the various settings.
+        list A list containing the various settings.
 
     """
 
@@ -645,7 +645,7 @@ def set_settings():
     settingslist['FAILLED'] = mainconfig.get("LEDs","failLED")
     settingslist['OPERATOR'] = mainconfig.get("Misc", "operator")
     settingslist['PRINTERRORS'] = mainconfig.getboolean("Misc","printErrors")
-    settingslist['WAITTOSTART'] = mainconfig.getboolean("Misc","waittostart")
+    settingslist['WAITTOSTART'] = mainconfig.getboolean("Debug","waittostart")
 
     print("Success: Loaded settings.")
 
@@ -657,7 +657,7 @@ def set_metadata():
     Set up metadata for this run.
 
     Returns:
-        Dict containing all metadata.
+        dict All metadata elements.
 
     """
     meta = {
@@ -746,7 +746,7 @@ def read_gps(sensorplugin):
         sensorplugin: The sensor plugin which should be read.
 
     Returns:
-        Dict containing the sensor data.
+        dict All of the sensor data elements.
 
     """
     reading = {}
@@ -900,7 +900,7 @@ def average_dataset(identifier, dataset):
         dataset: The list of 'n' separate readings to be averaged.
 
     Returns:
-        List containing the averaged data.
+        list The averaged data.
 
     """
     totals = {}
