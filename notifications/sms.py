@@ -13,6 +13,17 @@ class SMS(notification.Notification):
     commonParams = notification.Notification.commonParams
 
     def __init__(self, params):
+        """Initialise.
+
+        Initialise the SMS class, using the parameters passed in 'params'.
+        Note that the 'requiredParams' and 'optionalParams' are used to check
+        that 'params' contains the appropriate options.
+
+        Args:
+            self: self.
+            params: Parameters to be used in the initialisation.
+
+        """
 
 	hostname = self.getHostname()
 
@@ -46,6 +57,16 @@ class SMS(notification.Notification):
         print("Info: SMS notifications enabled. Data costs will be incurred.")
 
     def sendNotification(self, event):
+        """Send an SMS notification.
+
+        Send an SMS notification.
+
+        Args:
+            self: self.
+            event: The type of event which the notification should signify.
+
+        """
+
         if event == "alertsensor":
             params =  {'username': self.auth["user"], 'hash': self.auth["hash"], 'numbers': self.to, 'message' : self.msgalertsensor[:160], 'sender': self.sender}
         elif event == "alertoutput":

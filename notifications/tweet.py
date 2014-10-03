@@ -10,6 +10,17 @@ class Tweet(notification.Notification):
     commonParams = notification.Notification.commonParams
 
     def __init__(self, params):
+        """Initialise.
+
+        Initialise the Tweet class, using the parameters passed in 'params'.
+        Note that the 'requiredParams' and 'optionalParams' are used to check
+        that 'params' contains the appropriate options.
+
+        Args:
+            self: self.
+            params: Parameters to be used in the initialisation.
+
+        """
 
         # Set up Twitter authentication
         CONSUMER_KEY = params["consumerkey"]
@@ -42,7 +53,16 @@ class Tweet(notification.Notification):
             self.msgdata = "Something interesting has happened with AirPi " + hostname + ". You'd better come see this..."
 
     def sendNotification(self, event):
-        # We must include a timestamp as insurance:
+        """Send a Tweet notification.
+
+        Send a Tweet notification.
+
+        Args:
+            self: self.
+            event: The type of event which the notification should signify.
+
+        """
+        # We must include a timestamp as insurance, because
         # Twitter won't let you repeat the same Tweet twice in a row
         stamp = time.strftime("%H:%M: ")
         if event == "alertsensor":

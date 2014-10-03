@@ -51,6 +51,8 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
   * Includes 'background' and 'unattanded', so you can SSH into your Pi, start it, then quit.
 * Added ability to output average data (e.g. read every 1 min for 10 mins, then output the average for the 10 mins).
   * Controlled by "averageFreq" parameter in 'cfg/settings.cfg' - set to at least twice sampleFreq to enable averaging.
+* Added ability to stop a run after X samples.
+  * Controlled by "stopafter" parameter in 'cfg/settings.cfg' - set to 0 to run indefinitely.
 * Added ability to record metadata such as Raspberry Pi serial no. and operator name at start of run.
   * Controlled by "metadatareqd" parameters in 'cfg/outputs.cfg' - set to True to output metadata.
 * Added ability to start automatically at boot for headless operation (does not require any user interaction).
@@ -58,6 +60,7 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
   * See the 'boot' directory for more info.
 * Added 'Notifications' module which allow messages to be sent when errors occur. Includes email, SMS and tweet.
   * Controlled by 'cfgs/notifications.cfg'.
+* Added warning if GPS socket not detected at script startup.
 * Added the following new options to 'cfg/settings.cfg':
   * Greater control of LED behaviour.
   * Can disable error messages printed to screen.

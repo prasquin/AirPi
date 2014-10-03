@@ -23,17 +23,44 @@ class CSVOutput(output.Output):
         self.metadatareqd = params["metadatareqd"]
 
     def output_metadata(self, metadata):
+        """Output metadata.
+
+        Output metadata for the run in the format stipulated by this plugin.
+        Metadata is set in airpi.py and then passed as a dict to each plugin
+        which wants to output it.
+
+        Args:
+            self: self.
+            metadata: dict The metadata for the run.
+
+        """
         if self.metadatareqd:
             towrite = "\"Run started\",\"" + metadata['STARTTIME'] + "\"\n"
             towrite += "\"Operator\",\"" + metadata['OPERATOR'] + "\"\n"
             towrite += "\"Raspberry Pi name\",\"" + metadata['PINAME'] + "\"\n"
             towrite += "\"Raspberry Pi ID\",\"" +  metadata['PIID'] + "\"\n"
-            towrite += "\"Sampling frequency\",\"" + metadata['SAMPLEFREQ'] + "\""
+            towrite += "\"Sampling frequency\",\"" + metadata['SAMPLEFREQ'] + "\"\n"
+            towrite += "\"Stopping after\",\"" + metadata['STOPAFTER'] + "\""
             if "AVERAGEFREQ" in metadata:
                 towrite += "\n\"Averaging frequency\",\"" + metadata['AVERAGEFREQ'] + "\"\n"
             self.file.write(towrite + "\n")
 
     def output_data(self,dataPoints):
+        """Output data.
+
+        Output data in the format stipulated by the plugin. Calibration is
+        carried out first if required.
+        Note this method takes account of the different data formats for
+        'standard' sensors as distinct from the GPS. The former present a dict
+        containing one value and associated properties such as units and
+        symbols, while the latter presents a dict containing several readings
+        such as latitude, longitude and altitude, but no units or symbols.
+
+        Args:
+            self: self.
+            dataPoints: A dict containing the data to be output.
+
+        """
         if self.docal == 1:
             dataPoints = self.cal.calibrate(dataPoints)
 

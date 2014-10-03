@@ -14,6 +14,21 @@ class Xively(output.Output):
         self.docal = self.checkCal(params)
 
     def output_data(self, dataPoints):
+        """Output data.
+
+        Output data in the format stipulated by the plugin. Calibration is
+        carried out first if required.
+        Note this method takes account of the different data formats for
+        'standard' sensors as distinct from the GPS. The former present a dict
+        containing one value and associated properties such as units and
+        symbols, while the latter presents a dict containing several readings
+        such as latitude, longitude and altitude, but no units or symbols.
+
+        Args:
+            self: self.
+            dataPoints: A dict containing the data to be output.
+
+        """
         if self.docal == 1:
             dataPoints = self.cal.calibrate(dataPoints)
         arr = []
@@ -35,4 +50,18 @@ class Xively(output.Output):
         return True
 
     def output_metadata(self, metadata):
+        """Output metadata.
+
+        Output metadata for the run in the format stipulated by this plugin.
+        Metadata is set in airpi.py and then passed as a dict to each plugin
+        which wants to output it. Even if it is not appropriate for the output
+        plugin to output metadata, this method is required because airpi.py
+        looks for it in its own output_metadata() method. In such cases, this
+        method will simply return boolean True.
+
+        Args:
+            self: self.
+            metadata: dict The metadata for the run.
+
+        """
         return True

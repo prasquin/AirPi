@@ -14,6 +14,17 @@ class Calibration(output.Output):
     sharedClass = None
 
     def __init__(self, params):
+        """Initialise.
+
+        Initialise the Calibration class, using the parameters passed in 'params'.
+        Note that the 'requiredParams' and 'optionalParams' are used to check
+        that 'params' contains the appropriate options.
+
+        Args:
+            self: self.
+            params: Parameters to be used in the initialisation.
+
+        """
         self.calibrations = []
         self.last = []
         self.lastpassed = []
@@ -26,6 +37,17 @@ class Calibration(output.Output):
             Calibration.sharedClass = self
 
     def calibrate(self, dataPoints):
+        """Calibrate a set of data points.
+
+        Calibrates a set of data points according to a correction function
+        defined for the particular property being measured.
+
+        Args:
+            self: self.
+            dataPoints: The dataPoints to be calibrated. This is usually a dict
+                        containing another dict for each property.
+
+        """
         if self.lastpassed == dataPoints:
             # the same dataPoints object, so the calculations would turn out the same
             # so we can just return the result of the last calcs
@@ -43,13 +65,50 @@ class Calibration(output.Output):
         return self.last
 
     def output_metadata(self, metadata):
+        """Output metadata.
+
+        Output metadata for the run in the format stipulated by this plugin.
+        Metadata is set in airpi.py and then passed as a dict to each plugin
+        which wants to output it. Even if it is not appropriate for the output
+        plugin to output metadata, this method is required because airpi.py
+        looks for it in its own output_metadata() method. In such cases, this
+        method will simply return boolean True.
+
+        Args:
+            self: self.
+            metadata: A dict containing the metadata for the run.
+
+        """
         return True
 
     def output_data(self, dataPoints):
+        """Output data.
+
+        Output data in the format stipulated by the plugin. Even if it is not
+        appropriate for the plugin to output data (e.g. for the 'calibration'
+        plugin), this method is required because airpi.py looks for it in when
+        setting up plugins. In such cases, this method will simply return
+        boolean True.
+
+        Args:
+            self: self.
+            dataPoints: A dict containing the data to be output.
+
+        """
         return True
 
-    def findVal(key):
-        print "finding val"
+    def findVal(self, key):
+        """Find data value for a given key.
+
+        Find the data value for a given key. This allows values to be extracted
+        for use during calibration (e.g. find the temperature so that the
+        reading from another sensor can be compensated for temp).
+
+        Args:
+            self: self.
+            key: string The property for which the value should be obtained.
+
+        """
         found = 0
         num = 0
         for i in Calibration.sharedClass.last:

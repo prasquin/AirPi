@@ -11,7 +11,17 @@ class Email(notification.Notification):
     commonParams = notification.Notification.commonParams
 
     def __init__(self, params):
+        """Initialise.
 
+        Initialise the Email class, using the parameters passed in 'params'.
+        Note that the 'requiredParams' and 'optionalParams' are used to check
+        that 'params' contains the appropriate options.
+
+        Args:
+            self: self.
+            params: Parameters to be used in the initialisation.
+
+        """
         self.message = {}
         self.smtp = {}
         self.address = {}
@@ -68,6 +78,15 @@ class Email(notification.Notification):
             self.address['fromname'] = "AirPi"
 
     def sendNotification(self, event):
+        """Send an email notification.
+
+        Send an email notification.
+
+        Args:
+            self: self.
+            event: The type of event which the notification should signify.
+
+        """
 
         msg  = "X-Priority: 1\n"
         msg += "From: " + self.address["fromname"] + " <" + self.address["fromaddress"] + ">\n"

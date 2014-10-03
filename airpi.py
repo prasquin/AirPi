@@ -39,23 +39,6 @@ class MissingField(Exception):
     """
     pass
 
-def interrupt_handler(signal, frame):
-    """Handle the Ctrl+C KeyboardInterrupt by exiting."""
-    print(os.linesep)
-    print("[AirPi] Sampling stopping at request of user...")
-    if gpsplugininstance:
-        gpsplugininstance.stopController()
-    led_off(settings['GREENPIN'])
-    led_off(settings['REDPIN'])
-    timedelta = datetime.utcnow() - starttime
-    hours, remainder = divmod(timedelta.seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    print("[AirPi] This run lasted " + str(hours) + "h"),
-    print(str(minutes) + "m " + str(seconds)  + "s,"),
-    print("and consisted of " + str(samples) + " samples.")
-    print("[AirPi] Sampling stopped.")
-    sys.exit(1)
-
 def get_subclasses(mod, cls):
     """Load subclasses for a module.
 
@@ -93,8 +76,8 @@ def check_conn():
 def any_plugins_enabled(plugins, plugintype):
     """Warn user if no plugins in a list are enabled.
 
-    Print and log a message if a plugin list doesn't
-    actually contain any loaded plugins.
+    Print and log a message if the list of enabled plugins is empty, i.e. there
+    are no plugins enabled.
 
     Args:
         plugins: Array of plugins to check.
@@ -115,7 +98,7 @@ def any_plugins_enabled(plugins, plugintype):
 def led_setup(redpin, greenpin):
     """Set up AirPi LEDs.
 
-    Carry out initial setup of AirPi LEDs.
+    Carry out initial setup of AirPi LEDs, including setting them to 'off'.
 
     Args:
         redpin:   GPIO pin number for red pin.
@@ -130,7 +113,7 @@ def led_setup(redpin, greenpin):
 def led_on(pin):
     """Turn LED on.
 
-    Turn on an AirPi LED.
+    Turn on an AirPi LED at a given GPIO pin number.
 
     Args:
         pin: Pin number of the LED to turn on.
@@ -141,7 +124,7 @@ def led_on(pin):
 def led_off(pin):
     """Turn LED off.
 
-    Turn off an AirPi LED.
+    Turn off an AirPi LED at a given GPIO pin number.
 
     Args:
         pin: Pin number of the LED to turn off.
@@ -156,7 +139,7 @@ def get_serial():
     See: http://raspberrypi.nxez.com/2014/01/19/getting-your-raspberry-pi-serial-number-using-python.html
 
     Returns:
-        boolean True if there are any plugins enabled.
+        string The serial number, or an error string.
 
     """
     cpuserial = "0000000000000000"
@@ -180,10 +163,9 @@ def get_hostname():
 
     """
     if socket.gethostname().find('.')>=0:
-        host = socket.gethostname()
+        return socket.gethostname()
     else:
-        host = socket.gethostbyaddr(socket.gethostname())[0]
-    return host
+        return socket.gethostbyaddr(socket.gethostname())[0]
 
 def set_cfg_paths():
     """Set paths to cfg files.
@@ -210,7 +192,7 @@ def check_cfg_file(filetocheck):
     """Check cfg file exists.
 
     Check whether a specified cfg file exists. Print and log a warning if not.
-    Print and log the file name if it does exist.
+    Log the file name if it does exist.
 
     Args:
         filetocheck: The file to check the existence of.
@@ -233,7 +215,7 @@ def set_up_sensors():
     """Set up AirPi sensors.
 
     Set up AirPi sensors by reading sensors.cfg to determine which should be
-    enabled, then checking that all required fields are present.
+    enabled, then checking that all required fields are present in sensors.cfg.
 
     Returns:
         list A list containing the enabled 'sensor' objects.
@@ -338,7 +320,8 @@ def set_up_outputs():
     """Set up AirPi output plugins.
 
     Set up AirPi output plugins by reading outputs.cfg to determine which
-    should be enabled, then checking that all required fields are present.
+    should be enabled, then checking that all required fields are present in
+    outputs.cfg.
 
     Returns:
         list A list containing the enabled 'output' objects.
@@ -447,19 +430,26 @@ def set_up_outputs():
 def define_plugin_params(config, name, reqd, opt, common):
     """Define setup parameters for an plugin.
 
-    Define the required and optional parameters for a single plugin,
-    along with metadata and async parameters.
+    Take a list of parameters supplied by the user ('config'), and compare to
+    the separate lists of 'required', 'optional' and 'common' parameters for the
+    plugin. Check that 'required' ones are present (raise a MissingField
+    exception if not). Merge all three dicts into one 'params' dict that holds
+    all setup parameters for this plugin, then tag metadata and async info on to
+    the end.
+    Parameters supplied by the user usually come from the relevant cfg file,
+    while the lists of 'required', 'optional' and 'common' parameters are
+    normally defined in the plugin Class.
 
     Args:
         outputconfig: The configparser containing the parameters defined by
                       the user.
         outputname: The name of the plugin defined in the config file.
-        reqd: List of required parameters for the plugin.
-        opt: List of optional parameters for the plugin.
-        common: List of common parameters for the plugin.
+        reqd: List of parameters required by the plugin.
+        opt: List of parameters considered optional for the plugin.
+        common: List of parameters which are common across all plugins.
 
     Returns:
-        list A list containing the various parameters.
+        dict A dict containing the various parameters.
 
     """
     params = {}
@@ -497,9 +487,10 @@ def define_plugin_params(config, name, reqd, opt, common):
 def set_up_notifications():
     """Set up AirPi notification plugins.
 
-    Set up AirPi notification plugins by reading notifications.cfg to
-    determine which should be enabled, then checking that all required
-    fields are present.
+    Set up AirPi notification plugins by reading notifications.cfg to determine
+    which should be enabled. For each plugin, check that all required fields
+    are present; if so, create an instance of the plugin class and append it to
+    the list of Notification plugins. Return the list.
 
     Returns:
         list A list containing the enabled 'notification' objects.
@@ -639,6 +630,7 @@ def set_settings():
             settingslist['AVERAGE'] = True
             settingslist['AVERAGECOUNT'] = averagecount
             settingslist['PRINTUNAVERAGED'] = mainconfig.getboolean("Sampling", "printUnaveraged")
+    settingslist['STOPAFTER'] = mainconfig.getint("Sampling", "stopafter")
     settingslist['REDPIN'] = mainconfig.getint("LEDs", "redPin")
     settingslist['GREENPIN'] = mainconfig.getint("LEDs", "greenPin")
     settingslist['SUCCESSLED'] = mainconfig.get("LEDs","successLED")
@@ -654,7 +646,9 @@ def set_settings():
 def set_metadata():
     """Set metadata.
 
-    Set up metadata for this run.
+    Set up metadata for this run. Outputting of the metadata is handled by each
+    of the output plugins individually, so that you can - for example - output
+    metadata via Print and CSVOutput in the same run.
 
     Returns:
         dict All metadata elements.
@@ -665,7 +659,8 @@ def set_metadata():
         "OPERATOR":settings['OPERATOR'],
         "PIID":get_serial(),
         "PINAME":get_hostname(),
-        "SAMPLEFREQ":"Sampling every " + str(int(settings['SAMPLEFREQ'])) + " seconds."
+        "SAMPLEFREQ":"Sampling every " + str(int(settings['SAMPLEFREQ'])) + " seconds.",
+        "STOPAFTER":str(int(settings['STOPAFTER'])) + " samples."
         }
     if settings['AVERAGE']:
         meta['AVERAGEFREQ'] = "Averaging every " + str(settings['AVERAGEFREQ'])
@@ -675,22 +670,25 @@ def set_metadata():
 def output_metadata(plugins, meta):
     """Output metadata via enabled plugins.
 
-    Output metadata for the run via all enabled 'output' plugins.
+    Output metadata for the run via each of the enabled 'output' plugins. Note
+    that some output plugins will not output metadata as it is not appropriate.
 
     Args:
         plugins: List of enabled 'output' plugins.
         meta: Metadata for the run.
 
     """
+    if meta is None:
+        meta = self.set_metadata()
     for plugin in plugins:
         plugin.output_metadata(meta)
 
 def delay_start(timenow):
     """Delay sampling until start of the next minute.
 
-    Prevent sampling until the start of the next minute (i.e. 0 seconds)
-    by sleeping from 'timenow' until then. Print a message to the user
-    first.
+    Prevent sampling until the start of the next minute (i.e. 0 seconds) by
+    sleeping from 'timenow' until then in 10-second chunks. Print a message to
+    the user first, and then every 10 seconds.
 
     Args:
         timenow: Time from which the delay should begin.
@@ -714,15 +712,14 @@ def delay_start(timenow):
 def read_sensor(sensorplugin):
     """Read from a non-GPS sensor.
 
-    Read info from a sensor. Note this is not just the value, but also
-    the sensor name, units, symbol etc.
-    N.B. GPS data is read using `read_gps`.
+    Read info from a sensor. Note this is not just the value, but also the
+    sensor name, units, symbol, etc. N.B. GPS data is read using `read_gps()`.
 
     Args:
         sensorplugin: The sensor plugin which should be read.
 
     Returns:
-        Dict containing the sensor data.
+        dict The sensor data.
 
     """
     reading = {}
@@ -738,9 +735,9 @@ def read_sensor(sensorplugin):
 def read_gps(sensorplugin):
     """Read from a GPS sensor.
 
-    Read info from a GPS sensor. Note this is not just the value, but also
-    the sensor name, units, symbol etc.
-    N.B. Non-GPS data is read using `read_sensor`.
+    Read info from a GPS sensor. Note this is not just one value, but multiple
+    values for latitude, longitude, etc. N.B. Non-GPS data is read using
+    `read_sensor()`.
 
     Args:
         sensorplugin: The sensor plugin which should be read.
@@ -763,11 +760,11 @@ def read_gps(sensorplugin):
     return reading
 
 def sample():
-    """Sample from sensors and record output.
+    """Sample from sensors and record the output.
 
-    Commence and continue sampling from the enabled sensors and writing
-    to enabled 'output' plugins. Will continue until forceably stopped
-    with Ctrl+C.
+    Commence and then continue sampling from the enabled sensors and writing
+    to enabled 'output' plugins. Will continue until forceably stopped with
+    Ctrl+C.
 
     """
 
@@ -879,6 +876,9 @@ def sample():
                         led_off(settings['REDPIN'])
             global samples
             samples += 1
+            if samples == settings['STOPAFTER'] and samples != 0:
+                print("[AirPi] Reached requested number of samples - stopping run.")
+                stop_sampling(None, None)
             try:
                 time.sleep(settings['SAMPLEFREQ'] - (time.time() - curtime))
             except KeyboardInterrupt:
@@ -886,18 +886,21 @@ def sample():
             except Exception:
                 pass # fall back on old method...
         except KeyboardInterrupt:
-            interrupt_handler()
+            stop_sampling()
 
 def average_dataset(identifier, dataset):
     """Average a dataset.
 
     Take a dataset consisting of 'n' separate readings, and calculate
-    the mean across those readings.
+    the mean across those readings. The dataset will be a dict of dicts; each
+    element in the first dict is a single time point in the set to be averaged.
+    Each of these single time points is a dict which contains one reading for
+    each of the enabled sensors.
 
     Args:
-        identifier: The unique identifier for the sensor and parameter
-            being averaged.
-        dataset: The list of 'n' separate readings to be averaged.
+        identifier: The unique identifier for the sensor and property being
+            averaged.
+        dataset: The list of 'n' separate time points to be averaged.
 
     Returns:
         list The averaged data.
@@ -927,6 +930,30 @@ def average_dataset(identifier, dataset):
         dataset[identifier]['identifier'] = identifier
         formatted.append(dataset[identifier])
     return formatted
+
+def stop_sampling(signal, frame):
+    """Stop a run.
+
+    Stop a run by shutting down the GPS controller, turning off LEDs and then
+    printing a summary of the run statistics. Note that this can be run either
+    programatically because we have completed the requested number of samples,
+    or manually because the user pressed Ctrl+C.
+
+    """
+    print(os.linesep)
+    print("[AirPi] Sampling stopping...")
+    if gpsplugininstance:
+        gpsplugininstance.stopController()
+    led_off(settings['GREENPIN'])
+    led_off(settings['REDPIN'])
+    timedelta = datetime.utcnow() - starttime
+    hours, remainder = divmod(timedelta.seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    print("[AirPi] This run lasted " + str(hours) + "h"),
+    print(str(minutes) + "m " + str(seconds)  + "s,"),
+    print("and consisted of " + str(samples) + " samples.")
+    print("[AirPi] Sampling stopped.")
+    sys.exit(1)
 
 if __name__ == '__main__':
     """Execute a run.
@@ -971,7 +998,7 @@ if __name__ == '__main__':
     led_setup(settings['REDPIN'], settings['GREENPIN'])
 
     # Register the Ctrl+C signal handler
-    signal.signal(signal.SIGINT, interrupt_handler)
+    signal.signal(signal.SIGINT, stop_sampling)
 
     print("==========================================================")
     print("Info: Success - setup complete.")

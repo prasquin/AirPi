@@ -15,6 +15,17 @@ class Print(output.Output):
         self.metadatareqd = params["metadatareqd"]
 
     def output_metadata(self, metadata):
+        """Output metadata.
+
+        Output metadata for the run in the format stipulated by this plugin.
+        Metadata is set in airpi.py and then passed as a dict to each plugin
+        which wants to output it.
+
+        Args:
+            self: self.
+            metadata: dict The metadata for the run.
+
+        """
         if self.metadatareqd:
             print("==========================================================")
             print("Loading METADATA...")
@@ -22,12 +33,28 @@ class Print(output.Output):
             toprint += "Operator".ljust(23, '.') + metadata['OPERATOR'] + os.linesep
             toprint += "Raspberry Pi name".ljust(23, '.') + metadata['PINAME'] + os.linesep
             toprint += "Raspberry Pi ID".ljust(23, '.') +  metadata['PIID'] + os.linesep
-            toprint += "Sample frequency".ljust(23, '.') + metadata['SAMPLEFREQ']
+            toprint += "Sample frequency".ljust(23, '.') + metadata['SAMPLEFREQ'] + os.linesep
+            toprint += "Stopping after".ljust(23, '.') + metadata['STOPAFTER']
             if "AVERAGEFREQ" in metadata:
                 toprint += os.linesep + "Averaging frequency".ljust(23, '.') + metadata['AVERAGEFREQ'] + os.linesep
             print(toprint)
 
     def output_data(self, dataPoints):
+        """Output data.
+
+        Output data in the format stipulated by the plugin. Calibration is
+        carried out first if required.
+        Note this method takes account of the different data formats for
+        'standard' sensors as distinct from the GPS. The former present a dict
+        containing one value and associated properties such as units and
+        symbols, while the latter presents a dict containing several readings
+        such as latitude, longitude and altitude, but no units or symbols.
+
+        Args:
+            self: self.
+            dataPoints: A dict containing the data to be output.
+
+        """
         if self.docal == 1:
             dataPoints = self.cal.calibrate(dataPoints)
         if self.format == "csv":
@@ -56,4 +83,15 @@ class Print(output.Output):
         return True
 
     def format_output_gps(self, prop, value, unit):
+        """Format GPS output nicely.
+
+        Format GPS output to display nicely.
+
+        Args:
+            self: self.
+            prop: The name of the property being measured.
+            value: The value of the property.
+            unit: string The unit in which the value is measured.
+
+        """
         return str(prop.ljust(17) + ": " + str("{0:.2f}".format(value)).rjust(8) + " " + unit)

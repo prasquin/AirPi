@@ -7,8 +7,15 @@ class Notification():
         raise NotImplementedError
 
     def getHostname(self):
+        """Get current hostname.
+
+        Get the current hostname of the Raspberry Pi.
+
+        Returns:
+            string The hostname.
+
+        """
         if socket.gethostname().find('.')>=0:
-            host = socket.gethostname()
+            return socket.gethostname()
         else:
-            host = socket.gethostbyaddr(socket.gethostname())[0]
-        return host
+            return socket.gethostbyaddr(socket.gethostname())[0]
