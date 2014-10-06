@@ -13,7 +13,12 @@ class GpsSocketError(Exception):
 class GpsController(threading.Thread):
 
     def __new__(cls):
-        # Abort creation of the instance if the GPS socket hasn't been set up
+        """Create new object if socket exists.
+        
+        Create a new GpsController object. Abort creation of the instance if the
+        GPS socket hasn't been set up at /var/run/gpsd.sock.
+
+        """
         if subprocess.call(['test', '-S', '/var/run/gpsd.sock']) != 1:
             return super(GpsController, cls).__new__(cls)
         else:
@@ -22,17 +27,38 @@ class GpsController(threading.Thread):
             raise GpsSocketError
 
     def __init__(self):
+        """Initialise GpsController class.
+
+        Initialise the GpsController class using parameters passed in
+        'data'.
+
+        Args:
+            self: self.
+            data: A dict containing the parameters to be used during setup.
+
+        """
         threading.Thread.__init__(self)
         self.gpsd = gps(mode=WATCH_ENABLE) # starting the stream of info
         self.running = False
 
     def run(self):
+        """Continually get data from gpsd.
+
+        Continually get the data from gpsd, clearing the buffer in the process.
+        If we don't do it continually, the buffer will fill up and then we're in
+        trouble.
+
+        """
         self.running = True
         while self.running:
-            # grab EACH set of gpsd info to clear the buffer
             self.gpsd.next()
 
     def stopController(self):
+        """Stop the controller.
+
+        Stop this GPS Controller.
+
+        """
         self.running = False
 
     @property
@@ -48,10 +74,8 @@ class GpsController(threading.Thread):
         return self.gpsd.satellites
 
 if __name__ == '__main__':
-    # create the controller
     gpsc = GpsController()
     try:
-        # start controller
         gpsc.start()
         while True:
             print "latitude ", gpsc.fix.latitude
@@ -68,16 +92,11 @@ if __name__ == '__main__':
             print "mode ", gpsc.fix.mode
             print "sats ", gpsc.satellites
             sleep(0.5)
-
-    # Ctrl C
     except KeyboardInterrupt:
         print "User cancelled"
-
-    # Error
     except:
         print "Unexpected error:", sys.exc_info()[0]
         raise
-
     finally:
         gpsc.stopController()
         # wait for the thread to finish

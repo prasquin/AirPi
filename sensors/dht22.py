@@ -80,7 +80,16 @@ class DHT22(sensor.Sensor):
         if self.valName == "Temperature-DHT":
             temp = t
             if self.valUnit == "Fahrenheit":
-                temp = temp * 1.8 + 32
+                try:
+                    temp = temp * 1.8 + 32
+                except TypeError as terr:
+                    # This will be thrown if the sensor fails to read,
+                    # and so 'temp' has type 'None'. That usually
+                    # happens at the start of the run, and is dealt with
+                    # either by the fact that it's a dummy run and we're
+                    # ignoring readings anyway, or by sample() in the
+                    # main airpi.py script (~ line 908).
+                    pass
             return temp
         elif self.valName == "Relative Humidity":
             return h

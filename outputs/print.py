@@ -95,4 +95,4 @@ class Print(output.Output):
             unit: string The unit in which the value is measured.
 
         """
-        return str(prop.ljust(17) + ": " + str("{0:.2f}".format(value)).rjust(8) + " " + unit)
+        return str(prop.ljust(17) + ": " + str("{0:.2f}".format(value)).rjust(10) + " " + unit)

@@ -6,6 +6,17 @@ class raingauge(sensor.Sensor):
 	optionalData = ["description"]
     
 	def __init__(self, data):
+        """Initialise.
+
+        Initialise the raingauge sensor class using parameters passed in 'data'.
+
+        Args:
+            self: self.
+            data: A dict containing the parameters to be used during setup.
+
+        Return:
+
+        """
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setwarnings(False)
 		self.pinNum = int(data["pinNumber"])
@@ -23,12 +34,30 @@ class raingauge(sensor.Sensor):
 			self.description = "A rain gauge."
 
 	def getVal(self):
-	        # return number of bucket tips since last reading
-	        # that means we reset the count at this reading
+        """Get no. of tips *since last reading*.
+
+        Get the current sensor value, which is the number of bucket tips since
+        the last reading. Note that it is NOT the total number of bucket tips
+        since the start of the run.
+
+        Args:
+            self: self.
+
+        Returns:
+            float The current value for the sensor.
+
+        """
+        # return number of bucket tips since last reading
+        # that means we reset the count at this reading
 		rain = self.rain
 		self.rain = 0
 		return rain
 
 	def bucketTip(self, channel):
+		"""Record a bucket tip.
+
+		Record a bucket tip.
+		
+		"""
 		self.rain += 1
 
