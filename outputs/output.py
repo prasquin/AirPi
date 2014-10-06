@@ -1,6 +1,5 @@
 import time
 import socket
-from subprocess import check_output
 
 class Output(object):
     def __init__(self, params):

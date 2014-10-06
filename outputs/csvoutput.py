@@ -35,14 +35,15 @@ class CSVOutput(output.Output):
 
         """
         if self.metadatareqd:
-            towrite = "\"Run started\",\"" + metadata['STARTTIME'] + "\"\n"
-            towrite += "\"Operator\",\"" + metadata['OPERATOR'] + "\"\n"
-            towrite += "\"Raspberry Pi name\",\"" + metadata['PINAME'] + "\"\n"
-            towrite += "\"Raspberry Pi ID\",\"" +  metadata['PIID'] + "\"\n"
-            towrite += "\"Sampling frequency\",\"" + metadata['SAMPLEFREQ'] + "\"\n"
-            towrite += "\"Stopping after\",\"" + metadata['STOPAFTER'] + "\""
-            if "AVERAGEFREQ" in metadata:
-                towrite += "\n\"Averaging frequency\",\"" + metadata['AVERAGEFREQ'] + "\"\n"
+            towrite = "\"Run started\",\"" + metadata['STARTTIME'] + "\""
+            towrite += "\n\"Operator\",\"" + metadata['OPERATOR'] + "\""
+            towrite += "\n\"Raspberry Pi name\",\"" + metadata['PINAME'] + "\""
+            towrite += "\n\"Raspberry Pi ID\",\"" +  metadata['PIID'] + "\""
+            towrite += "\n\"Sampling frequency\",\"" + metadata['SAMPLEFREQ'] + "\""
+            if 'STOPAFTER' in metadata:
+                towrite += "\n\"Stopping after\",\"" + metadata['STOPAFTER'] + "\""
+            if 'AVERAGEFREQ' in metadata:
+                towrite += "\n\"Averaging frequency\",\"" + metadata['AVERAGEFREQ'] + "\""
             self.file.write(towrite + "\n")
 
     def output_data(self,dataPoints):

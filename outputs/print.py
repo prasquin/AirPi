@@ -28,15 +28,16 @@ class Print(output.Output):
         """
         if self.metadatareqd:
             print("==========================================================")
-            print("Loading METADATA...")
-            toprint  = "Run started".ljust(23, '.') + metadata['STARTTIME'] + os.linesep
-            toprint += "Operator".ljust(23, '.') + metadata['OPERATOR'] + os.linesep
-            toprint += "Raspberry Pi name".ljust(23, '.') + metadata['PINAME'] + os.linesep
-            toprint += "Raspberry Pi ID".ljust(23, '.') +  metadata['PIID'] + os.linesep
-            toprint += "Sample frequency".ljust(23, '.') + metadata['SAMPLEFREQ'] + os.linesep
-            toprint += "Stopping after".ljust(23, '.') + metadata['STOPAFTER']
-            if "AVERAGEFREQ" in metadata:
-                toprint += os.linesep + "Averaging frequency".ljust(23, '.') + metadata['AVERAGEFREQ'] + os.linesep
+            print("Loading: METADATA")
+            toprint  = "Run started".ljust(23, '.') + metadata['STARTTIME']
+            toprint += os.linesep + "Operator".ljust(23, '.') + metadata['OPERATOR']
+            toprint += os.linesep + "Raspberry Pi name".ljust(23, '.') + metadata['PINAME']
+            toprint += os.linesep + "Raspberry Pi ID".ljust(23, '.') +  metadata['PIID']
+            toprint += os.linesep + "Sample frequency".ljust(23, '.') + metadata['SAMPLEFREQ']
+            if 'STOPAFTER' in metadata:
+                toprint += os.linesep + "Stopping after".ljust(23, '.') + metadata['STOPAFTER']
+            if 'AVERAGEFREQ' in metadata:
+                toprint += os.linesep + "Averaging frequency".ljust(23, '.') + metadata['AVERAGEFREQ']
             print(toprint)
 
     def output_data(self, dataPoints):
@@ -77,8 +78,8 @@ class Print(output.Output):
                     print(self.format_output_gps("Loc - Altitude", point["altitude"], "m"))
                     print(("Loc - Disp./Exp.").ljust(17)).replace("_", " ") + ": " + str(point["disposition"].title() + ", " + point["exposure"].title()).ljust(8)
                 else:
-                    value = "{0:.1f}".format(point["value"])
-                    print (point["name"].ljust(17)).replace("_", " ") + ": " + str(value).rjust(8) + " " + point["symbol"].ljust(5) + "(" + point["readingType"] + ")"
+                    value = "{0:.2f}".format(point["value"])
+                    print (point["name"].ljust(17)).replace("_", " ") + ": " + str(value).rjust(10) + " " + point["symbol"].ljust(5) + "(" + point["readingType"] + ")"
             print "=========================================================="
         return True
 

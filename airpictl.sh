@@ -15,14 +15,6 @@ RUNDATE=`date +"%Y%m%d-%H%M"`
 HOST=`hostname`
 OUTPUT=$HOST-$RUNDATE.out
 
-# Define function to check whether GPS has been set up
-check_gps () {
-    if [ ! -S "/var/run/gpsd.sock" ]; then
-        echo "[AirPi] WARNING - GPS may not be set up."
-        echo "[AirPi] If you want to use it, try running: \"sudo gpsd /dev/ttyAMA0 -F /var/run/gpsd.sock\""
-    fi
-}
-
 # Check whether anything is already running
 if `ps aux | grep -v "grep" | grep -q "sudo.*airpi.py"`; then
     case $1 in
@@ -42,7 +34,6 @@ fi
 case $1 in 
     normal)
         clear;
-        check_gps
         echo "[AirPi] Starting normal AirPi sampling."
         echo "[AirPi] This run will end if you log out."
         echo "[AirPi] Press Ctrl +  C to stop."
@@ -50,7 +41,6 @@ case $1 in
         ;;
     bg)
         clear;
-        check_gps
         echo "[AirPi] Starting BACKGROUND AirPi sampling."
         echo "[AirPi] This run will end if you log out."
         echo "[AirPi] Saving screen output to $DIR/log/$OUTPUT."
@@ -59,7 +49,6 @@ case $1 in
         ;;
     unatt)
         clear;
-        check_gps
         echo "[AirPi] Starting UNATTENDED AirPi sampling."
         echo "[AirPi] This run will continue even if you log out."
         echo "[AirPi] Saving screen output to $DIR/log/$OUTPUT."

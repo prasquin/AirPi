@@ -1,8 +1,26 @@
 from gps import *
 from time import sleep
+import subprocess
 import threading
 
+class GpsSocketError(Exception):
+    """Exception to raise when the GPS sock at /var/run/gpsd.sock does not
+    exist.
+
+    """
+    pass
+
 class GpsController(threading.Thread):
+
+    def __new__(cls):
+        # Abort creation of the instance if the GPS socket hasn't been set up
+        if subprocess.call(['test', '-S', '/var/run/gpsd.sock']) != 1:
+            return super(GpsController, cls).__new__(cls)
+        else:
+            print("ERROR:   GPS does not appear to be set up.")
+            print("         Try running: \"sudo gpsd /dev/ttyAMA0 -F /var/run/gpsd.sock\"")
+            raise GpsSocketError
+
     def __init__(self):
         threading.Thread.__init__(self)
         self.gpsd = gps(mode=WATCH_ENABLE) # starting the stream of info

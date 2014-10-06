@@ -39,6 +39,14 @@ class MissingField(Exception):
     """
     pass
 
+def format_msg(msg, msgtype):
+    if msgtype == 'error':
+        return((msgtype.upper() + ":").ljust(8, ' ') + " " + msg)
+    elif msgtype == 'sys':
+        return("[AirPi] " + msg)
+    else:
+        return((msgtype.title() + ":").ljust(8, ' ') + " " + msg)
+
 def get_subclasses(mod, cls):
     """Load subclasses for a module.
 
@@ -223,7 +231,8 @@ def set_up_sensors():
     """
 
     print("==========================================================")
-    print("Loading SENSORS...")
+    msg = format_msg("SENSORS", 'loading')
+    print(msg)
 
     check_cfg_file(CFGPATHS['sensors'])
 
@@ -239,21 +248,23 @@ def set_up_sensors():
 
     for i in SENSORNAMES:
         try:
+            # See if the plugin is enabled
             try:
                 enabled = SENSORCONFIG.getboolean(i, "enabled")
                 LOGGER.info(str(i) + " enabled status is: " + str(enabled))
             except Exception as excep:
                 enabled = True
 
-            #if enabled, load the plugin
+            # If enabled, load the plugin
             if enabled:
 
                 try:
                     filename = SENSORCONFIG.get(i, "filename")
                     LOGGER.info("filename is " + filename)
                 except Exception:
-                    msg = "Error: no filename config option found for sensor"
-                    msg += "plugin " + str(i)
+                    msg = "No filename config option found for sensor plugin "
+                    msg += str(i)
+                    msg = format_msg(msg, 'error')
                     print(msg)
                     LOGGER.error(msg)
                     raise
@@ -263,7 +274,8 @@ def set_up_sensors():
                     LOGGER.info("Trying to import sensors." + filename)
                     mod = __import__('sensors.' + filename, fromlist = ['a'])
                 except Exception as excep:
-                    msg = "Error: could not import sensor module " + filename
+                    msg = "Could not import sensor module " + filename
+                    msg = format_msg(msg, 'error')
                     print(msg)
                     LOGGER.error(msg)
                     raise
@@ -273,8 +285,9 @@ def set_up_sensors():
                     if sensorclass == None:
                         raise AttributeError
                 except Exception:
-                    msg = "Error: could not find a subclass of sensor.Sensor"
-                    msg += " in module " + filename
+                    msg = "Could not find a subclass of sensor.Sensor in module"
+                    msg += filename
+                    msg = format_msg(msg, 'error')
                     print(msg)
                     LOGGER.error(msg)
                     raise
@@ -292,26 +305,36 @@ def set_up_sensors():
 
                 plugindata = define_plugin_params(SENSORCONFIG, i, reqd, opt, common)
 
-                instclass = sensorclass(plugindata)
-                # check for a getVal
+                try:
+                    instclass = sensorclass(plugindata)
+                except Exception:
+                    msg = "GPS instance not created - socket not set up?"
+                    msg = format_msg(msg, 'error')
+                    LOGGER.error(msg)
+                    raise
+                
+                # Check for a getVal() method
                 if callable(getattr(instclass, "getVal", None)):
                     sensorplugins.append(instclass)
-                    # store sensorplugins array length for GPS plugin
+                    # Store sensorplugins array length for GPS plugin
                     if "serial_gps" in filename:
                         global gpsplugininstance
                         gpsplugininstance = instclass
-                    msg = "Success: Loaded sensor plugin " + str(i)
+                    msg = "Loaded sensor plugin " + str(i)
+                    msg = format_msg(msg, 'success')
                     print(msg)
                     LOGGER.info(msg)
                 else:
-                    msg = "Success: Loaded support plugin " + str(i)
+                    msg = "Loaded support plugin " + str(i)
+                    msg = format_msg(msg, 'success')
                     print(msg)
                     LOGGER.info(msg)
         except Exception as excep: # TODO: add specific exception for missing module
-            msg = "Error: Did not import sensor plugin " + str(i) + ": " + str(excep)
+            msg = "Did not import sensor plugin " + str(i) + ": " + str(excep)
+            msg = format_msg(msg, 'error')
             print(msg)
             LOGGER.error(msg)
-            raise excep
+            continue
 
     if any_plugins_enabled(sensorplugins, 'sensor'):
         return sensorplugins
@@ -329,7 +352,8 @@ def set_up_outputs():
     """
 
     print("==========================================================")
-    print("Loading OUTPUTS...")
+    msg = format_msg("OUTPUTS", 'loading')
+    print(msg)
 
     check_cfg_file(CFGPATHS['outputs'])
 
@@ -345,8 +369,9 @@ def set_up_outputs():
             try:
                 filename = OUTPUTCONFIG.get(i, "filename")
             except Exception:
-                msg = "Error: no filename config option found for output"
-                msg += " plugin " + str(i)
+                msg = "No filename config option found for output plugin "
+                msg += str(i)
+                msg = format_msg(msg, 'error')
                 print(msg)
                 LOGGER.error(msg)
                 raise
@@ -361,7 +386,8 @@ def set_up_outputs():
                     # 'a' means nothing below, but argument must be non-null
                     mod = __import__('outputs.' + filename, fromlist = ['a'])
                 except Exception:
-                    msg = "Error: could not import output module " + filename
+                    msg = "Could not import output module " + filename
+                    msg = format_msg(msg, 'error')
                     print(msg)
                     LOGGER.error(msg)
                     raise
@@ -371,8 +397,9 @@ def set_up_outputs():
                     if outputclass == None:
                         raise AttributeError
                 except Exception:
-                    msg = "Error: could not find a subclass of output.Output"
-                    msg += " in module " + filename
+                    msg = "Could not find a subclass of output.Output in"
+                    msg += " module " + filename
+                    msg = format_msg(msg, 'error')
                     print(msg)
                     LOGGER.error(msg)
                     raise
@@ -391,8 +418,9 @@ def set_up_outputs():
                 plugindata = define_plugin_params(OUTPUTCONFIG, i, reqd, opt, common)
 
                 if OUTPUTCONFIG.has_option(i, "needsinternet") and OUTPUTCONFIG.getboolean(i, "needsinternet") and not check_conn():
-                    msg = "Error: Skipping output plugin " + i
+                    msg = "Skipping output plugin " + i
                     msg += " because no internet connectivity."
+                    msg = format_msg(msg, 'error')
                     print (msg)
                     LOGGER.info(msg)
                 else:
@@ -402,7 +430,8 @@ def set_up_outputs():
                     # check for an output_data function
                     if callable(getattr(instclass, "output_data", None)):
                         outputplugins.append(instclass)
-                        msg = "Success: Loaded output plugin " + str(i)
+                        msg = "Loaded output plugin " + str(i)
+                        msg = format_msg(msg, 'success')
                         print(msg)
                         LOGGER.info(msg)
                         if "http" in str(instclass):
@@ -414,12 +443,14 @@ def set_up_outputs():
                             msg = "         dweeting to " + instclass.get_url()
                             print(msg)
                     else:
-                        msg = "Success: Loaded support plugin " + str(i)
+                        msg = "Loaded support plugin " + str(i)
+                        msg = format_msg(msg, 'success')
                         print(msg) 
                         LOGGER.info(msg)
 
         except Exception as excep: #add specific exception for missing module
-            msg = "Error: Did not import output plugin " + str(i) + ": " + str(excep)
+            msg = "Did not import output plugin " + str(i) + ": " + str(excep)
+            msg = format_msg(msg, 'error')
             print(msg)
             LOGGER.error(msg)
             raise excep
@@ -457,10 +488,12 @@ def define_plugin_params(config, name, reqd, opt, common):
         if config.has_option(name, reqdfield):
             params[reqdfield] = config.get(name, reqdfield)
         else:
-            msg = "Error: Missing required field '" + reqdfield
-            msg += "' for plugin " + name + "." + os.linesep
-            msg += "Error: This should be found in file: "
-            msg += CFGPATHS['outputs']
+            msg = "Missing required field '" + reqdfield
+            msg += "' for plugin " + name + "."
+            print(msg)
+            LOGGER.error(msg)
+            msg += "This should be found in file: " + CFGPATHS['outputs']
+            msg = format_msg(msg, 'error')
             print(msg)
             LOGGER.error(msg)
             raise MissingField
@@ -498,7 +531,8 @@ def set_up_notifications():
     """
 
     print("==========================================================")
-    print("Loading NOTIFICATIONS...")
+    msg = format_msg("NOTIFICATIONS", 'loading')
+    print(msg)
 
     check_cfg_file(CFGPATHS['notifications'])
 
@@ -515,8 +549,9 @@ def set_up_notifications():
             try:
                 filename = NOTIFICATIONCONFIG.get(i, "filename")
             except Exception:
-                msg = "Error: no filename config option found for notification"
-                msg += " plugin " + str(i)
+                msg = "No filename config option found for notification plugin "
+                msg += str(i)
+                msg = format_msg(msg, 'error')
                 print(msg)
                 LOGGER.error(msg)
                 raise
@@ -531,7 +566,8 @@ def set_up_notifications():
                     # 'a' means nothing below, but argument must be non-null
                     mod = __import__('notifications.' + filename, fromlist = ['a'])
                 except Exception:
-                    msg = "Error: could not import notification module " + filename
+                    msg = "Could not import notification module " + filename
+                    msg = format_msg(msg, 'error')
                     print(msg)
                     LOGGER.error(msg)
                     raise
@@ -541,8 +577,9 @@ def set_up_notifications():
                     if notificationclass == None:
                         raise AttributeError
                 except Exception:
-                    msg = "Error: could not find a subclass of"
+                    msg = "Could not find a subclass of"
                     msg += " notification.Notification in module " + filename
+                    msg = format_msg(msg, 'error')
                     print(msg)
                     LOGGER.error(msg)
                     raise
@@ -563,8 +600,9 @@ def set_up_notifications():
                 
                 if NOTIFICATIONCONFIG.has_option(i, "needsinternet"):
                     if NOTIFICATIONCONFIG.getboolean(i, "needsinternet") and not check_conn():
-                        msg = "Error: Skipping notification plugin " + i
+                        msg = "Skipping notification plugin " + i
                         msg += " because no internet connectivity."
+                        msg = format_msg(msg, 'error')
                         print (msg)
                         LOGGER.info(msg)
                     else:
@@ -574,25 +612,29 @@ def set_up_notifications():
                     # check for a sendNotification function
                     if callable(getattr(instclass, "sendNotification", None)):
                         notificationPlugins.append(instclass)
-                        msg = "Success: Loaded notification plugin " + str(i)
+                        msg = "Loaded notification plugin " + str(i)
+                        msg = format_msg(msg, 'success')
                         print(msg)
                         LOGGER.info(msg)
                     else:
-                        msg = "Error: no callable sendNotification() function"
+                        msg = "No callable sendNotification() function"
                         msg += " for notification plugin " + str(i)
+                        msg = format_msg(msg, 'error')
                         print(msg)
                         LOGGER.info(msg)
 
         except Exception as excep:
-            msg = "Error: Did not import notification plugin " + str(i) + ": "
+            msg = "Did not import notification plugin " + str(i) + ": "
             msg += str(excep)
+            msg = format_msg(msg, 'error')
             print(msg)
             LOGGER.error(msg)
             raise excep
 
     # Don't run any_plugins_enabled here, because it's OK to not have any notifications
     if not notificationPlugins:
-        msg = "Info: No Notifications enabled."
+        msg = "No Notifications enabled."
+        msg = format_msg(msg, 'info')
         print(msg)
         LOGGER.info(msg)
     return notificationPlugins
@@ -608,29 +650,41 @@ def set_settings():
     """
 
     print("==========================================================")
-    print("Loading SETTINGS...")
+    print(format_msg("SETTINGS", 'loading'))
 
     check_cfg_file(CFGPATHS['settings'])
     mainconfig = ConfigParser.SafeConfigParser()
     mainconfig.read(CFGPATHS['settings'])
+
+    if mainconfig.has_option("Debug", "debug"):
+        if mainconfig.getboolean("Debug", "debug"):
+            logging.basicConfig(level=logging.DEBUG)
+
     settingslist = {}
 
-    settingslist['AVERAGE'] = False
     settingslist['SAMPLEFREQ'] = mainconfig.getfloat("Sampling", "sampleFreq")
-    settingslist['AVERAGEFREQ'] = mainconfig.getint("Sampling", "averageFreq")
-    averagefreq = settingslist['AVERAGEFREQ']
-    if averagefreq > 0:
-        averagecount = averagefreq / settingslist['SAMPLEFREQ']
-        if averagecount < 2:
-            msg = "Error: averageFreq must be a least twice sampleFreq."
-            print(msg)
-            LOGGER.error(msg)
-            sys.exit(1)
-        else:
-            settingslist['AVERAGE'] = True
-            settingslist['AVERAGECOUNT'] = averagecount
-            settingslist['PRINTUNAVERAGED'] = mainconfig.getboolean("Sampling", "printUnaveraged")
-    settingslist['STOPAFTER'] = mainconfig.getint("Sampling", "stopafter")
+    if mainconfig.has_option("Sampling","averageFreq"):
+        if mainconfig.getint("Sampling", "averageFreq") != 0:
+            settingslist['AVERAGEFREQ'] = mainconfig.getint("Sampling", "averageFreq")
+            averagefreq = settingslist['AVERAGEFREQ']
+            if averagefreq > 0:
+                averagecount = averagefreq / settingslist['SAMPLEFREQ']
+                if averagecount < 2:
+                    msg = "averageFreq must be a least twice sampleFreq."
+                    msg = format_msg(msg, 'error')
+                    print(msg)
+                    LOGGER.error(msg)
+                    sys.exit(1)
+                else:
+                    settingslist['AVERAGECOUNT'] = averagecount
+                    settingslist['PRINTUNAVERAGED'] = mainconfig.getboolean("Sampling", "printUnaveraged")
+    settingslist['STOPAFTER'] = 0 # Default
+    if mainconfig.has_option("Sampling","stopafter"):
+        if mainconfig.getint("Sampling", "stopafter") != 0:
+            settingslist['STOPAFTER'] = mainconfig.getint("Sampling", "stopafter")
+    settingslist['DUMMYDURATION'] = 0 # Default
+    if mainconfig.has_option("Sampling","dummyduration"):
+        settingslist['DUMMYDURATION'] = mainconfig.getint("Sampling", "dummyduration")
     settingslist['REDPIN'] = mainconfig.getint("LEDs", "redPin")
     settingslist['GREENPIN'] = mainconfig.getint("LEDs", "greenPin")
     settingslist['SUCCESSLED'] = mainconfig.get("LEDs","successLED")
@@ -639,7 +693,9 @@ def set_settings():
     settingslist['PRINTERRORS'] = mainconfig.getboolean("Misc","printErrors")
     settingslist['WAITTOSTART'] = mainconfig.getboolean("Debug","waittostart")
 
-    print("Success: Loaded settings.")
+    msg = "Loaded settings."
+    msg = format_msg(msg, 'success')
+    print(msg)
 
     return settingslist
 
@@ -659,12 +715,13 @@ def set_metadata():
         "OPERATOR":settings['OPERATOR'],
         "PIID":get_serial(),
         "PINAME":get_hostname(),
-        "SAMPLEFREQ":"Sampling every " + str(int(settings['SAMPLEFREQ'])) + " seconds.",
-        "STOPAFTER":str(int(settings['STOPAFTER'])) + " samples."
+        "SAMPLEFREQ":"Sampling every " + str(int(settings['SAMPLEFREQ'])) + " seconds."
         }
-    if settings['AVERAGE']:
+    if 'AVERAGEFREQ' in settings:
         meta['AVERAGEFREQ'] = "Averaging every " + str(settings['AVERAGEFREQ'])
         meta['AVERAGEFREQ'] += " seconds."
+    if settings['STOPAFTER'] != 0:
+        meta["STOPAFTER"] = str(int(settings['STOPAFTER'])) + " samples."
     return meta
 
 def output_metadata(plugins, meta):
@@ -683,7 +740,7 @@ def output_metadata(plugins, meta):
     for plugin in plugins:
         plugin.output_metadata(meta)
 
-def delay_start(timenow):
+def delay_start(delay):
     """Delay sampling until start of the next minute.
 
     Prevent sampling until the start of the next minute (i.e. 0 seconds) by
@@ -691,23 +748,49 @@ def delay_start(timenow):
     the user first, and then every 10 seconds.
 
     Args:
-        timenow: Time from which the delay should begin.
+        delay: How long the run should be delayed for (seconds).
 
     """
-    SECONDS = float(timenow.second + (timenow.microsecond / 1000000))
-    DELAY = (60 - SECONDS)
-    if DELAY != 60:
-        print("==========================================================")
-        print("Info: Sampling will start in " + str(int(DELAY)) + " seconds.")
-        remainder = DELAY % 10
-        remaining = DELAY - remainder
-        time.sleep(remainder)
-        while remaining >= 1:
-            msg = "Info: Sampling will start in " + str(int(remaining))
-            msg += " seconds."
-            print(msg)
-            time.sleep(10)
-            remaining -= 10
+    print("==========================================================")
+    msg = "Sampling will start in " + str(int(delay)) + " seconds."
+    msg = format_msg(msg, 'info')
+    print(msg)
+    remainder = delay % 10
+    remaining = delay - remainder
+    time.sleep(remainder)
+    while remaining >= 1:
+        msg = "Sampling will start in " + str(int(remaining)) + " seconds."
+        msg = format_msg(msg, 'info')
+        print(msg)
+        time.sleep(10)
+        remaining -= 10
+
+def dummy_runs(dummyduration):
+    """Do dummy runs to kick off sensors.
+
+    Read from the enabled sensors a few times to kick them in to life. The data,
+    or results of trying to read the sensors, are not stored anywhere. This just
+    helps ensure that there are no zero-readings when we get on to the 'actual'
+    readings.
+
+    Args:
+        dummyduration: How long the dummy runs should last (seconds).
+
+    """
+    msg = "Doing dummy runs for " + str(dummyduration) + " seconds."
+    msg = format_msg(msg, 'info')
+    print(msg)
+    LOGGER.info(msg)
+    startdummy = time.time()
+    diff = 0
+    while diff < dummyduration:
+        for i in pluginssensors:
+            if i == gpsplugininstance:
+                read_gps(i)
+            else:
+                read_sensor(i)
+        diff = time.time() - startdummy
+    return True
 
 def read_sensor(sensorplugin):
     """Read from a non-GPS sensor.
@@ -767,13 +850,14 @@ def sample():
     Ctrl+C.
 
     """
-
-    print("Info: Starting sampling...")
+    msg = "Starting sampling..."
+    msg = format_msg(msg, "info")
+    print(msg)
     print("==========================================================")
     lastupdated = 0
     alreadysentsensornotifications = False
     alreadysentoutputnotifications = False
-    if settings['AVERAGE']:
+    if 'AVERAGEFREQ' in settings:
         countcurrent = 0
         counttarget = settings['AVERAGECOUNT']
         dataset = {}
@@ -797,7 +881,7 @@ def sample():
                         if datadict["value"] is None or isnan(float(datadict["value"])) or datadict["value"] == 0:
                             sensorsworking = False
                     # Average the data if required
-                    if settings['AVERAGE'] and i != gpsplugininstance:
+                    if ('AVERAGEFREQ' in settings) and (i != gpsplugininstance):
                         identifier = datadict['sensor'] + "-" + datadict['name']
                         if identifier not in dataset:
                             dataset[identifier] = {}
@@ -811,16 +895,19 @@ def sample():
                     # Always record raw values for every sensor
                     data.append(datadict)
                 # Record the outcome of reading sensors
-                if settings['AVERAGE']:
+                if 'AVERAGEFREQ' in settings:
                     countcurrent += 1
                 if sensorsworking:
-                    LOGGER.info("Success: Data obtained from all sensors.")
+                    msg = "Data obtained from all sensors."
+                    msg = format_msg(msg, 'success')
+                    LOGGER.info(msg)
                 else:
                     if not alreadysentsensornotifications:
                         for j in pluginsnotifications:
                             j.sendNotification("alertsensor")
                         alreadysentsensornotifications = True
-                    msg = "Error: Failed to obtain data from all sensors."
+                    msg = "Failed to obtain data from all sensors."
+                    msg = format_msg(msg, 'error')
                     LOGGER.error(msg)
                     if settings['PRINTERRORS']:
                         print(msg)
@@ -828,12 +915,12 @@ def sample():
                 # Output data
                 try:
                     # Averaging
-                    if settings['AVERAGE']:
+                    if 'AVERAGEFREQ' in settings:
                         if countcurrent == counttarget:
                             data = average_dataset(identifier, dataset)
                             dataset = {}
-                    if (settings['AVERAGE'] and countcurrent == counttarget) or (settings['AVERAGE'] == False):
-                        if settings['AVERAGE']:
+                    if ('AVERAGEFREQ' in settings and countcurrent == counttarget) or ('AVERAGEFREQ' not in settings):
+                        if 'AVERAGEFREQ' in settings:
                             countcurrent = 0
                         # Output the data
                         outputsworking = True
@@ -844,7 +931,9 @@ def sample():
                                 outputsworking = False
                         # Record the outcome of outputting data
                         if outputsworking:
-                            LOGGER.info("Success: Data output in all requested formats.")
+                            msg = "Data output in all requested formats."
+                            msg = format_msg(msg, 'success')
+                            LOGGER.info(msg)
                             if settings['GREENPIN'] and (settings['SUCCESSLED'] == "all" or (settings['SUCCESSLED'] == "first" and not greenhaslit)):
                                 led_on(settings['GREENPIN'])
                                 greenhaslit = True
@@ -854,8 +943,8 @@ def sample():
                                     False
                                     #j.sendNotification("alertoutput")
                                 alreadysentoutputnotifications = True
-                            msg = "Error: Failed to output in all requested"
-                            msg += " formats."
+                            msg = "Failed to output in all requested formats."
+                            msg = format_msg(msg, 'error')
                             LOGGER.error(msg)
                             if settings['PRINTERRORS']:
                                 print(msg)
@@ -866,7 +955,9 @@ def sample():
                 except KeyboardInterrupt:
                     raise
                 except Exception as excep:
-                    LOGGER.error("Exception during output: %s" % excep)
+                    msg = "Exception during output: %s" % excep
+                    msg = format_msg(msg, 'error')
+                    LOGGER.error(msg)
                 else:
                     # Delay before turning off LED
                     time.sleep(1)
@@ -876,8 +967,11 @@ def sample():
                         led_off(settings['REDPIN'])
             global samples
             samples += 1
-            if samples == settings['STOPAFTER'] and samples != 0:
-                print("[AirPi] Reached requested number of samples - stopping run.")
+            if samples == settings['STOPAFTER']:
+                msg = "Reached requested number of samples - stopping run."
+                msg = format_msg(msg, 'sys')
+                print(msg)
+                LOGGER.info(msg)
                 stop_sampling(None, None)
             try:
                 time.sleep(settings['SAMPLEFREQ'] - (time.time() - curtime))
@@ -940,19 +1034,31 @@ def stop_sampling(signal, frame):
     or manually because the user pressed Ctrl+C.
 
     """
-    print(os.linesep)
-    print("[AirPi] Sampling stopping...")
-    if gpsplugininstance:
-        gpsplugininstance.stopController()
+    print("")
+    msg = "Sampling stopping..."
+    msg = format_msg(msg, 'sys')
+    print(msg)
+    LOGGER.info(msg)
+    try:
+        if gpsplugininstance:
+            gpsplugininstance.stopController()
+    except NameError:
+        # If GPS socket isn't set, gpsplugininstance won't exist
+        a = 1
     led_off(settings['GREENPIN'])
     led_off(settings['REDPIN'])
     timedelta = datetime.utcnow() - starttime
     hours, remainder = divmod(timedelta.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
-    print("[AirPi] This run lasted " + str(hours) + "h"),
-    print(str(minutes) + "m " + str(seconds)  + "s,"),
-    print("and consisted of " + str(samples) + " samples.")
-    print("[AirPi] Sampling stopped.")
+    msg = "This run lasted " + str(hours) + "h " + str(minutes) + "m "
+    msg += str(seconds)  + "s, and consisted of " + str(samples) + " samples."
+    msg = format_msg(msg, 'sys')
+    print(msg)
+    LOGGER.info(msg)
+    msg = "Sampling stopped."
+    msg = format_msg(msg, 'sys')
+    print(msg)
+    LOGGER.info(msg)
     sys.exit(1)
 
 if __name__ == '__main__':
@@ -1001,11 +1107,27 @@ if __name__ == '__main__':
     signal.signal(signal.SIGINT, stop_sampling)
 
     print("==========================================================")
-    print("Info: Success - setup complete.")
+    msg = "Setup complete."
+    msg = format_msg(msg, 'success')
+    print(msg)
 
     # Wait until the start of the next minute
     if settings["WAITTOSTART"]:
-        delay_start(datetime.now())
+        # Work out how long it is
+        NOW = datetime.now()
+        SECONDS = float(NOW.second + (NOW.microsecond / 1000000))
+        DELAY = (60 - SECONDS)
+        # Now account for any dummy runs
+        DUMMYDURATION = settings['DUMMYDURATION']
+        if DELAY > DUMMYDURATION:
+            DELAY = DELAY - DUMMYDURATION
+        else:
+            DELAY = DELAY  + (60 - DUMMYDURATION)
+        # OK, commence the delay
+        delay_start(DELAY)
+    
+    if settings['DUMMYDURATION'] != 0:
+        dummy_runs(settings['DUMMYDURATION'])
 
     # Sample!
     sample()
