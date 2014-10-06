@@ -51,6 +51,9 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
   * Includes 'background' and 'unattanded', so you can SSH into your Pi, start it, then quit.
 * Added ability to output average data (e.g. read every 1 min for 10 mins, then output the average for the 10 mins).
   * Controlled by "averageFreq" parameter in 'cfg/settings.cfg' - set to at least twice sampleFreq to enable averaging.
+* Added ability to do 'dummy runs' for a predefined period before a run starts properly, to ensure all sensors are
+  up and running, and won't just report back zeroes.
+  * Controlled by "dummyduration" parameter in 'cfg/settings.cfg' - set to 0 for no dummy runs. Recommended is 15.
 * Added ability to stop a run after X samples.
   * Controlled by "stopafter" parameter in 'cfg/settings.cfg' - set to 0 to run indefinitely.
 * Added ability to record metadata such as Raspberry Pi serial no. and operator name at start of run.
@@ -60,7 +63,7 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
   * See the 'boot' directory for more info.
 * Added 'Notifications' module which allow messages to be sent when errors occur. Includes email, SMS and tweet.
   * Controlled by 'cfgs/notifications.cfg'.
-* Added warning if GPS socket not detected at script startup.
+* Added warning if GPS socket not detected when GPS sensor enabled.
 * Added the following new options to 'cfg/settings.cfg':
   * Greater control of LED behaviour.
   * Can disable error messages printed to screen.
