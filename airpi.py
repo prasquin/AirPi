@@ -2,7 +2,7 @@
 
 """Start sampling with an AirPi board.
 
-This is the main script file for sampling air quality and/or weather
+This is the main script file for sampling air quality and / or weather
 data with an AirPi board on a Raspberry Pi. It takes configuration
 settings from a number of config files, and outputs data from the
 specified sensors in one or more requested formats. Errors notifications
@@ -56,7 +56,9 @@ def format_msg(msg, msgtype):
 def get_subclasses(mod, cls):
     """Load subclasses for a module.
 
-    Load the named subclasses for a specified module.
+    Load the named subclasses for a specified module. Keys are named
+    'dummy' because they are not used, and calling them this means that
+    Pylint doesn't throw a message about them not being used.
 
     Args:
         mod: Module from which subclass should be loaded.
@@ -66,7 +68,7 @@ def get_subclasses(mod, cls):
         The subclass.
 
     """
-    for name, obj in inspect.getmembers(mod):
+    for dummy, obj in inspect.getmembers(mod):
         if hasattr(obj, "__bases__") and cls in obj.__bases__:
             return obj
 
@@ -85,7 +87,7 @@ def check_conn():
     try:
         urllib2.urlopen("http://www.google.com", timeout=5)
         return True
-    except urllib2.URLError as err:
+    except urllib2.URLError:
         pass
     return False
 
@@ -207,6 +209,21 @@ def set_cfg_paths():
     cfgpaths['log'] = os.path.join(logdir, 'airpi.log')
     return cfgpaths
 
+def set_up_logger():
+    """Set up a logger.
+
+    Set up a logger to be used for this main script.
+
+    """
+    thislogger = logging.getLogger(__name__)
+    thislogger.setLevel(logging.DEBUG)
+    handler = logging.handlers.RotatingFileHandler(CFGPATHS['log'],
+                maxBytes=40960, backupCount=5)
+    thislogger.addHandler(handler)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    return thislogger
+
 def check_cfg_file(filetocheck):
     """Check cfg file exists.
 
@@ -315,7 +332,8 @@ def set_up_sensors():
                 # Sensors don't have any common params, so this is empty
                 common = []
 
-                plugindata = define_plugin_params(SENSORCONFIG, i, reqd, opt, common)
+                plugindata = define_plugin_params(SENSORCONFIG,
+                                i, reqd, opt, common)
 
                 try:
                     instclass = sensorclass(plugindata)
@@ -428,7 +446,8 @@ def set_up_outputs():
                 # Output plugins don't have any common params so this is empty
                 common = []
                 
-                plugindata = define_plugin_params(OUTPUTCONFIG, i, reqd, opt, common)
+                plugindata = define_plugin_params(OUTPUTCONFIG,
+                                i, reqd, opt, common)
 
                 if (OUTPUTCONFIG.has_option(i, "needsinternet") and
                         OUTPUTCONFIG.getboolean(i, "needsinternet") and
@@ -738,16 +757,17 @@ def set_metadata():
     """
     meta = {
         "STARTTIME":time.strftime("%H:%M on %A %d %B %Y"),
-        "OPERATOR":settings['OPERATOR'],
+        "OPERATOR":SETTINGS['OPERATOR'],
         "PIID":get_serial(),
         "PINAME":get_hostname(),
-        "SAMPLEFREQ":"Sampling every " + str(int(settings['SAMPLEFREQ'])) + " seconds."
+        "SAMPLEFREQ": str(int(SETTINGS['SAMPLEFREQ'])) + " seconds"
         }
-    if 'AVERAGEFREQ' in settings:
-        meta['AVERAGEFREQ'] = "Averaging every " + str(settings['AVERAGEFREQ'])
-        meta['AVERAGEFREQ'] += " seconds."
-    if settings['STOPAFTER'] != 0:
-        meta["STOPAFTER"] = str(int(settings['STOPAFTER'])) + " samples."
+    if 'AVERAGEFREQ' in SETTINGS:
+        meta['AVERAGEFREQ'] = str(SETTINGS['AVERAGEFREQ']) + " seconds"
+    if SETTINGS['DUMMYDURATION'] != 0:
+        meta["DUMMYDURATION"] = str(int(SETTINGS['DUMMYDURATION'])) + " seconds"
+    if SETTINGS['STOPAFTER'] != 0:
+        meta["STOPAFTER"] = str(int(SETTINGS['STOPAFTER'])) + " samples"
     return meta
 
 def output_metadata(plugins, meta):
@@ -765,9 +785,11 @@ def output_metadata(plugins, meta):
     if meta is None:
         meta = set_metadata()
     for plugin in plugins:
+    #for name, data in inspect.getmembers(plugins):
+    #    if hasattr(name, "output_metadata"):
         plugin.output_metadata(meta)
 
-def delay_start(delay):
+def delay_start():
     """Delay sampling for a set time.
 
     Delay sampling for a predetermined amount of time, notifying the
@@ -779,6 +801,17 @@ def delay_start(delay):
         delay: How long the run should be delayed for (seconds).
 
     """
+    # First calculate the required delay length
+    now = datetime.now()
+    seconds = float(now.second + (now.microsecond / 1000000))
+    delay = (60 - seconds)
+    # Now account for any dummy runs (including if DUMMYRUN = 0)
+    dummyduration = SETTINGS['DUMMYDURATION']
+    if delay > dummyduration:
+        delay = delay - dummyduration
+    else:
+        delay = delay + (60 - dummyduration)
+    # OK, commence the delay
     print("==========================================================")
     msg = "Sampling will start in " + str(int(delay)) + " seconds."
     msg = format_msg(msg, 'info')
@@ -805,14 +838,14 @@ def dummy_runs(dummyduration):
         dummyduration: How long the dummy runs should last (seconds).
 
     """
-    msg = "Doing dummy runs for " + str(dummyduration) + " seconds."
+    msg = "Doing initialising runs for " + str(dummyduration) + " seconds."
     msg = format_msg(msg, 'info')
     print(msg)
     LOGGER.info(msg)
     startdummy = time.time()
     diff = 0
     while diff < dummyduration:
-        for i in pluginssensors:
+        for i in PLUGINSSENSORS:
             if i == gpsplugininstance:
                 read_gps(i)
             else:
@@ -888,19 +921,19 @@ def sample():
     lastupdated = 0
     alreadysentsensornotifications = False
     alreadysentoutputnotifications = False
-    if 'AVERAGEFREQ' in settings:
+    if 'AVERAGEFREQ' in SETTINGS:
         countcurrent = 0
-        counttarget = settings['AVERAGECOUNT']
+        counttarget = SETTINGS['AVERAGECOUNT']
         dataset = {}
     while True:
         try:
             curtime = time.time()
-            if (curtime - lastupdated) > (settings['SAMPLEFREQ'] - 0.01):
+            if (curtime - lastupdated) > (SETTINGS['SAMPLEFREQ'] - 0.01):
                 lastupdated = curtime
                 data = []
                 # Read the sensors
                 sensorsworking = True
-                for i in pluginssensors:
+                for i in PLUGINSSENSORS:
                     datadict = {}
                     if i == gpsplugininstance:
                         datadict = read_gps(i)
@@ -912,7 +945,7 @@ def sample():
                                 datadict["value"] == 0):
                             sensorsworking = False
                     # Average the data if required
-                    if (('AVERAGEFREQ' in settings) and
+                    if (('AVERAGEFREQ' in SETTINGS) and
                             (i != gpsplugininstance)):
                         identifier = datadict['sensor'] + "-"
                         identifier += datadict['name']
@@ -928,7 +961,7 @@ def sample():
                     # Always record raw values for every sensor
                     data.append(datadict)
                 # Record the outcome of reading sensors
-                if 'AVERAGEFREQ' in settings:
+                if 'AVERAGEFREQ' in SETTINGS:
                     countcurrent += 1
                 if sensorsworking:
                     msg = "Data obtained from all sensors."
@@ -936,30 +969,30 @@ def sample():
                     LOGGER.info(msg)
                 else:
                     if not alreadysentsensornotifications:
-                        for j in pluginsnotifications:
+                        for j in PLUGINSNOTIFICATIONS:
                             j.sendNotification("alertsensor")
                         alreadysentsensornotifications = True
                     msg = "Failed to obtain data from all sensors."
                     msg = format_msg(msg, 'error')
                     LOGGER.error(msg)
-                    if settings['PRINTERRORS']:
+                    if SETTINGS['PRINTERRORS']:
                         print(msg)
 
                 # Output data
                 try:
                     # Averaging
-                    if 'AVERAGEFREQ' in settings:
+                    if 'AVERAGEFREQ' in SETTINGS:
                         if countcurrent == counttarget:
                             data = average_dataset(identifier, dataset)
                             dataset = {}
-                    if (('AVERAGEFREQ' in settings and
+                    if (('AVERAGEFREQ' in SETTINGS and
                         countcurrent == counttarget) or
-                            ('AVERAGEFREQ' not in settings)):
-                        if 'AVERAGEFREQ' in settings:
+                            ('AVERAGEFREQ' not in SETTINGS)):
+                        if 'AVERAGEFREQ' in SETTINGS:
                             countcurrent = 0
                         # Output the data
                         outputsworking = True
-                        for i in pluginsoutputs:
+                        for i in PLUGINSOUTPUTS:
                             LOGGER.debug("Dataset to output to " + str(i) + ":")
                             LOGGER.debug(data)
                             if i.output_data(data) == False:
@@ -969,25 +1002,27 @@ def sample():
                             msg = "Data output in all requested formats."
                             msg = format_msg(msg, 'success')
                             LOGGER.info(msg)
-                            if (settings['GREENPIN'] and
-                                    (settings['SUCCESSLED'] == "all" or
-                                    (settings['SUCCESSLED'] == "first" and not greenhaslit))):
-                                led_on(settings['GREENPIN'])
+                            if (SETTINGS['GREENPIN'] and
+                                    (SETTINGS['SUCCESSLED'] == "all" or
+                                    (SETTINGS['SUCCESSLED'] == "first" and
+                                        not greenhaslit))):
+                                led_on(SETTINGS['GREENPIN'])
                                 greenhaslit = True
                         else:
                             if not alreadysentoutputnotifications:
-                                for j in pluginsnotifications:
+                                for j in PLUGINSNOTIFICATIONS:
                                     j.sendNotification("alertoutput")
                                 alreadysentoutputnotifications = True
                             msg = "Failed to output in all requested formats."
                             msg = format_msg(msg, 'error')
                             LOGGER.error(msg)
-                            if settings['PRINTERRORS']:
+                            if SETTINGS['PRINTERRORS']:
                                 print(msg)
-                            if (settings['REDPIN'] and
-                                    (settings['FAILLED'] in ["all", "constant"] or
-                                    (settings['FAILLED'] == "first" and not redhaslit))):
-                                led_on(settings['REDPIN'])
+                            if (SETTINGS['REDPIN'] and
+                                    (SETTINGS['FAILLED'] in ["all", "constant"] or
+                                    (SETTINGS['FAILLED'] == "first" and
+                                        not redhaslit))):
+                                led_on(SETTINGS['REDPIN'])
                                 redhaslit = True
 
                 except KeyboardInterrupt:
@@ -999,27 +1034,27 @@ def sample():
                 else:
                     # Delay before turning off LED
                     time.sleep(1)
-                    if settings['GREENPIN']:
-                        led_off(settings['GREENPIN'])
-                    if (settings['REDPIN'] and
-                            settings['FAILLED'] != "constant"):
-                        led_off(settings['REDPIN'])
+                    if SETTINGS['GREENPIN']:
+                        led_off(SETTINGS['GREENPIN'])
+                    if (SETTINGS['REDPIN'] and
+                            SETTINGS['FAILLED'] != "constant"):
+                        led_off(SETTINGS['REDPIN'])
             global samples
             samples += 1
-            if samples == settings['STOPAFTER']:
+            if samples == SETTINGS['STOPAFTER']:
                 msg = "Reached requested number of samples - stopping run."
                 msg = format_msg(msg, 'sys')
                 print(msg)
                 LOGGER.info(msg)
                 stop_sampling(None, None)
             try:
-                time.sleep(settings['SAMPLEFREQ'] - (time.time() - curtime))
+                time.sleep(SETTINGS['SAMPLEFREQ'] - (time.time() - curtime))
             except KeyboardInterrupt:
                 raise
             except Exception:
                 pass # fall back on old method...
         except KeyboardInterrupt:
-            stop_sampling()
+            stop_sampling(None, None)
 
 def average_dataset(identifier, dataset):
     """Average a dataset.
@@ -1040,7 +1075,6 @@ def average_dataset(identifier, dataset):
 
     """
     totals = {}
-    avgs = {}
     numberofsamples = {}
     # For each identifier, sum the indidivual values in the
     # dataset[identifier]['values'] list.
@@ -1065,13 +1099,19 @@ def average_dataset(identifier, dataset):
         formatted.append(dataset[identifier])
     return formatted
 
-def stop_sampling(signal, frame):
+def stop_sampling(dummy, _):
     """Stop a run.
 
     Stop a run by shutting down the GPS controller, turning off LEDs and
     then printing a summary of the run statistics. Note that this can be
     run either programatically because we have completed the requested
-    number of samples, or manually because the user pressed Ctrl+C.
+    number of samples, or manually because the user pressed Ctrl+C
+    (KeyboardInterrupt). If it is a KeyboardInterrupt, then the
+    two parameters are passed to this method automatically (see
+    https://docs.python.org/3/library/signal.html#signal.signal). They
+    are not actually used by our code; they're named 'dummy' and '_' so
+    that pylint ignores the fact that we don't ever use them (see Q4.5
+    on http://docs.pylint.org/faq.html)
 
     """
     print("")
@@ -1087,9 +1127,9 @@ def stop_sampling(signal, frame):
         # raises it's own error and quits before here, but quit again
         # just in case.
         sys.exit(1)
-    led_off(settings['GREENPIN'])
-    led_off(settings['REDPIN'])
-    timedelta = datetime.utcnow() - starttime
+    led_off(SETTINGS['GREENPIN'])
+    led_off(SETTINGS['REDPIN'])
+    timedelta = datetime.utcnow() - STARTTIME
     hours, remainder = divmod(timedelta.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     msg = "This run lasted " + str(hours) + "h " + str(minutes) + "m "
@@ -1108,14 +1148,7 @@ if __name__ == '__main__':
 
     CFGPATHS = set_cfg_paths()
 
-    # Set up logging
-    LOGGER = logging.getLogger(__name__)
-    LOGGER.setLevel(logging.DEBUG)
-    HANDLER = logging.handlers.RotatingFileHandler(CFGPATHS['log'],
-                maxBytes=40960, backupCount=5)
-    LOGGER.addHandler(HANDLER)
-    FORMATTER = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    HANDLER.setFormatter(FORMATTER)
+    LOGGER = set_up_logger()
     # For debugging / logging, preferably set "debug" to "yes" in
     # the cfg/settings.cfg file. Alternatively, uncomment below:
     #logging.basicConfig(level=logging.DEBUG)
@@ -1123,22 +1156,22 @@ if __name__ == '__main__':
 
     #Set variables
     gpsplugininstance = None
-    settings = set_settings()
+    SETTINGS = set_settings()
     notificationsMade = {}
-    samples = 0
-    starttime = datetime.utcnow()
+    samples =   0
+    STARTTIME = datetime.utcnow()
 
     #Set up plugins
-    pluginssensors = set_up_sensors()
-    pluginsoutputs = set_up_outputs()
-    pluginsnotifications = set_up_notifications()
+    PLUGINSSENSORS = set_up_sensors()
+    PLUGINSOUTPUTS = set_up_outputs()
+    PLUGINSNOTIFICATIONS = set_up_notifications()
 
     # Set up metadata
     METADATA = set_metadata()
-    if any_plugins_enabled(pluginsoutputs, 'output'):
-        output_metadata(pluginsoutputs, METADATA)
+    if any_plugins_enabled(PLUGINSOUTPUTS, 'output'):
+        output_metadata(PLUGINSOUTPUTS, METADATA)
 
-    led_setup(settings['REDPIN'], settings['GREENPIN'])
+    led_setup(SETTINGS['REDPIN'], SETTINGS['GREENPIN'])
 
     # Register the Ctrl+C signal handler
     signal.signal(signal.SIGINT, stop_sampling)
@@ -1147,22 +1180,22 @@ if __name__ == '__main__':
     print(format_msg("Setup complete.", 'success'))
 
     # Wait until the start of the next minute
-    if settings["WAITTOSTART"]:
+    if SETTINGS["WAITTOSTART"]:
         # Work out how long it is
-        NOW = datetime.now()
-        SECONDS = float(NOW.second + (NOW.microsecond / 1000000))
-        DELAY = (60 - SECONDS)
+        #NOW = datetime.now()
+        #SECONDS = float(NOW.second + (NOW.microsecond / 1000000))
+        #DELAY = (60 - SECONDS)
         # Now account for any dummy runs
-        DUMMYDURATION = settings['DUMMYDURATION']
-        if DELAY > DUMMYDURATION:
-            DELAY = DELAY - DUMMYDURATION
-        else:
-            DELAY = DELAY  + (60 - DUMMYDURATION)
+        #DUMMYDURATION = SETTINGS['DUMMYDURATION']
+        #if DELAY > DUMMYDURATION:
+        #    DELAY = DELAY - DUMMYDURATION
+        #else:
+        #    DELAY = DELAY  + (60 - DUMMYDURATION)
         # OK, commence the delay
-        delay_start(DELAY)
+        delay_start()
     
-    if settings['DUMMYDURATION'] != 0:
-        dummy_runs(settings['DUMMYDURATION'])
+    if SETTINGS['DUMMYDURATION'] != 0:
+        dummy_runs(SETTINGS['DUMMYDURATION'])
 
     # Sample!
     sample()

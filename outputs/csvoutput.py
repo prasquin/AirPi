@@ -40,10 +40,12 @@ class CSVOutput(output.Output):
             towrite += "\n\"Raspberry Pi name\",\"" + metadata['PINAME'] + "\""
             towrite += "\n\"Raspberry Pi ID\",\"" +  metadata['PIID'] + "\""
             towrite += "\n\"Sampling frequency\",\"" + metadata['SAMPLEFREQ'] + "\""
-            if 'STOPAFTER' in metadata:
-                towrite += "\n\"Stopping after\",\"" + metadata['STOPAFTER'] + "\""
             if 'AVERAGEFREQ' in metadata:
                 towrite += "\n\"Averaging frequency\",\"" + metadata['AVERAGEFREQ'] + "\""
+            if 'DUMMYDURATION' in metadata:
+                towrite += "\n\"Initialising runs\",\"" + metadata['DUMMYDURATION'] + "\""
+            if 'STOPAFTER' in metadata:
+                towrite += "\n\"Stopping after\",\"" + metadata['STOPAFTER'] + "\""
             self.file.write(towrite + "\n")
 
     def output_data(self,dataPoints):

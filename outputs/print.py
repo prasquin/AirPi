@@ -34,10 +34,12 @@ class Print(output.Output):
             toprint += os.linesep + "Raspberry Pi name".ljust(23, '.') + metadata['PINAME']
             toprint += os.linesep + "Raspberry Pi ID".ljust(23, '.') +  metadata['PIID']
             toprint += os.linesep + "Sample frequency".ljust(23, '.') + metadata['SAMPLEFREQ']
-            if 'STOPAFTER' in metadata:
-                toprint += os.linesep + "Stopping after".ljust(23, '.') + metadata['STOPAFTER']
             if 'AVERAGEFREQ' in metadata:
                 toprint += os.linesep + "Averaging frequency".ljust(23, '.') + metadata['AVERAGEFREQ']
+            if 'DUMMYDURATION' in metadata:
+                toprint += os.linesep + "Initialising runs".ljust(23, '.') + metadata['DUMMYDURATION']
+            if 'STOPAFTER' in metadata:
+                toprint += os.linesep + "Stopping after".ljust(23, '.') + metadata['STOPAFTER']
             print(toprint)
 
     def output_data(self, dataPoints):
