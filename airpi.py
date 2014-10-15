@@ -280,7 +280,7 @@ def set_up_sensors():
             # See if the plugin is enabled
             try:
                 enabled = SENSORCONFIG.getboolean(i, "enabled")
-                LOGGER.info(str(i) + " status is: " + str(enabled))
+                LOGGER.info(str(i) + " requested: " + str(enabled))
             except Exception as excep:
                 enabled = True
 
@@ -468,6 +468,10 @@ def set_up_outputs():
                         msg = format_msg(msg, 'success')
                         print(msg)
                         LOGGER.info(msg)
+                        # TODO: Change this to look for a method called
+                        # 'output_info()' for each plugin, and run it if
+                        # present. Then move all this crud into that
+                        # method for each plugin if applicable.
                         if "http" in str(instclass):
                             msg = "         Web data are (probably) at http://"
                             msg += instclass.get_ip() + ":8080"
