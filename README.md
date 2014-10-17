@@ -71,8 +71,9 @@ It additionally incorporates changes by Haydn Williams (github.com/haydnw), whic
 * Standard print-to-screen format tidied up and made more digestable.
 * Can automatically name CSV files and HTTP titles using date and hostname.
   * Controlled by use of '<date>' and '<hostname>' in 'cfg/outputs.cfg'
-* Added ThingSpeak integration.
-* Added dweet integration.
+* Added JSON output.
+* Added ThingSpeak output.
+* Added dweet output.
 * Rounded Xively output to 2dp.
 * Can kill the process a bit more nicely using Ctrl+C.
 * 'outputDir' parameter is now required for csvoutput, to avoid writing to /root when loading at boot.

@@ -1,8 +1,18 @@
-"""A module to output AirPi data to a CSV file.
+"""A module to output AirPi data to a json file.
 
 A module which is used to output data from an AirPi into a
-comma-separated value (csv) file. This can include GPS data if present,
-along with metadata (again, if present).
+JavaScript Object Notation (JSON) file. This can include GPS data if
+present, along with metadata (again, if present).
+Note that one JSON object is created *per datapoint*, so the resultant
+file contains hundreds of JSON objects. This means that while each
+individual object is valid JSON, the entire file is not. If you're
+reading it into something else then you'll need to take account of this,
+e.g. http://www.benweaver.com/blog/decode-multiple-json-objects-in-
+python.html
+
+The idea and some code for this module came from:
+http://airpi.freeforums.net/post/396/thread
+https://github.com/river-io/AirPi/blob/master/outputs/log.py
 
 """
 
@@ -11,12 +21,12 @@ import datetime
 import time
 import calibration
 
-class CSVOutput(output.Output):
-    """A module to output data to a CSV file.
+class JSONOutput(output.Output):
+    """A module to output AirPi data to a json file.
 
     A module which is used to output data from an AirPi into a
-    comma-separated value (csv) file. This can include GPS data if present,
-    along with metadata (again, if present).
+    JavaScript Object Notation (json) file. This can include GPS data if
+    present, along with metadata (again, if present).
 
     """
 
@@ -34,8 +44,6 @@ class CSVOutput(output.Output):
         # open the file persistently for append
         filename = params["outputDir"] + "/" + params["outputFile"]
         self.file = open(filename, "a")
-        # write a header line so we know which sensor is which?
-        self.header = False
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkCal(params)
         self.metadatareqd = params["metadatareqd"]
@@ -53,33 +61,36 @@ class CSVOutput(output.Output):
 
         """
         if self.metadatareqd:
-            towrite = "\"Run started\",\"" + metadata['STARTTIME'] + "\""
-            towrite += "\n\"Operator\",\"" + metadata['OPERATOR'] + "\""
-            towrite += "\n\"Raspberry Pi name\",\"" + metadata['PINAME'] + "\""
-            towrite += "\n\"Raspberry Pi ID\",\"" +  metadata['PIID'] + "\""
-            towrite += "\n\"Sampling frequency\",\"" \
+            towrite = "{\"Run started\":\"" + metadata['STARTTIME'] + "\""
+            towrite += "\n,\"Operator\":\"" + metadata['OPERATOR'] + "\""
+            towrite += "\n,\"Raspberry Pi name\":\"" + metadata['PINAME'] + "\""
+            towrite += "\n,\"Raspberry Pi ID\":\"" +  metadata['PIID'] + "\""
+            towrite += "\n,\"Sampling frequency\":\"" \
                 + metadata['SAMPLEFREQ'] + "\""
             if 'AVERAGEFREQ' in metadata:
-                towrite += "\n\"Averaging frequency\",\""
+                towrite += "\n,\"Averaging frequency\":\""
                 towrite += metadata['AVERAGEFREQ'] + "\""
             if 'DUMMYDURATION' in metadata:
-                towrite += "\n\"Initialising runs\",\""
+                towrite += "\n,\"Initialising runs\":\""
                 towrite += metadata['DUMMYDURATION'] + "\""
             if 'STOPAFTER' in metadata:
-                towrite += "\n\"Stopping after\",\""
+                towrite += "\n,\"Stopping after\":\""
                 towrite += metadata['STOPAFTER'] + "\""
-            self.file.write(towrite + "\n")
+            self.file.write(towrite + "}\n")
 
     def output_data(self, datapoints):
         """Output data.
 
-        Output data in the format stipulated by the plugin. Calibration is
-        carried out first if required.
+        Output data in the format stipulated by the plugin. Calibration
+        is carried out first if required.
         Note this method takes account of the different data formats for
-        'standard' sensors as distinct from the GPS. The former present a dict
-        containing one value and associated properties such as units and
-        symbols, while the latter presents a dict containing several readings
-        such as latitude, longitude and altitude, but no units or symbols.
+        'standard' sensors as distinct from the GPS. The former present
+        a dict containing one value and associated properties such as
+        units and symbols, while the latter presents a dict containing
+        several readings such as latitude, longitude and altitude, but
+        no units or symbols.
+        Remember, one JSON object is output per datapoint, so the file
+        will contain lots of them (which isn't valid JSON).
 
         Args:
             self: self.
@@ -92,37 +103,20 @@ class CSVOutput(output.Output):
         if self.docal == 1:
             datapoints = self.cal.calibrate(datapoints)
 
-        if self.header == False:
-            header = "\"Date and time\",\"Unix time\""
-            
-        line = "\"" + str(datetime.datetime.now()) + "\"," + str(time.time())
-
+        line = '{"Date and time":"' + str(datetime.datetime.now()) + '",'
+        line += '"Unix time":"' + str(time.time()) + '",'
         for point in datapoints:
             if point["name"] != "Location":
-                if self.header == False:
-                    header = "%s,\"%s %s (%s) (%s)\"" % (header,
-                        point["sensor"],
-                        point["name"],
-                        point["symbol"],
-                        point["readingType"])
-                line += "," + str(point["value"])
+                line += '"' + point["name"] + '"' + ":" + '"' + str(point["value"]) + '",'
             else:
-                if self.header == False:
-                    header += ",\"Latitude (deg)\",\"Longitude (deg)\","
-                    header += "Altitude (m)\",\"Exposure\",\"Disposition\""
                 props = ["latitude",
                             "longitude",
                             "altitude",
                             "exposure",
                             "disposition"]
                 for prop in props:
-                    line += "," + str(point[prop])
-        line = line[:-1]
-        # If it's the first write of this instance do a header so we
-        # know what's what:
-        if self.header == False:
-            self.file.write(header + "\n")
-            self.header = True
+                    line += "\"" + prop + "\":" + str(point[prop]) + "\","
+        line = line[:-1] + "}"
         self.file.write(line + "\n")
         # Flush the file in case of power failure:
         self.file.flush()

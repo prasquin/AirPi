@@ -4,12 +4,27 @@ import json
 import calibration
 
 class Xively(output.Output):
-    requiredParams = ["APIKey","FeedID","needsinternet"]
-    optionalParams = ["calibration"]
+    """
+    Proxy code courtesy of www.raynerd.co.uk:
+    http://airpi.freeforums.net/thread/98/proxy-airpi-py-helpful-schools
+    """
+
+    #TODO: Is "needsinternet" really required here? Don't we just use it
+    #      in airpi.py? Applies to other output plugins too.
+    #TODO: Expand proxy info to a single setting in settings.cfg and
+    #      make available to all plugins which require internet access.
+    requiredParams = ["APIKey", "FeedID", "needsinternet"]
+    optionalParams = ["calibration", "proxyhttp", "proxyhttps"]
+    proxies = None
 
     def __init__(self, params):
-        self.APIKey=params["APIKey"]
-        self.FeedID=params["FeedID"]
+        self.APIKey = params["APIKey"]
+        self.FeedID = params["FeedID"]
+        if "proxyhttp" in params and "proxyhttps" in params:
+            self.proxies = {
+                          http: params["proxyhttp"],
+                          https: params["proxyhttps"]
+            }
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkCal(params)
 
@@ -40,7 +55,10 @@ class Xively(output.Output):
                 arr.append({"id":i["name"],"current_value":round(i["value"],2)})
         a = json.dumps({"version":"1.0.0","datastreams":arr})
         try:
-            z = requests.put("https://api.xively.com/v2/feeds/"+self.FeedID+".json",headers={"X-ApiKey":self.APIKey},data=a)
+            if self.proxies is None:
+                z = requests.put("https://api.xively.com/v2/feeds/"+self.FeedID+".json", headers = {"X-ApiKey":self.APIKey}, data = a)
+            else:
+                z = requests.put("https://api.xively.com/v2/feeds/"+self.FeedID+".json", headers = {"X-ApiKey":self.APIKey}, data = a, proxies = self.proxies)
             if z.text != "": 
                 print "Error: Xively message - " + z.text
                 print "Error: Xively URL - " + z.url
