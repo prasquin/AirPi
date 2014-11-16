@@ -46,46 +46,72 @@ Changes - Haydn Williams
 ------------------------
 It additionally incorporates changes by Haydn Williams (github.com/haydnw), which include the following:
 
-* Added 'airpictl.sh' script to control sampling in different modes.
-  * Run './airpictl.sh' to see options and usage.
-  * Includes 'background' and 'unattanded', so you can SSH into your Pi, start it, then quit.
-* Added ability to output average data (e.g. read every 1 min for 10 mins, then output the average for the 10 mins).
-  * Controlled by "averageFreq" parameter in 'cfg/settings.cfg' - set to at least twice sampleFreq to enable averaging.
+16/11/2014
+* Added 'plot' output, to graph a single output metric on screen.
+* Added basic RRD output (for more advanced support try https://git.cccmz.de/julric/airpi).
+
+17/10/2014:
+* Added JSON output.
+
+06/10/2014
 * Added ability to do 'dummy runs' for a predefined period before a run starts properly, to ensure all sensors are
   up and running, and won't just report back zeroes.
   * Controlled by "dummyduration" parameter in 'cfg/settings.cfg' - set to 0 for no dummy runs. Recommended is 15.
+
+03/10/2014
 * Added ability to stop a run after X samples.
   * Controlled by "stopafter" parameter in 'cfg/settings.cfg' - set to 0 to run indefinitely.
-* Added ability to record metadata such as Raspberry Pi serial no. and operator name at start of run.
-  * Controlled by "metadatareqd" parameters in 'cfg/outputs.cfg' - set to True to output metadata.
-* Added ability to start automatically at boot for headless operation (does not require any user interaction).
-  * Controlled by 'bootstart' parameter in 'cfg/settings.cfg'.
-  * See the 'boot' directory for more info.
-* Added 'Notifications' module which allow messages to be sent when errors occur. Includes email, SMS and tweet.
-  * Controlled by 'cfgs/notifications.cfg'.
 * Added warning if GPS socket not detected when GPS sensor enabled.
-* Added the following new options to 'cfg/settings.cfg':
-  * Greater control of LED behaviour.
-  * Can disable error messages printed to screen.
-  * Can print to screen in CSV format.
-* Standard print-to-screen format tidied up and made more digestable.
-* Can automatically name CSV files and HTTP titles using date and hostname.
-  * Controlled by use of '<date>' and '<hostname>' in 'cfg/outputs.cfg'
-* Added JSON output.
-* Added ThingSpeak output.
+
+26/09/2014
 * Added dweet output.
-* Rounded Xively output to 2dp.
-* Can kill the process a bit more nicely using Ctrl+C.
-* 'outputDir' parameter is now required for csvoutput, to avoid writing to /root when loading at boot.
-  * Needs to be in [CSVOutput] section of 'cfg/outputs.cfg'.
-* Moved all config files to 'cfg' directory.
-* Moved all log files (and redirected output from airpictl.sh) to 'log' directory.
-* Output modules requiring internet access will not be loaded if there is no connection available.
-* Abort and inform user if no output modules are enabled.
-* Renamed 'data' array to 'parameters' to better reflect its content, and avoid confusion with actual data.
-* Started porting to Python 3 in 'python3' branch (work in progress; no feature parity between versions at present).
+
+26/08/2014
+* Added ability to output average data (e.g. read every 1 min for 10 mins, then output the average for the 10 mins).
+  * Controlled by "averageFreq" parameter in 'cfg/settings.cfg' - set to at least twice sampleFreq to enable averaging.
+
+21/08/2014
 * Code tidying:
   * Moved the check whether calibration is required into a super function called from each output subclass now.
   * Made multiple changes to all .py files in line with Pylint recommendations as per PEP 8 style guide.
   * Renamed 'data' to 'params' in output subclasses, to reflect their true nature and reduce confusion with data produced by sensors.
   * Massive refactoring of airpi.py by extracting methods to facilitate code reuse and simplificaiton.
+
+12/08/2014
+* Added 'airpictl.sh' script to control sampling in different modes.
+  * Run './airpictl.sh' to see options and usage.
+  * Includes 'background' and 'unattanded', so you can SSH into your Pi, start it, then quit.
+* Moved all config files to 'cfg' directory.
+* Moved all log files (and redirected output from airpictl.sh) to 'log' directory.
+
+26/07/2014
+* Added ability to record metadata such as Raspberry Pi serial no. and operator name at start of run.
+  * Controlled by "metadatareqd" parameters in 'cfg/outputs.cfg' - set to True to output metadata.
+
+21/07/2014
+* Added ability to start automatically at boot for headless operation (does not require any user interaction).
+  * Controlled by 'bootstart' parameter in 'cfg/settings.cfg'.
+  * See the 'boot' directory for more info.
+
+18/07/2014
+* Abort and inform user if no output modules are enabled.
+* Added 'Notifications' module which allow messages to be sent when errors occur. Includes email, SMS and tweet.
+  * Controlled by 'cfgs/notifications.cfg'.
+* Renamed 'data' array to 'parameters' to better reflect its content, and avoid confusion with actual data.
+
+15/07/2014
+* Added the following new options to 'cfg/settings.cfg':
+  * Greater control of LED behaviour.
+  * Can disable error messages printed to screen.
+  * Can print to screen in CSV format.
+* Standard print-to-screen format tidied up and made more digestable.
+* Output modules requiring internet access will not be loaded if there is no connection available.
+
+14/07/2014
+* Added ThingSpeak output.
+* Rounded Xively output to 2dp.
+* Can kill the process a bit more nicely using Ctrl+C.
+* Can automatically name CSV files and HTTP titles using date and hostname.
+  * Controlled by use of '<date>' and '<hostname>' in 'cfg/outputs.cfg'
+* 'outputDir' parameter is now required for csvoutput, to avoid writing to /root when loading at boot.
+  * Needs to be in [CSVOutput] section of 'cfg/outputs.cfg'.
