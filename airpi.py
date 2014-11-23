@@ -1228,7 +1228,8 @@ if __name__ == '__main__':
         for sensor in PLUGINSSENSORS:
             sensors.append(sensor.get_sensor_name())
         for output in PLUGINSOUTPUTS:
-            output.get_help(sensors)
+            if callable(getattr(output, "get_help", None)):
+                output.get_help(sensors)
 
     # Wait until the start of the next minute
     if SETTINGS["WAITTOSTART"]:
