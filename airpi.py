@@ -776,6 +776,7 @@ def set_settings():
     settingslist['SUCCESSLED'] = mainconfig.get("LEDs","successLED")
     settingslist['FAILLED'] = mainconfig.get("LEDs","failLED")
     settingslist['OPERATOR'] = mainconfig.get("Misc", "operator")
+    settingslist['HELP'] = mainconfig.get("Misc", "help")
     settingslist['PRINTERRORS'] = mainconfig.getboolean("Misc","printErrors")
     settingslist['WAITTOSTART'] = mainconfig.getboolean("Debug","waittostart")
 
@@ -1219,6 +1220,15 @@ if __name__ == '__main__':
 
     print("==========================================================")
     print(format_msg("Setup complete.", 'success'))
+
+        # Do Help
+    if SETTINGS["HELP"]:
+        print("==========================================================")
+        sensors = []
+        for sensor in PLUGINSSENSORS:
+            sensors.append(sensor.get_sensor_name())
+        for output in PLUGINSOUTPUTS:
+            output.get_help(sensors)
 
     # Wait until the start of the next minute
     if SETTINGS["WAITTOSTART"]:

@@ -45,7 +45,7 @@ class DHT22(sensor.Sensor):
                     self.valUnit = "Fahrenheit"
                     self.valSymbol = "F"
         elif "h" in data["measurement"].lower():
-            self.valName = "Relative Humidity"
+            self.valName = "Relative_Humidity"
             self.valSymbol = "%"
             self.valUnit = "% Relative Humidity"
         if "description" in data:

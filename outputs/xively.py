@@ -83,3 +83,8 @@ class Xively(output.Output):
 
         """
         return True
+
+    def get_help(self, sensors):
+        print("Make sure the channels in your Xively stream are named as follows:")
+        for sensor in sensors:
+            print(sensor)

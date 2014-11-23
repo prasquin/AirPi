@@ -46,6 +46,10 @@ Changes - Haydn Williams
 ------------------------
 It additionally incorporates changes by Haydn Williams (github.com/haydnw), which include the following:
 
+23/11/2014
+* Added first basic 'help' to give required Xively channel names.
+  * Controlled by "help" parameter in 'cfg/settings.cfg'
+
 16/11/2014
 * Added 'plot' output, to graph a single output metric on screen.
 * Added basic RRD output (for more advanced support try https://git.cccmz.de/julric/airpi).
