@@ -66,7 +66,7 @@ class Output(object):
         Get the current hostname of the Raspberry Pi.
 
         Returns:
-            The hostname.
+            string The hostname.
 
         """
         if socket.gethostname().find('.')>=0:
@@ -74,3 +74,15 @@ class Output(object):
         else:
             host = socket.gethostbyaddr(socket.gethostname())[0]
         return host
+
+    def get_name(self):
+        """Get Class name.
+
+        Get the name of the class. Lots of output Classes inherit from
+        Output, so this varies depending on which one we're looking at.
+
+        Returns:
+            string The class name.
+
+        """
+        return self.__class__.__name__

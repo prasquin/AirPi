@@ -46,9 +46,9 @@ def format_msg(msg, msgtype):
     for recording in the LOGGER.
 
     """
-    if msgtype == 'error':
+    if msgtype is 'error' or msgtype is 'warning':
         return((msgtype.upper() + ":").ljust(8, ' ') + " " + msg)
-    elif msgtype == 'sys':
+    elif msgtype is 'sys':
         return("[AirPi] " + msg)
     else:
         return((msgtype.title() + ":").ljust(8, ' ') + " " + msg)
@@ -90,28 +90,6 @@ def check_conn():
     except urllib2.URLError:
         pass
     return False
-
-def any_plugins_enabled(plugins, plugintype):
-    """Warn user if no plugins in a list are enabled.
-
-    Print and log a message if the list of enabled plugins is empty,
-    i.e. there are no plugins enabled.
-
-    Args:
-        plugins: Array of plugins to check.
-        type:    The type of plugin being checked.
-    Returns:
-        boolean True if there are any plugins enabled.
-
-    """
-    if not plugins:
-        msg = "There are no " + plugintype + " plugins enabled!"
-        msg += " Please enable at least one and try again."
-        print(msg)
-        LOGGER.error(msg)
-        sys.exit(1)
-    else:
-        return True
 
 def led_setup(redpin, greenpin):
     """Set up AirPi LEDs.
@@ -245,6 +223,28 @@ def check_cfg_file(filetocheck):
     else:
         msg = "Config file: " + filetocheck
         LOGGER.info(msg)
+        return True
+
+def any_plugins_enabled(plugins, plugintype):
+    """Warn user if no plugins in a list are enabled.
+
+    Print and log a message if the list of enabled plugins is empty,
+    i.e. there are no plugins enabled.
+
+    Args:
+        plugins: Array of plugins to check.
+        type:    The type of plugin being checked.
+    Returns:
+        boolean True if there are any plugins enabled.
+
+    """
+    if not plugins:
+        msg = "There are no " + plugintype + " plugins enabled!"
+        msg += " Please enable at least one and try again."
+        print(msg)
+        LOGGER.error(msg)
+        sys.exit(1)
+    else:
         return True
 
 def set_up_sensors():
@@ -495,7 +495,44 @@ def set_up_outputs():
             raise excep
 
     if any_plugins_enabled(outputplugins, 'output'):
-        return outputplugins
+        return fix_duplicate_outputs(outputplugins)
+
+def fix_duplicate_outputs(plugins):
+    """Ensure only one output plugin for stdout is enabled.
+
+    Check whether the list of enabled output plugins includes Print and
+    Plot (both of which print to stdout). If it does, disable Plot and
+    leave Print enabled to avoid mayhem on screen!
+
+    Args:
+        enabledplugins: A list containing the enabled output plugin
+                        objects.
+
+    Returns:
+        list A new list of enabled output plugin objects, containing
+             either Print or Plot but never both.
+
+    """
+    printenabled = False
+    plotenabled = False
+    plotindex = 0
+    for plugin in plugins:
+        name = plugin.get_name()
+        if name is 'Plot':
+            plotenabled = True
+        if name is 'Print':
+            printenabled = True
+        if printenabled and plotenabled:
+            del plugins[plotindex]
+            msg = "Only one plugin can output to screen at at time."
+            msg += os.linesep + "         Plot has been disabled; Print is "
+            msg += "still enabled."
+            msg = format_msg(msg, 'warning')
+            print(msg)
+            break
+        else:
+            plotindex += 1
+    return plugins
 
 def define_plugin_params(config, name, reqd, opt, common):
     """Define setup parameters for an plugin.
@@ -1185,17 +1222,6 @@ if __name__ == '__main__':
 
     # Wait until the start of the next minute
     if SETTINGS["WAITTOSTART"]:
-        # Work out how long it is
-        #NOW = datetime.now()
-        #SECONDS = float(NOW.second + (NOW.microsecond / 1000000))
-        #DELAY = (60 - SECONDS)
-        # Now account for any dummy runs
-        #DUMMYDURATION = SETTINGS['DUMMYDURATION']
-        #if DELAY > DUMMYDURATION:
-        #    DELAY = DELAY - DUMMYDURATION
-        #else:
-        #    DELAY = DELAY  + (60 - DUMMYDURATION)
-        # OK, commence the delay
         delay_start()
     
     if SETTINGS['DUMMYDURATION'] != 0:
