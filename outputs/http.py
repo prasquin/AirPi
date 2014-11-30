@@ -18,7 +18,7 @@ import calibration
 # https://wiki.python.org/moin/BaseHttpServer
 # http://stackoverflow.com/questions/10607621/a-simple-website-with-python-using-simplehttpserver-and-socketserver-how-to-onl
 # http://www.huyng.com/posts/modifying-python-simplehttpserver/
-# http://stackoverflow.com/questions/6391280/simplehttprequesthandler-override-do-get
+# http://stackoverflow.com/questions/6391280/simplehttprequesthandler-override-do-)_
 # http://bytes.com/topic/python/answers/158332-persistent-xmlrpc-connection
 
 class HTTP(output.Output):
@@ -263,6 +263,19 @@ class HTTP(output.Output):
         ip = (s.getsockname()[0])
         s.close()
         return ip
+
+    def get_help(self):
+        """Get help for this plugin.
+
+        Where help is available for this plugin, get it.
+
+        Returns:
+            string The help.
+
+        """
+        return "Web: Data are (probably) at http:// " + self.get_ip() + ":8080"
+        # TODO: Make the above get the port number as well
+        #       - don't just assume 8080
 
 class httpServer(BaseHTTPServer.HTTPServer):
 

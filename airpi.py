@@ -46,7 +46,8 @@ def format_msg(msg, msgtype):
     for recording in the LOGGER.
 
     """
-    if msgtype is 'error' or msgtype is 'warning':
+    msgtypes = ['error', 'warning']
+    if msgtype in msgtypes:
         return((msgtype.upper() + ":").ljust(8, ' ') + " " + msg)
     elif msgtype is 'sys':
         return("[AirPi] " + msg)
@@ -468,19 +469,6 @@ def set_up_outputs():
                         msg = format_msg(msg, 'success')
                         print(msg)
                         LOGGER.info(msg)
-                        # TODO: Change this to look for a method called
-                        # 'output_info()' for each plugin, and run it if
-                        # present. Then move all this crud into that
-                        # method for each plugin if applicable.
-                        if "http" in str(instclass):
-                            msg = "         Web data are (probably) at http://"
-                            msg += instclass.get_ip() + ":8080"
-                            print(msg)
-                            # TODO: Make the above get the port number as well
-                            #       - don't just assume 8080
-                        if "dweet" in str(instclass):
-                            msg = "         dweeting to " + instclass.get_url()
-                            print(msg)
                     else:
                         msg = "Loaded support plugin " + str(i)
                         msg = format_msg(msg, 'success')
@@ -525,8 +513,8 @@ def fix_duplicate_outputs(plugins):
         if printenabled and plotenabled:
             del plugins[plotindex]
             msg = "Only one plugin can output to screen at at time."
-            msg += os.linesep + "         Plot has been disabled; Print is "
-            msg += "still enabled."
+            msg += os.linesep
+            msg += "         Plot has been disabled; Print is still enabled."
             msg = format_msg(msg, 'warning')
             print(msg)
             break
@@ -1224,12 +1212,13 @@ if __name__ == '__main__':
         # Do Help
     if SETTINGS["HELP"]:
         print("==========================================================")
-        sensors = []
+        print(format_msg("HELP", 'loading'))
+        print(format_msg("Your sensors are named as follows:", "help"))
         for sensor in PLUGINSSENSORS:
-            sensors.append(sensor.get_sensor_name())
+            print("         " + sensor.get_sensor_name())
         for output in PLUGINSOUTPUTS:
             if callable(getattr(output, "get_help", None)):
-                output.get_help(sensors)
+                print(format_msg(output.get_help(), "help"))
 
     # Wait until the start of the next minute
     if SETTINGS["WAITTOSTART"]:

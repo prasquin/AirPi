@@ -43,6 +43,9 @@ class Xively(output.Output):
             self: self.
             dataPoints: A dict containing the data to be output.
 
+        Returns:
+            boolean True if output successfully. False if not.
+
         """
         if self.docal == 1:
             dataPoints = self.cal.calibrate(dataPoints)
@@ -84,7 +87,13 @@ class Xively(output.Output):
         """
         return True
 
-    def get_help(self, sensors):
-        print("Make sure the channels in your Xively stream are named as follows:")
-        for sensor in sensors:
-            print(sensor)
+    def get_help(self):
+        """Get help for this plugin.
+
+        Where help is available for this plugin, get it.
+
+        Returns:
+            string The help.
+
+        """
+        return "Xively: Make sure the channels in your stream are named as per the sensor names above."

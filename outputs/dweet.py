@@ -102,4 +102,15 @@ class Dweet(output.Output):
             The dweet.io URL.
 
         """
-        return "https://dweet.io/follow/" + self.thing 
+        return "https://dweet.io/follow/" + self.thing
+
+    def get_help(self):
+        """Get help for this plugin.
+
+        Where help is available for this plugin, get it.
+
+        Returns:
+            string The help.
+
+        """
+        return "Dweet: Data are Dweeting to " + self.get_url()
