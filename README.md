@@ -46,6 +46,10 @@ Changes - Haydn Williams
 ------------------------
 It additionally incorporates changes by Haydn Williams (github.com/haydnw), which include the following:
 
+30/11/2014
+* Improved 'help' feature for list of sensors, and for Xively, Dweet and HTTP output plugins.
+* Resolved an issue with Relative_Humidity not working (DHT22).
+
 23/11/2014
 * Added first basic 'help' to give required Xively channel names.
   * Controlled by "help" parameter in 'cfg/settings.cfg'
