@@ -91,7 +91,7 @@ class DHT22(sensor.Sensor):
                     # main airpi.py script (~ line 908).
                     pass
             return temp
-        elif self.valName == "Relative Humidity":
+        elif self.valName == "Relative_Humidity":
             return h
 
 # http://softwareramblings.com/2008/06/running-functions-as-threads-in-python.html

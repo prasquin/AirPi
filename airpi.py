@@ -351,7 +351,7 @@ def set_up_sensors():
                     if "serial_gps" in filename:
                         global gpsplugininstance
                         gpsplugininstance = instclass
-                    msg = "Loaded sensor plugin " + str(i)
+                    msg = "Loaded sensor plugin  " + str(i)
                     msg = format_msg(msg, 'success')
                     print(msg)
                     LOGGER.info(msg)
@@ -764,7 +764,7 @@ def set_settings():
     settingslist['SUCCESSLED'] = mainconfig.get("LEDs","successLED")
     settingslist['FAILLED'] = mainconfig.get("LEDs","failLED")
     settingslist['OPERATOR'] = mainconfig.get("Misc", "operator")
-    settingslist['HELP'] = mainconfig.get("Misc", "help")
+    settingslist['HELP'] = mainconfig.getboolean("Misc", "help")
     settingslist['PRINTERRORS'] = mainconfig.getboolean("Misc","printErrors")
     settingslist['WAITTOSTART'] = mainconfig.getboolean("Debug","waittostart")
 
@@ -1209,7 +1209,7 @@ if __name__ == '__main__':
     print("==========================================================")
     print(format_msg("Setup complete.", 'success'))
 
-        # Do Help
+    # Do Help
     if SETTINGS["HELP"]:
         print("==========================================================")
         print(format_msg("HELP", 'loading'))
