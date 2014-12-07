@@ -44,7 +44,11 @@ Bugfixes:
 
 Changes - Haydn Williams
 ------------------------
-It additionally incorporates changes by Haydn Williams (github.com/haydnw), which include the following:
+It additionally incorporates changes by [Haydn Williams](http://github.com/haydnw/airpi), which include the following:
+
+7/12/2014
+* Added 'ver' argument to airpictl.sh, to display version and upgrade information.
+* Fixed error in lambda function for CO calibration (not used at present).
 
 30/11/2014
 * Improved 'help' feature for list of sensors, and for Xively, Dweet and HTTP output plugins.
