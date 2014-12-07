@@ -86,7 +86,7 @@ case $1 in
         echo "        elsewhere first if you want to preserve them."
         echo "[AirPi] To upgrade to the latest version, run this command:"
         echo ""
-        echo "git pull development2"
+        echo "git pull"
         echo ""
         ;;
     *)
