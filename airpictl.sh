@@ -81,7 +81,7 @@ case $1 in
         echo ""
         echo "[AirPi] See README.md or http://github.com/haydnw/airpi for details"
         echo "        of changes between different versions."
-        echo "[AirPi] Note that upgrading to a newer version will override all" 
+        echo "[AirPi] Note that upgrading to a newer version will overwrite all" 
         echo "        existing config files with the defaults, so save yours"
         echo "        elsewhere first if you want to preserve them."
         echo "[AirPi] To upgrade to the latest version, run this command:"
