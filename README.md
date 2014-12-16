@@ -5,19 +5,29 @@ A Raspberry Pi weather station and air quality monitor.
 
 This is the code for the project located at http://airpi.es
 
-Currently it is split into airpi.py, as well as multiple input and multiple output plugins. airpi.py collects data from each of the input plugins specified in sensors.cfg, and then passes the data provided by them to each output defined in outputs.cfg. The code for each sensor plugin is contained in the 'sensors' folder and the code for each output plugin in the 'outputs' folder.
+Currently it is split into airpi.py, as well as multiple input and
+multiple output plugins. airpi.py collects data from each of the input
+plugins specified in sensors.cfg, and then passes the data provided by
+them to each output defined in outputs.cfg. The code for each sensor
+plugin is contained in the 'sensors' folder and the code for each output
+plugin in the 'outputs' folder.
 
-Some of the files are based off code for the Raspberry Pi written by Adafruit: https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code
+Some of the files are based off code for the Raspberry Pi written by
+Adafruit: https://github.com/adafruit/Adafruit-Raspberry-Pi-Python-Code
 
 For installation instructions, see airpi.es/kit.php
 
-For ease of use when working with scripts, you may want to add the AirPi folder to your $PATH.
+For ease of use when working with scripts, you may want to add the AirPi
+folder to your $PATH.
 
 Changes - Fred Sonnenwald
 -------------------------
-This development branch of the AirPi code adds several features and bugfixes that I've developed as part of my http://pi.gate.ac.uk/ AirPi project.
+This development branch of the AirPi code adds several features and
+bugfixes that I've developed as part of my http://pi.gate.ac.uk/ AirPi
+project.
 
-It additionally incorporates changes by Jon Hogg (jncl), which include code cleanups, error logging, and GPS sensor support.
+It additionally incorporates changes by Jon Hogg (jncl), which include
+code cleanups, error logging, and GPS sensor support.
 
 New features:
 * Support for UVI-01 sensor
@@ -32,7 +42,8 @@ New features:
   * Can load in CSV history for long period graphs
   * HTTP/1.0 or HTTP/1.1
 * Sensor calibration, not just raw values
-* GPS sensor support (untested by me, so may not be compatible with the HTTP or CSV code)
+* GPS sensor support (untested by me, so may not be compatible with the
+    HTTP or CSV code)
 
 Bugfixes:
 * Pressure sensor calibration (jaceydowell)
@@ -44,15 +55,21 @@ Bugfixes:
 
 Changes - Haydn Williams
 ------------------------
-It additionally incorporates changes by [Haydn Williams](http://github.com/haydnw/airpi), which include the following:
+It additionally incorporates changes by
+[Haydn Williams](http://github.com/haydnw/airpi), which include the
+following:
 
-7/12/2014
-* Added 'ver' argument to airpictl.sh, to display version and upgrade information.
-* Fixed error in lambda function for CO calibration (not used at present).
+16/12/2014
+* **[FIX]** airpibootstart script now working again. N.B. Assumes installation is
+        in /home/pi/AirPi - see boot/README.md for details.
+
+07/12/2014
+* **[NEW]** Added 'ver' argument to airpictl.sh, to display version and upgrade information.
+* **[FIX]** Fixed error in lambda function for CO calibration (not used at present).
 
 30/11/2014
 * Improved 'help' feature for list of sensors, and for Xively, Dweet and HTTP output plugins.
-* Resolved an issue with Relative_Humidity not working (DHT22).
+* **[FIX]** Resolved an issue with Relative_Humidity not working (DHT22).
 
 23/11/2014
 * Added first basic 'help' to give required Xively channel names.
