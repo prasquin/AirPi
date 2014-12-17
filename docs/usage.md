@@ -74,13 +74,13 @@ runs.
 
 **LEDs** controls the behaviour of the red and green LEDs on the AirPi (*N.B.*
 not the Raspberry Pi LEDs).
-*redPin* specifies the wiring pin used for the red LED.
-*greenPin* specifies the wiring pin used for the green LED.
-*successLED* specifies the behaviour of the green LED. Setting this to 'all' will
++ *redPin* specifies the wiring pin used for the red LED.
++ *greenPin* specifies the wiring pin used for the green LED.
++ *successLED* specifies the behaviour of the green LED. Setting this to 'all' will
 flash the green AirPi LED each time a successful sample is taken (no errors).
 Setting this to 'first' will flash the green AirPi LED when the first successful
 sample is taken, but then there will be no further flashes.
-*failLED* specifies the behaviour of the red LED. Setting this to 'all' will
++ *failLED* specifies the behaviour of the red LED. Setting this to 'all' will
 flash the red AirPi LED each time a failed sample is taken (one or more errors).
 Setting this to 'first' will flash the red AirPi LED when the first failed
 sample is taken, but then there will be no further flashes. Setting this to
@@ -88,26 +88,26 @@ sample is taken, but then there will be no further flashes. Setting this to
 (one or more errors) and will remain lit until the sampling is stopped.
 
 **Misc** controls a number of other settings.
-*printErrors* specifies whether or not error messages should be printed to screen.
++ *printErrors* specifies whether or not error messages should be printed to screen.
 If enabled, you may find that error messages are printed in amongst screen output
 from your enabled output plugins.
-*bootstart* specifies whether the AirPi should start automatically sampling as
++ *bootstart* specifies whether the AirPi should start automatically sampling as
 soon as it boots up. See the 'boot' folder for more information.
-*operator* specifies the name of the operator who is running the AirPi sampling.
++ *operator* specifies the name of the operator who is running the AirPi sampling.
 This information is included in output if metadata is requested.
-*help* determines whether extra text should be printed during sampling to provide
++ *help* determines whether extra text should be printed during sampling to provide
 further helpful information about the run.
 
 **Debug** is only likely to be useful if you experience any problems with the
 software, or do your own development of it.
-*debug* specifies whether 'debug mode' should be active; if so, many diagnostic
++ *debug* specifies whether 'debug mode' should be active; if so, many diagnostic
 messages will be printed to screen during a run.
-*waittostart* specifies whether sampling will be delayed until the 'start' of a
++ *waittostart* specifies whether sampling will be delayed until the 'start' of a
 minute, *i.e.* zero seconds. It can be useful to turn this off to save time when
 debugging.
 
 
-## Sensors
+## Defining Custom Sensors
 Sensors are defined in the sensors.cfg file, which can be found in the cfg
 directory. Values do not need any quote marks around them. Strings may include
 spaces (except for *sensorName* and *measurement*). There is equivalence between
@@ -151,7 +151,7 @@ absolute local pressure (requires *altitude* to be set too).
 atmospheric pressure readings.
 
 
-## Outputs
+## Defining Custom Outputs
 Output plugins are defined in the outputs.cfg file, which can be found in the cfg
 directory. Values do not need any quote marks around them. Strings may include
 spaces. There is equivalence between yes/on/true and between no/off/false; these
@@ -169,8 +169,16 @@ extension or path details are required.
 be applied to raw data.
 + *description* is a longer (one-sentance) description of the sensor.
 
-There are a number of other 
+There are a number of other parameters which can be defined for each output plugin.
+These can be customised for each individual plugin and are therefore beyond the
+scope of this document.
 
+
+## Pre-defined Sensors
+tbc
+
+## Pre-defined Outputs
+tbc
 
 
 
