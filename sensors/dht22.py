@@ -33,10 +33,10 @@ class DHT22(sensor.Sensor):
         dhtreader.init()
         dhtreader.lastDataTime = 0
         dhtreader.lastData = (None,None)
-        self.sensorName = "DHT22"
         self.readingType = "sample"
         self.pinNum = int(data["pinNumber"])
         if "temp" in data["measurement"].lower():
+            self.sensorName = "DHT22-temp"
             self.valName = "Temperature-DHT"
             self.valUnit = "Celsius"
             self.valSymbol = "C"
@@ -45,6 +45,7 @@ class DHT22(sensor.Sensor):
                     self.valUnit = "Fahrenheit"
                     self.valSymbol = "F"
         elif "h" in data["measurement"].lower():
+            self.sensorName = "DHT22-hum"
             self.valName = "Relative_Humidity"
             self.valSymbol = "%"
             self.valUnit = "% Relative Humidity"

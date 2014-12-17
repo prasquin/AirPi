@@ -29,9 +29,9 @@ class BMP085(sensor.Sensor):
         Return:
 
         """
-        self.sensorName = "BMP085"
         self.readingType = "sample"
         if "temp" in data["measurement"].lower():
+            self.sensorName = "BMP085-temp"
             self.valName = "Temperature-BMP"
             self.valUnit = "Celsius"
             self.valSymbol = "C"
@@ -40,6 +40,7 @@ class BMP085(sensor.Sensor):
                     self.valUnit = "Fahrenheit"
                     self.valSymbol = "F"
         elif "pres" in data["measurement"].lower():
+            self.sensorName = "BMP085-pres"
             self.valName = "Pressure"
             self.valSymbol = "hPa"
             self.valUnit = "Hectopascal"
