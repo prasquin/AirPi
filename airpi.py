@@ -48,11 +48,11 @@ def format_msg(msg, msgtype):
     """
     msgtypes = ['error', 'warning']
     if msgtype in msgtypes:
-        return((msgtype.upper() + ":").ljust(8, ' ') + " " + msg)
+        return(msgtype.upper() + ":").ljust(8, ' ') + " " + msg
     elif msgtype is 'sys':
         return("[AirPi] " + msg)
     else:
-        return((msgtype.title() + ":").ljust(8, ' ') + " " + msg)
+        return(msgtype.title() + ":").ljust(8, ' ') + " " + msg
 
 def get_subclasses(mod, cls):
     """Load subclasses for a module.
@@ -161,7 +161,7 @@ def get_hostname():
         string The hostname.
 
     """
-    if socket.gethostname().find('.')>=0:
+    if socket.gethostname().find('.') >= 0:
         return socket.gethostname()
     else:
         return socket.gethostbyaddr(socket.gethostname())[0]
@@ -304,7 +304,7 @@ def set_up_sensors():
                 try:
                     # 'a' means nothing below, but argument must be non-null
                     LOGGER.info("Trying to import sensors." + filename)
-                    mod = __import__('sensors.' + filename, fromlist = ['a'])
+                    mod = __import__('sensors.' + filename, fromlist=['a'])
                 except Exception as excep:
                     msg = "Could not import sensor module " + filename
                     msg = format_msg(msg, 'error')
@@ -345,7 +345,7 @@ def set_up_sensors():
                     msg = format_msg(msg, 'error')
                     LOGGER.error(msg)
                     raise
-                
+
                 # Check for a getVal() method
                 if callable(getattr(instclass, "getVal", None)):
                     sensorplugins.append(instclass)
@@ -418,7 +418,7 @@ def set_up_outputs():
             if enabled:
                 try:
                     # 'a' means nothing below, but argument must be non-null
-                    mod = __import__('outputs.' + filename, fromlist = ['a'])
+                    mod = __import__('outputs.' + filename, fromlist=['a'])
                 except Exception:
                     msg = "Could not import output module " + filename
                     msg = format_msg(msg, 'error')
@@ -448,7 +448,7 @@ def set_up_outputs():
                     opt = []
                 # Output plugins don't have any common params so this is empty
                 common = []
-                
+
                 plugindata = define_plugin_params(OUTPUTCONFIG,
                                 i, reqd, opt, common)
 
@@ -463,7 +463,7 @@ def set_up_outputs():
                 else:
                     instclass = outputclass(plugindata)
                     instclass.async = plugindata['async']
-                    
+
                     # check for an output_data function
                     if callable(getattr(instclass, "output_data", None)):
                         outputplugins.append(instclass)
@@ -474,7 +474,7 @@ def set_up_outputs():
                     else:
                         msg = "Loaded support plugin " + str(i)
                         msg = format_msg(msg, 'success')
-                        print(msg) 
+                        print(msg)
                         LOGGER.info(msg)
 
         except Exception as excep: #add specific exception for missing module
@@ -633,7 +633,7 @@ def set_up_notifications():
                 try:
                     # 'a' means nothing below, but argument must be non-null
                     mod = __import__('notifications.' + filename,
-                            fromlist = ['a'])
+                            fromlist=['a'])
                 except Exception:
                     msg = "Could not import notification module " + filename
                     msg = format_msg(msg, 'error')
@@ -668,7 +668,7 @@ def set_up_notifications():
 
                 plugindata = define_plugin_params(NOTIFICATIONCONFIG, i,
                                 reqd, opt, common)
-                
+
                 if NOTIFICATIONCONFIG.has_option(i, "needsinternet"):
                     if (NOTIFICATIONCONFIG.getboolean(i, "needsinternet") and
                             not check_conn()):
@@ -736,7 +736,7 @@ def set_settings():
     settingslist = {}
 
     settingslist['SAMPLEFREQ'] = mainconfig.getfloat("Sampling", "sampleFreq")
-    if mainconfig.has_option("Sampling","averageFreq"):
+    if mainconfig.has_option("Sampling", "averageFreq"):
         if mainconfig.getint("Sampling", "averageFreq") != 0:
             settingslist['AVERAGEFREQ'] = mainconfig.getint("Sampling",
                 "averageFreq")
@@ -753,22 +753,22 @@ def set_settings():
                     settingslist['AVERAGECOUNT'] = averagecount
                     settingslist['PRINTUNAVERAGED'] = mainconfig.getboolean("Sampling", "printUnaveraged")
     settingslist['STOPAFTER'] = 0 # Default
-    if mainconfig.has_option("Sampling","stopafter"):
+    if mainconfig.has_option("Sampling", "stopafter"):
         if mainconfig.getint("Sampling", "stopafter") != 0:
             settingslist['STOPAFTER'] = mainconfig.getint("Sampling",
                 "stopafter")
     settingslist['DUMMYDURATION'] = 0 # Default
-    if mainconfig.has_option("Sampling","dummyduration"):
+    if mainconfig.has_option("Sampling", "dummyduration"):
         settingslist['DUMMYDURATION'] = mainconfig.getint("Sampling",
             "dummyduration")
     settingslist['REDPIN'] = mainconfig.getint("LEDs", "redPin")
     settingslist['GREENPIN'] = mainconfig.getint("LEDs", "greenPin")
-    settingslist['SUCCESSLED'] = mainconfig.get("LEDs","successLED")
-    settingslist['FAILLED'] = mainconfig.get("LEDs","failLED")
+    settingslist['SUCCESSLED'] = mainconfig.get("LEDs", "successLED")
+    settingslist['FAILLED'] = mainconfig.get("LEDs", "failLED")
     settingslist['OPERATOR'] = mainconfig.get("Misc", "operator")
     settingslist['HELP'] = mainconfig.getboolean("Misc", "help")
-    settingslist['PRINTERRORS'] = mainconfig.getboolean("Misc","printErrors")
-    settingslist['WAITTOSTART'] = mainconfig.getboolean("Debug","waittostart")
+    settingslist['PRINTERRORS'] = mainconfig.getboolean("Misc", "printErrors")
+    settingslist['WAITTOSTART'] = mainconfig.getboolean("Debug", "waittostart")
 
     msg = "Loaded settings."
     msg = format_msg(msg, 'success')
@@ -1190,7 +1190,7 @@ if __name__ == '__main__':
     gpsplugininstance = None
     SETTINGS = set_settings()
     notificationsMade = {}
-    samples =   0
+    samples = 0
     STARTTIME = datetime.utcnow()
 
     #Set up plugins
@@ -1225,7 +1225,7 @@ if __name__ == '__main__':
     # Wait until the start of the next minute
     if SETTINGS["WAITTOSTART"]:
         delay_start()
-    
+
     if SETTINGS['DUMMYDURATION'] != 0:
         dummy_runs(SETTINGS['DUMMYDURATION'])
 
