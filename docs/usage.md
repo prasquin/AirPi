@@ -23,12 +23,12 @@ sampling modes, to deal with various situations. The sampling mode should be
 chosen based on whether you need to do anything else while logged in to the
 Raspberry Pi, and whether you are logged in directly or via SSH. The three
 sampling modes are:
-**normal** - Runs in the foreground; you cannot do anything else while the sampling
++ **normal** - Runs in the foreground; you cannot do anything else while the sampling
 is under way.
-**bg** - Runs in the background while you are logged in. You can do other things
++ **bg** - Runs in the background while you are logged in. You can do other things
 and the sampling will continue as long as you are logged in. If you log out, the
 sampling will stop.
-**unatt** - Runs unattended in the background even if you log out. You can do other things while
++ **unatt** - Runs unattended in the background even if you log out. You can do other things while
 logged in, and you even can log out and then back in again later. The sampling
 will only stop if you specifically request it to.
 
@@ -80,12 +80,12 @@ not the Raspberry Pi LEDs).
 flash the green AirPi LED each time a successful sample is taken (no errors).
 Setting this to 'first' will flash the green AirPi LED when the first successful
 sample is taken, but then there will be no further flashes.
-+ *failLED* specifies the behaviour of the red LED. Setting this to 'all' will
-flash the red AirPi LED each time a failed sample is taken (one or more errors).
-Setting this to 'first' will flash the red AirPi LED when the first failed
-sample is taken, but then there will be no further flashes. Setting this to
-'constant' will light the red AirPi LED when the first failed sample is taken
-(one or more errors) and will remain lit until the sampling is stopped.
++ *failLED* specifies the behaviour of the red LED.
+  + 'all' will flash the LED each time a failed sample is taken (one or more errors).
+  + 'first' will flash the LED when the first failed sample is taken,
+  but then there will be no further flashes.
+  + 'constant' will light the LED when the first failed sample is taken (one or
+  more errors) and it will remain lit until the sampling is stopped.
 
 **Misc** controls a number of other settings.
 + *printErrors* specifies whether or not error messages should be printed to screen.
@@ -175,7 +175,60 @@ scope of this document.
 
 
 ## Pre-defined Sensors
-tbc
+A number of sensors are already defined in the sensors.cfg file
+[on GitHub](http://github.com/haydnw/airpi). They are described below, and
+salient features noted.
+
+###\[BMP085-temp\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/BMP085.pdf))
+Temperature measurement from the BMP085 sensor. Readings are in degrees Fahrenheit
+or Celcius. Usually reads 2.0 to 2.2 degrees Celcius higher than the DHT22 sensor.
+
+###\[BMP085-pres\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/BMP085.pdf))
+Pressure measurement from the BMP085 sensor. Readings are in [hectoPascals](http://en.wikipedia.org/wiki/Pascal_(unit)),
+which are [equivalent to millibars](http://en.wikipedia.org/wiki/Pascal_(unit)#Hectopascal_and_millibar_units).
+
+###\[MCP3008\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/MCP3008.pdf))
+Not a real sensor - this is the Analogue-to-digital converter (ADC) and
+doesn't give any readings.
+
+###\[DHT22-hum\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/DHT22.pdf))
+Humidity measurement from the DHT22 sensor. Readings are as % humidity.
+Manufacturer recommends not reading from this sensor more than once every two
+seconds.
+
+###\[DHT22-temp\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/DHT22.pdf))
+Temperature measurement from the DHT22 sensor. Readings are in degrees Fahrenheit
+or Celcius. Manufacturer recommends not reading from this sensor more than once
+every two seconds.
+
+###\[LDR\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/LDR.pdf))
+Generic light dependent resistor (no specific model). Present on version 1.2 AirPi
+board. Resistance goes down as light level increases, and *vice versa*.
+
+###\[TGS2600\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/TGS2600.pdf))
+Volatile Organic Compound (VOC) sensor. Measures methane, carbon monoxide,
+iso-butane, ethanol and Hydrogen. This sensor is not included on v1.2 or v1.4
+AirPi boards by default, but there is a space for it to be added.
+
+###\[MiCS-2710\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/MiCS-2710.pdf))
+Nitrogen Dioxide sensor.
+
+###\[MiCS-5525\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/MiCS-5525.pdf))
+Carbon monoxide sensor.
+
+###\[Microphone\]
+Noise level sensor. Included on the v1.2 and v1.4 AirPi boards.
+
+###\[UVI-01\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/UVI-01-E.pdf))
+Ultraviolet light sensor. Included on the v1.0 AirPi board, but replaced by the
+LDR on subsequent revisions.
+
+###\[Raingauge\]
+
+
+###\[GPS\] ([datasheet](http://github.com/haydnw/airpi/docs/datasheets/GPS.pdf))
+GPS location sensor.
+
 
 ## Pre-defined Outputs
 tbc
