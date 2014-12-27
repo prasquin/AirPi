@@ -1,13 +1,11 @@
-# =============================================================================
-# File:     installation.md
-# Purpose:  Instructions for installing software to support an AirPi.
-# Author:   Haydn Williams <pi@hwmail.co.uk>
-# Date:     October 2014
-# =============================================================================
+\# ============================================================================
+\# File:     installation.md
+\# Purpose:  Instructions for installing software to support an AirPi.
+\# Author:   Haydn Williams <pi@hwmail.co.uk>
+\# Date:     October 2014
+\# ============================================================================
 
 # AirPi Software Installation Instructions
-
-** N.B. THESE INSTRUCTIONS ARE UNTESTED AT PRESENT!! **
 
 1. Ensure system is up-to-date:
 ```shell
@@ -48,6 +46,11 @@ Successful output looks like this:
 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 70: -- -- -- -- -- -- -- 77
 ```
+*N.B. If you have an original Raspberry Pi (Model B first revision) then you'll
+need to use a zero at the end of the command above, because the I2C port was
+[changed between revisions](http://www.raspberrypi.org/upcoming-board-revision/).
+This means you will also have to change the 'i2cbus' options in the
+cfg/sensors.cfg sensor definitions file (see docs/usage.md for details).*
 
 1. [OPTIONAL] Enable GPS, then check it works:
 ```shell
