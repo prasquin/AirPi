@@ -9,7 +9,9 @@
 
 ## Index
 1. [About](#about)
+1. [Overview](#overview)
 1. [Starting and Stopping Sampling](#sampling)
+1. [Software Updates](#updates)
 1. [Settings](#settings)
 1. [Pre-defined Sensors](#sensors)
 1. [Pre-defined Outputs](#outputs)
@@ -30,6 +32,18 @@ your `$PATH` variable; this can be done by adding the following line to
 ```shell
 PATH="/home/pi/AirPi:$PATH"
 ```
+
+## <a id="overview"></a>Overview
+The AirPi software consists of four main parts:
+1. "sensor" plugins define the sensors used to collect readings of individual
+   phenomena by the AirPi.
+1. "output" plugins define how the information obtained from sensors should be
+   displayed on screen, saved to file, or posted to a web service.
+1. "notification" plugins define how alerts should be sent if the AirPi experiences
+   an error.
+1. The `airpictl.sh` shell script controls the starting and stopping of the AirPi,
+   and fits the sensor, output and notification information together into a single
+   system.
 
 ## <a id="sampling"></a>Starting and Stopping Sampling
 The software is controlled using the script named `airpictl.sh`. It has three
@@ -87,7 +101,7 @@ spaces. There is equivalence between `yes`,`on`, and `true` and between `no`,`of
 these are not case-sensitive. Comments take an entire line, and begin with a
 hash (`#`).
 
-There are a number of sections within the file:
+There are a number of sections within the `settings.cfg`:
 
 **\[Sampling\]**  
 *Controls frequency and duration of sampling.*  
@@ -97,16 +111,16 @@ relating to the collection of average data rather than point data.
 recommended that you do not specify a duration of less than five seconds, as
 unpredictable behaviour may result. This *may* be due to a Raspberry Pi bug
 involving clock-stretching on the I2C bus:
-https://dl.dropboxusercontent.com/u/3669512/2835_I2C%20interface.pdf
-http://www.advamation.com/knowhow/raspberrypi/rpi-i2c-bug.html
-http://elinux.org/BCM2835_datasheet_errata#p35_I2C_clock_stretching
+  + https://dl.dropboxusercontent.com/u/3669512/2835_I2C%20interface.pdf
+  + http://www.advamation.com/knowhow/raspberrypi/rpi-i2c-bug.html
+  + http://elinux.org/BCM2835_datasheet_errata#p35_I2C_clock_stretching
 + `stopafter` allows you to stop sampling after the specified number of samples
-have been taken. Remember that you have used *sampleFreq* to determine the time
+have been taken. Remember that you have used `sampleFreq` to determine the time
 between samples, so this effectively allows you to stop sampling after a
 certain time period too. Set this to `0` (zero) to continue indefinitely.
 + `averageFreq` specifies how often, in seconds, an average reading should be
-calculated from point readings. For example, if *sampleFreq* is set to 10 and
-*averageFreq* is set to 30, the system will average three point readings to
+calculated from point readings. For example, if `sampleFreq` is set to `10` and
+*averageFreq* is set to `30`, the system will average three point readings to
 produce a single averaged reading every 30 seconds. Set this to `0` (zero) to
 disable averaging.
 + `dummyduration` specifies how long, in seconds, the system should obtain
