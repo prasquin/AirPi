@@ -89,45 +89,45 @@ hash (`#`).
 
 There are a number of sections within the file:
 
-**\[Sampling\]**
-*Controls frequency and duration of sampling.*
+**\[Sampling\]**  
+*Controls frequency and duration of sampling.*  
 This section controls the frequency and duration of the sampling, and features
 relating to the collection of average data rather than point data.
-+ *sampleFreq* specifies how often readings should be taken (in seconds). It is
++ `sampleFreq` specifies how often readings should be taken (in seconds). It is
 recommended that you do not specify a duration of less than five seconds, as
 unpredictable behaviour may result. This *may* be due to a Raspberry Pi bug
 involving clock-stretching on the I2C bus:
 https://dl.dropboxusercontent.com/u/3669512/2835_I2C%20interface.pdf
 http://www.advamation.com/knowhow/raspberrypi/rpi-i2c-bug.html
 http://elinux.org/BCM2835_datasheet_errata#p35_I2C_clock_stretching
-+ *stopafter* allows you to stop sampling after the specified number of samples
++ `stopafter` allows you to stop sampling after the specified number of samples
 have been taken. Remember that you have used *sampleFreq* to determine the time
 between samples, so this effectively allows you to stop sampling after a
 certain time period too. Set this to `0` (zero) to continue indefinitely.
-+ *averageFreq* specifies how often, in seconds, an average reading should be
++ `averageFreq` specifies how often, in seconds, an average reading should be
 calculated from point readings. For example, if *sampleFreq* is set to 10 and
 *averageFreq* is set to 30, the system will average three point readings to
 produce a single averaged reading every 30 seconds. Set this to `0` (zero) to
 disable averaging.
-+ *dummyduration* specifies how long, in seconds, the system should obtain
++ `dummyduration` specifies how long, in seconds, the system should obtain
 sensor readings *without recording them* ('dummy' runs). This allows you
 initialise the system prior to recording data. Set this to `0` (zero) to disable
 initialising 'dummy' runs.
-+ *printUnaveraged* is not used at present.
++ `printUnaveraged` is not used at present.
 
 
-**\[LEDs\]**
-*Controls LED behaviour.*
+**\[LEDs\]**  
+*Controls LED behaviour.*  
 This section controls the behaviour of the red and green LEDs on the AirPi (*N.B.*
 not the Raspberry Pi LEDs).
-+ *redPin* specifies the wiring pin used for the red LED.
-+ *greenPin* specifies the wiring pin used for the green LED.
-+ *successLED* specifies the behaviour of the green LED.
++ `redPin` specifies the wiring pin used for the red LED.
++ `greenPin` specifies the wiring pin used for the green LED.
++ `successLED` specifies the behaviour of the green LED.
   + `all` will flash the LED each time a successful sample is taken (no
 errors).
   + `first` will flash the LED when the first successful sample is taken, but
 then there will be no further flashes.
-+ *failLED* specifies the behaviour of the red LED.
++ `failLED` specifies the behaviour of the red LED.
   + `all` will flash the LED each time a failed sample is taken (one or more
   errors).
   + `first` will flash the LED when the first failed sample is taken,
@@ -135,29 +135,29 @@ then there will be no further flashes.
   + `constant` will light the LED when the first failed sample is taken (one or
   more errors) and it will remain lit until the sampling is stopped.
 
-**\[Misc\]**
-*Various miscellaneous settings.*
+**\[Misc\]**  
+*Various miscellaneous settings.*  
 This section controls a number of other settings.
-+ *printErrors* specifies whether or not error messages should be printed to
++ `printErrors` specifies whether or not error messages should be printed to
 screen.
 If enabled, you may find that error messages are printed in amongst screen
 output from your enabled output plugins.
-+ *bootstart* specifies whether the AirPi should start automatically sampling
-as soon as it boots up. See the `boot` folder for more information.
-+ *operator* specifies the name of the operator who is running the AirPi
++ `bootstart` specifies whether the AirPi should start automatically sampling
+as soon as it boots up. See the `boot` directory for more information.
++ `operator` specifies the name of the operator who is running the AirPi
 sampling.
 This information is included in output if metadata is requested.
-+ *help* determines whether extra text should be printed during sampling to
++ `help` determines whether extra text should be printed during sampling to
 provide further helpful information about the run.
 
-**\[Debug\]**
-*Ddbug messages and associated options.*
+**\[Debug\]**  
+*Debug messages and associated options.*  
 This section controls options relating to debugging output and is only likely
 to be useful if you experience any problems with the software, or do your own
 development of it.
-+ *debug* specifies whether 'debug mode' should be active; if so, many
++ `debug` specifies whether 'debug mode' should be active; if so, many
 diagnostic messages will be printed to screen during a run.
-+ *waittostart* specifies whether sampling will be delayed until the 'start' of
++ `waittostart` specifies whether sampling will be delayed until the 'start' of
 a minute, *i.e.* zero seconds. It can be useful to turn this off to save time
 when debugging.
 
