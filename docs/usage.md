@@ -1,22 +1,22 @@
-\# ============================================================================
-\# File:     useage.md
-\# Purpose:  Instructions for using AirPi software.
-\# Author:   Haydn Williams <pi@hwmail.co.uk>
-\# Date:     December 2014
-\# ============================================================================
+\# ==========================================================================  
+\# File:     useage.md  
+\# Purpose:  Instructions for using AirPi software.  
+\# Author:   Haydn Williams <pi@hwmail.co.uk>  
+\# Date:     December 2014  
+\# ==========================================================================  
 
 # AirPi Software Usage Instructions
 
 ## Index
-[About](#about)
-[Starting and Stopping Sampling](#sampling)
-[Settings](#settings)
-[Pre-defined Sensors](#sensors)
-[Pre-defined Outputs](#outputs)
-[Pre-defined Notifications](#notifications)
-[Troubleshooting](#troubleshooting)
-[Defining Custom Sensors](#customSensors)
-[Defining Custom Outputs](#customOutput)
+1. [About](#about)
+1. [Starting and Stopping Sampling](#sampling)
+1. [Settings](#settings)
+1. [Pre-defined Sensors](#sensors)
+1. [Pre-defined Outputs](#outputs)
+1. [Pre-defined Notifications](#notifications)
+1. [Troubleshooting](#troubleshooting)
+1. [Defining Custom Sensors](#customSensors)
+1. [Defining Custom Outputs](#customOutput)
 
 
 ## <a id="about"></a>About
@@ -49,24 +49,49 @@ later. The sampling will only stop if you specifically request it to.
 To start sampling, run the script and append the sampling mode after it:
 ```shell
 airpictl.sh normal
+airpictl.sh bg
+airpictl.sh unatt
 ```
 
 To stop sampling, either press `Ctrl+C` when running in 'normal' mode, or use
-the airpictl.sh script to stop background or unattended runs:
+the `airpictl.sh` script to stop background or unattended runs. Note that this
+must be done as a superuser:
 ```shell
-airpictl.sh stop
+cd ~/AirPi
+sudo ./airpictl.sh stop
 ```
 
+To check whether the AirPi is sampling, run:
+```shell
+airpictl.sh status
+```
+
+## <a id="updates"></a>Software Updates
+To check the software version, run:
+```shell
+airpictl.sh version
+```
+
+To update to the latest version, run:
+```shell
+git pull origin
+```
+**Note:** This will over-write all of your existing settings and any other
+customisation (*e.g.* new modules you have written). Be sure to back them up
+first if you want to keep them.
+
 ## <a id="settings"></a>Settings
-Settings are defined in the `settings.cfg` file, which can be found in the cfg
+Settings are defined in the `settings.cfg` file, which can be found in the `cfg`
 directory. Values do not need any quote marks around them. Strings may include
 spaces. There is equivalence between `yes`,`on`, and `true` and between `no`,`off`, and `false`;
 these are not case-sensitive. Comments take an entire line, and begin with a
-hash (\#).
+hash (`#`).
 
 There are a number of sections within the file:
 
-**Sampling** controls the frequency and duration of the sampling, and features
+**\[Sampling\]**
+*Controls frequency and duration of sampling.*
+This section controls the frequency and duration of the sampling, and features
 relating to the collection of average data rather than point data.
 + *sampleFreq* specifies how often readings should be taken (in seconds). It is
 recommended that you do not specify a duration of less than five seconds, as
@@ -78,51 +103,58 @@ http://elinux.org/BCM2835_datasheet_errata#p35_I2C_clock_stretching
 + *stopafter* allows you to stop sampling after the specified number of samples
 have been taken. Remember that you have used *sampleFreq* to determine the time
 between samples, so this effectively allows you to stop sampling after a
-certain time period too. Set this to 0 (zero) to continue indefinitely.
+certain time period too. Set this to `0` (zero) to continue indefinitely.
 + *averageFreq* specifies how often, in seconds, an average reading should be
 calculated from point readings. For example, if *sampleFreq* is set to 10 and
 *averageFreq* is set to 30, the system will average three point readings to
-produce a single averaged reading every 30 seconds. Set this to 0 (zero) to
+produce a single averaged reading every 30 seconds. Set this to `0` (zero) to
 disable averaging.
 + *dummyduration* specifies how long, in seconds, the system should obtain
 sensor readings *without recording them* ('dummy' runs). This allows you
-initialise the system prior to recording data. Set this to 0 (zero) to disable
+initialise the system prior to recording data. Set this to `0` (zero) to disable
 initialising 'dummy' runs.
 + *printUnaveraged* is not used at present.
 
 
-**LEDs** controls the behaviour of the red and green LEDs on the AirPi (*N.B.*
+**\[LEDs\]**
+*Controls LED behaviour.*
+This section controls the behaviour of the red and green LEDs on the AirPi (*N.B.*
 not the Raspberry Pi LEDs).
 + *redPin* specifies the wiring pin used for the red LED.
 + *greenPin* specifies the wiring pin used for the green LED.
 + *successLED* specifies the behaviour of the green LED.
-  + 'all' will flash the LED each time a successful sample is taken (no
+  + `all` will flash the LED each time a successful sample is taken (no
 errors).
-  + 'first' will flash the LED when the first successful sample is taken, but
+  + `first` will flash the LED when the first successful sample is taken, but
 then there will be no further flashes.
 + *failLED* specifies the behaviour of the red LED.
-  + 'all' will flash the LED each time a failed sample is taken (one or more
+  + `all` will flash the LED each time a failed sample is taken (one or more
   errors).
-  + 'first' will flash the LED when the first failed sample is taken,
+  + `first` will flash the LED when the first failed sample is taken,
   but then there will be no further flashes.
-  + 'constant' will light the LED when the first failed sample is taken (one or
+  + `constant` will light the LED when the first failed sample is taken (one or
   more errors) and it will remain lit until the sampling is stopped.
 
-**Misc** controls a number of other settings.
+**\[Misc\]**
+*Various miscellaneous settings.*
+This section controls a number of other settings.
 + *printErrors* specifies whether or not error messages should be printed to
 screen.
 If enabled, you may find that error messages are printed in amongst screen
 output from your enabled output plugins.
 + *bootstart* specifies whether the AirPi should start automatically sampling
-as soon as it boots up. See the 'boot' folder for more information.
+as soon as it boots up. See the `boot` folder for more information.
 + *operator* specifies the name of the operator who is running the AirPi
 sampling.
 This information is included in output if metadata is requested.
 + *help* determines whether extra text should be printed during sampling to
 provide further helpful information about the run.
 
-**Debug** is only likely to be useful if you experience any problems with the
-software, or do your own development of it.
+**\[Debug\]**
+*Ddbug messages and associated options.*
+This section controls options relating to debugging output and is only likely
+to be useful if you experience any problems with the software, or do your own
+development of it.
 + *debug* specifies whether 'debug mode' should be active; if so, many
 diagnostic messages will be printed to screen during a run.
 + *waittostart* specifies whether sampling will be delayed until the 'start' of
@@ -135,12 +167,14 @@ Sensors are defined in the `sensors.cfg` file, which can be found in the `cfg`
 directory. A number of sensors are already defined in the file
 [on GitHub](http://github.com/haydnw/airpi/tree/development2/cfg/sensors.cfg).
 They are described below, and salient features noted. For information about
-defining custom sensors, see the [Defining Custom Sensors](#customSensors) section.
+defining custom sensors, see the [Defining Custom Sensors](#customSensors)
+section of this file.
 
 Values in the file do not need any quote marks around them. Strings may include
 spaces (except for `sensorName` and `measurement`). There is equivalence
 between `yes`,`on`, and `true` and between `no`,`off`, and `false`;
-these are not case-sensitive. Comments take an entire line, and begin with a hash.
+these are not case-sensitive. Comments take an entire line, and begin with a
+hash (`#`).
 
 Most changes to this file will be to enable or disable individual sensors. It
 is unlikely that many changes will need to be made once initial sensor details
@@ -151,62 +185,62 @@ could more accurately be referred to as 'measurements'. For example, in the
 standard setup there are two definitions relating to the DHT22 sensor, because
 that particular physical sensor reads out both temperature and humidity.
 
-**\[BMP085-temp\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/BMP085.pdf))
-*Temperature measurement from the BMP085 sensor.*
+**\[BMP085-temp\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/BMP085.pdf))  
+*Temperature measurement from the BMP085 sensor.*  
 Readings are in degrees Fahrenheit or Celcius. Usually reads 2.0 to 2.2 degrees
 Celcius higher than the DHT22 sensor.
 
-**\[BMP085-pres\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/BMP085.pdf))
-*Pressure measurement from the BMP085 sensor.*
+**\[BMP085-pres\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/BMP085.pdf))  
+*Pressure measurement from the BMP085 sensor.*  
 Readings are in [hectoPascals](http://en.wikipedia.org/wiki/Pascal_(unit)),
 which are [equivalent to millibars](http://en.wikipedia.org/wiki/Pascal_(unit)#Hectopascal_and_millibar_units).
 
-**\[MCP3008\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/MCP3008.pdf))
-*Analogue-to-digital convertor.*
+**\[MCP3008\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/MCP3008.pdf))  
+*Analogue-to-digital convertor.*  
 Not a real sensor - this is the Analogue-to-digital converter (ADC) and doesn't
 give any readings.
 
-**\[DHT22-hum\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/DHT22.pdf))
-*Humidity measurement from the DHT22 sensor.*
+**\[DHT22-hum\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/DHT22.pdf))  
+*Humidity measurement from the DHT22 sensor.*  
 Readings are as % humidity. Manufacturer recommends not reading from this
 sensor more than once every two seconds.
 
-**\[DHT22-temp\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/DHT22.pdf))
-*Temperature measurement from the DHT22 sensor.*
+**\[DHT22-temp\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/DHT22.pdf))  
+*Temperature measurement from the DHT22 sensor.*  
 Readings are in degrees Fahrenheit or Celcius. Manufacturer recommends not
 reading from this sensor more than once every two seconds.
 
-**\[LDR\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/LDR.pdf))
-*Generic light dependent resistor.*
+**\[LDR\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/LDR.pdf))  
+*Generic light dependent resistor.*  
 There is no specific model for the LDR. It is present on version 1.2 and 1.4
 AirPi boards. Resistance goes down as light level increases, and *vice versa*.
 
-**\[TGS2600\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/TGS2600.pdf))
-*Volatile Organic Compound (VOC) sensor.*
+**\[TGS2600\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/TGS2600.pdf))  
+*Volatile Organic Compound (VOC) sensor.*  
 Measures methane, carbon monoxide, iso-butane, ethanol and Hydrogen. This
 sensor is not included on AirPi boards by default, but there is a space for it
 to be added.
 
-**\[MiCS-2710\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/MiCS-2710.pdf))
-*Nitrogen Dioxide sensor.*
+**\[MiCS-2710\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/MiCS-2710.pdf))  
+*Nitrogen Dioxide sensor.*  
 
-**\[MiCS-5525\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/MiCS-5525.pdf))
-*Carbon monoxide sensor.*
+**\[MiCS-5525\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/MiCS-5525.pdf))  
+*Carbon monoxide sensor.*  
 
 **\[Microphone\]**
-*Noise level sensor.*
+*Noise level sensor.*  
 Included on the v1.2 and v1.4 AirPi boards.
 
-**\[UVI-01\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/UVI-01-E.pdf))
-*Ultraviolet light sensor.*
+**\[UVI-01\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/UVI-01-E.pdf))  
+*Ultraviolet light sensor.*  
 Included on the v1.0 AirPi board, but replaced by the LDR on subsequent
 revisions.
 
 **\[Raingauge\]**
 
 
-**\[GPS\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/GPS.pdf))
-GPS location sensor.
+**\[GPS\]** ([datasheet](http://github.com/haydnw/airpi/tree/development2/docs/datasheets/GPS.pdf))  
+GPS location sensor.  
 
 
 ## <a id="outputs"></a>Pre-defined Outputs
@@ -220,7 +254,7 @@ section.
 Values in the file do not need any quote marks around them. Strings may
 include spaces. There is equivalence between `yes`,`on`, and `true` and between
 `no`,`off`, and `false`; these are not case-sensitive. Comments take an entire line, and
-begin with a hash.
+begin with a hash (`#`).
 
 Most changes to this file will be to enable or disable individual output
 plugins, or change the location or format of their output.
@@ -237,7 +271,7 @@ The following options are common to a number of output plugins:
 + `outputDir` specifies the directory where the output plugin should save any
   output file(s).
 + `outputFile` specifies the filename where the output plugin should save any
-  output. Use `<hostname>` (no apostrophes) to automatically include
+  output. Use `<hostname>` to automatically include
   the hostname of the Raspberry Pi in the filename. Use `<date>` (no
   apostrophes) to automatically include the start date of the sampling in the
   filename.
@@ -245,13 +279,13 @@ The following options are common to a number of output plugins:
   connectivity to function correctly. If it does, and there is no connectivity,
   the plugin will be disabled.
 
-**\[Calibration\]**
-*Change raw data by applying custom functions.*
+**\[Calibration\]**  
+*Change raw data by applying custom functions.*  
 This plugin applies a function to raw data obtained from sensors, with the aim
-of allowing correction of data via offsets, or conversion from one unit to
-another. For calibration to work you must define a function for one of the
-other output plugins and also enable calibration within the options for that
-plugin.
+of allowing the correction of erroneous data via offsets, or conversion from one unit to
+another. For calibration to work you must define a function for the
+relevant sensor plugin and then enable calibration within the options for the
+output plugin where calibration should be applied.
 To define a calibration function, use the following syntax:
 ```
 <sensor_name> = <function>,<units>
@@ -264,31 +298,31 @@ Where:
   would double the raw value).
 + `<units>` is the name of the units in which the corrected data is measured.
 
-**\[Print\]**
-*Print details to screen.*
+**\[Print\]**  
+*Print details to screen.*  
 Print data to [stdout](http://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29),
 which is usually the screen.
 + `format` specifies the format in which the data should be output to screen.
   + `friendly` prints easily readable titles and values.
   + `csv` prints information in Comma-Separated Value (CSV) format.
 
-**\[CSVOutput\]**
-*Write information to .csv file.*
+**\[CSVOutput\]**  
+*Write information to .csv file.*  
 Write data to a Comma-Separated Value (CSV) file. Most of the Common Options
 described earlier in this document are used with this plugin; there are no
 options unique to this plugin.
 
-**\[JSONOutput\]**
-*Write information to .json file.*
+**\[JSONOutput\]**  
+*Write information to .json file.*  
 Write data to a JavaScript Object Notation (JSON) file. Most of the Common
 Options described earlier in this document are used with this pluin; there are
 no options unique to this plugin.
 
-**\[HTTP\]**
-*Display information on a local website.*
+**\[HTTP\]**  
+*Display information on a local website.*  
 Display information on an HTTP server created on the Raspberry Pi. This will
 usually output information at `http://127.0.0.1:8080`, but running the software
-with `help = on` (no apostrophes) in `cfg/settings.cfg` will display the network
+with `help = on` in `cfg/settings.cfg` will display the network
 address.
 + `wwwPath` 
 + `port` is the port number on which the website should be served. The default
@@ -302,35 +336,35 @@ address.
 + `about` specifies the text to be used in the information section of the
   pages.
 
-**\[Xively\]**
-*Output information to a [Xively](http://www.xively.com) feed.*
+**\[Xively\]**  
+*Output information to a [Xively](http://www.xively.com) feed.*  
 Output information to a feed on the Xively website. Individual Xively streams
 within the target feed must have exactly the same names as the AirPi sensors.
-Running the software with `help = on` (no apostrophes) in `cfg/settings.cfg` will
+Running the software with `help = on` in `cfg/settings.cfg` will
 print the sensor names to facilitate their duplication in Xicely.
 + `APIKey` specifies the Xively API key to be used. This is defined by Xively
   and can be found in your account details on the Xively website.
-+ `FeedID` specifies the ID of the Xively feed to which data should be
++ `FeedID` specifies the ID of the specific Xively feed to which data should be
   published.  This is defined by Xively and can be found in your account
   details on the Xively website.
 
-**\[dweet\]**
-*Output information to a [Dweet](http://dweet.io) feed.*
-Output information fo a feed on the Dweet website.
+**\[dweet\]**  
+*Output information to a [Dweet](http://dweet.io) feed.*  
+Output information to a feed on the Dweet website.
 + `thing` is the name under which the feed will be posted on the Dweet website.
 
-**\[RRDOutput\]**
-*Save information to an [RRD](http://oss.oetiker.ch/rrdtool/) database.*
+**\[RRDOutput\]**  
+*Save information to an [RRD](http://oss.oetiker.ch/rrdtool/) database.*  
 Save information on a rotating basis to a Round-Robin Database (RRD) file. RRD
 is reasonably complex, and further details about the plugin can be found in the
 Python module itself (outputs/rrdoutput.py). This plugin provides only basic
 RRD support; for better support try https://www.cccmz.de/projekt-airpi/
 
-**\[plot\]**
-*Plot information to a graph on screen.*
+**\[plot\]**  
+*Plot information to a graph on screen.*  
 Plot information to an ASCII line, bar or scatter graph on [stdout](http://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29),
 which is usually the screen. You can plot only one parameter at a time. Running
-the software with `help = on` (no apostrophes) in `cfg/settings.cfg` will print
+the software with `help = on` in `cfg/settings.cfg` will print
 the sensor names to facilitate entry of the correct name in this section. If
 this plugin is enabled at the same time as the `[print]` plugin, this plugin will
 be automatically disabled (you can only display one thing at a time on screen!).
@@ -352,14 +386,14 @@ begin with a hash.
 Most changes to this file will be to enable or disable individual notification
 plugins, or change parameters.
 
-###Common Options
+**Common Options**
 The following options are common to a number of notification plugins:
 + `msgalertsensor` specifies the text of the notification message which will be
-  sent in notifications where a sensor fails.
+  sent when a sensor fails.
 + `msgalertoutput` specifies the text of the notification message which will be
-  sent in notifications where an output plugin fails.
+  sent when an output plugin fails.
 + `msgdata` specifies the text of the notification message which will be sent
-  in notifications where a data change notifications is triggered.
+  when a data change notifications is triggered.
 + `filename` specifies the name of the Python script file for the notification
   plugin. No file extension or path details are required.
 + `enabled` specifies whether or not the notification plugin is enabled.
@@ -367,14 +401,14 @@ The following options are common to a number of notification plugins:
   connectivity to function correctly. If it does, and there is no connectivity,
   the plugin will be disabled.
 
-**\[Tweet\]**
-*Send notifications by Tweeting.*
+**\[Tweet\]**  
+*Send notifications by Tweeting.*  
 Send notifications by Tweeting to a specific Twitter account.
-+ `consumerkey` specifies the
-+ `consumersecret` specifies the 
++ `consumerkey` specifies the API key provided by Twitter.
++ `consumersecret` specifies the secret provided by Twitter.
 
-**\[Email\]**
-*Send notifications by email.*
+**\[Email\]**  
+*Send notifications by email.*  
 Send notifications by sending emails to a specific email address.
 + `toaddress` specifies the email address to which notifications are sent.
 + `fromaddress` specifies the email address from which notifications are sent.
@@ -386,8 +420,8 @@ Send notifications by sending emails to a specific email address.
 + `smtpuser` specifies the username used to authenticate against the SMTP server.
 + `smtppass` specifies the password used to authenticate against the SMTP server.
 
-**\[SMS\]
-*Send notifications by SMS.*
+**\[SMS\]**  
+*Send notifications by SMS (text message).*  
 Send notifications by sending SMS text messages to a specific telephone number.
 This is provided using the [TextLocal](http://textlocal.com) service; an account
 is required and charges may apply.
@@ -404,19 +438,19 @@ is required and charges may apply.
 Custom sensors can be defined in the `cfg/sensors.cfg` file. Such an
 entry only tells the AirPi that a sensor exists; you must still write
 the supporting Python code to tell the AirPi how to read data from the sensor.
-A template/example Python file can be found in the `docs` folder.
+A Python template/example can be found in the `docs` folder.
 
 Values in the `sensors.cfg` file do not need any quote marks around them.
 Strings may include spaces. There is equivalence between `yes`,`on`, and `true` and between
 `no`,`off`, and `false`; these are not case-sensitive. Comments take an entire line, and
-begin with a hash.
+begin with a hash (`#`).
 
-Note that although each definition is referred to as a 'sensor', they actually
+Remember that although each definition is referred to as a 'sensor', they actually
 could more accurately be referred to as 'measurements'. For example, in the
 standard setup there are two definitions relating to the DHT22 sensor, because
 that particular physical sensor reads out both temperature and humidity.
 
-There are a number of sections within the file - each one defines a single 
+There are a number of sections within `sensors.cfg` - each one defines a single 
 measurement. The following fields are **mandatory** for every sensor
 (measurement) definition:
 + `filename` specifies the name of the Python script file for the sensor. No
@@ -425,7 +459,7 @@ module; this should be set to `analogue` for all analogue sensors.
 + `enabled` specifies whether or not the sensor is enabled.
 + `sensorName` specifies the short name for the sensor. This must be unique to
 this sensor. Do not include any spaces in this (use underscores if required).
-Note that some sensor names are determined in the relevant Python module file
+Note that some sensor names are determined automatically in the relevant Python module file
 (namely measurements from the DHT22 and BMP085 sensors).
 + `description` is a longer (one-sentance) description of the sensor.
 
@@ -447,19 +481,19 @@ include any spaces in this (use underscores if required).
   atmospheric pressure readings.
 
 
-## <a id="customOutput"></units>a>Defining Custom Output Plugins
+## <a id="customOutput"></a>Defining Custom Output Plugins
 Custom output plugins can be defined in the `cfg/outputs.cfg` file. Such an
 entry only tells the AirPi that an output module exists; you must still write
 the supporting Python code to actually output the data in the required format
-and to the required location. A template/example Python file can be found in
+and to the required location. A Python template/example can be found in
 the `docs` folder.
 
 Values in the `outputs.cfg` file do not need any quote marks around them.
 Strings may include spaces. There is equivalence between `yes`,`on`, and `true` and between
 `no`,`off`, and `false`; these are not case-sensitive. Comments take an entire line, and
-begin with a hash.
+begin with a hash (`#`).
 
-There are a number of sections within the file - each one defines a single
+There are a number of sections within `outputs.cfg` - each one defines a single
 output plugin. The following fields are **mandatory** for every output plugin
 definition:
 + `filename` specifies the name of the Python script file for the output
@@ -473,18 +507,18 @@ There are a number of other parameters which can be defined for each output
 plugin. These can be customised for each individual plugin and are therefore
 beyond the scope of this document.
 
-## <a id="customNotifications"></units>a>Defining Custom Notification Plugins
+## <a id="customNotifications"></a>Defining Custom Notification Plugins
 Custom notification plugins can be defined in the `cfg/notifications.cfg` file. Such an
 entry only tells the AirPi that an notification module exists; you must still write
-the supporting Python code to actually send the notification. A template/example
-Python file can be found in the `docs` folder.
+the supporting Python code to actually send the notification. A Python template/example
+can be found in the `docs` folder.
 
 Values in the `notifications.cfg` file do not need any quote marks around them.
 Strings may include spaces. There is equivalence between `yes`,`on`, and `true` and between
 `no`,`off`, and `false`; these are not case-sensitive. Comments take an entire line, and
-begin with a hash.
+begin with a hash (`#`).
 
-There are a number of sections within the file - each one defines a single
+There are a number of sections within `notifications.cfg` - each one defines a single
 notification plugin. The following fields are **mandatory** for every notification plugin
 definition:
 + `filename` specifies the name of the Python script file for the output
