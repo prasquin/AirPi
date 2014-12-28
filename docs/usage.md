@@ -35,15 +35,15 @@ PATH="/home/pi/AirPi:$PATH"
 
 ## <a id="overview"></a>Overview
 The AirPi software consists of four main parts:
-1.  "sensor" plugins define the sensors used to collect readings of individual
-    phenomena by the AirPi.
-1.  "output" plugins define how the information obtained from sensors should be
-    displayed on screen, saved to file, or posted to a web service.
-1.  "notification" plugins define how alerts should be sent if the AirPi experiences
-    an error.
-1.  The `airpictl.sh` shell script controls the starting and stopping of the AirPi,
-    and fits the sensor, output and notification information together into a single
-    system.
+* "sensor" plugins define the sensors used to collect readings of individual
+  phenomena by the AirPi.
+* "output" plugins define how the information obtained from sensors should be
+  displayed on screen, saved to file, or posted to a web service.
+* "notification" plugins define how alerts should be sent if the AirPi experiences
+  an error.
+* The `airpictl.sh` shell script controls the starting and stopping of the AirPi,
+  and fits the sensor, output and notification information together into a single
+  system.
 
 ## <a id="sampling"></a>Starting and Stopping Sampling
 The software is controlled using the script named `airpictl.sh`. It has three
