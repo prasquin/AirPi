@@ -246,7 +246,7 @@ class HTTP(output.Output):
     def output_metadata(self, metadata):
         return True
 
-    def output_data(self,dataPoints):
+    def output_data(self,dataPoints, sampletime):
         if self.docal == 1:
             dataPoints = self.cal.calibrate(dataPoints[:])
         if len(self.sensorIds) == 0:

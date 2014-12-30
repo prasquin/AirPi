@@ -11,7 +11,7 @@ class Thingspeak(output.Output):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkCal(params)
 
-    def output_data(self, dataPoints):
+    def output_data(self, dataPoints, sampletime):
         #TODO: Include GPS location data in this output
         """Output data.
 
@@ -22,6 +22,7 @@ class Thingspeak(output.Output):
         Args:
             self: self.
             dataPoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         """
         if self.docal == 1:

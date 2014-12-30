@@ -18,8 +18,8 @@ class MySensorClass(sensor.Sensor):
     # Parameters listed in requiredParams *MUST* be defined in sensors.cfg
     # Parameters listed in optionalParams can be defined in sensors.cfg if
     # appropriate, but are optional.
-    requiredData = ["measurement", "pinNumber"]
-    optionalData = ["unit","description"]
+    requiredData = ["firstparamhere", "secondparamhere"]
+    optionalData = ["xthparamhere","ythparamhere"]
 
     def __init__(self,data):
         """

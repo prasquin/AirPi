@@ -19,8 +19,8 @@ class MyNotificationClass(notification.Notification):
     # Parameters listed in requiredParams *MUST* be defined in notifications.cfg
     # Parameters listed in optionalParams can be defined in notifications.cfg if
     # appropriate, but are optional.
-    requiredParams = ["consumerkey", "consumersecret"]
-    optionalParams = []
+    requiredParams = ["firstparamhere", "secondparamhere"]
+    optionalParams = ["xthparamhere", "ythparamhere"]
     # Common params are defined in the parent "notification" Class
     commonParams = notification.Notification.commonParams
 

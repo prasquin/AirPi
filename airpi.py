@@ -19,6 +19,7 @@ sys.dont_write_bytecode = True
 import socket
 import RPi.GPIO as GPIO
 import ConfigParser
+import datetime
 import time
 import inspect
 import os
@@ -26,7 +27,6 @@ import signal
 import urllib2
 import logging
 from logging import handlers
-from datetime import datetime
 from math import isnan
 from sensors import sensor
 from outputs import output
@@ -834,7 +834,7 @@ def delay_start():
 
     """
     # First calculate the required delay length
-    now = datetime.now()
+    now = datetime.datetime.now()
     seconds = float(now.second + (now.microsecond / 1000000))
     delay = (60 - seconds)
     # Now account for any dummy runs (including if DUMMYRUN = 0)
@@ -948,6 +948,7 @@ def sample():
     msg = format_msg(msg, "info")
     print(msg)
     print("==========================================================")
+    global samples
     greenhaslit = False
     redhaslit = False
     lastupdated = 0
@@ -960,11 +961,16 @@ def sample():
     while True:
         try:
             curtime = time.time()
-            if (curtime - lastupdated) > (SETTINGS['SAMPLEFREQ'] - 0.01):
+            timesincelast = curtime - lastupdated
+            sampletime = None
+            if timesincelast > (SETTINGS['SAMPLEFREQ'] - 0.01):
+                if (timesincelast > (SETTINGS['SAMPLEFREQ'] + 0.02)) and (samples is not 0):
+                    print(format_msg("Can't keep up - requested sample frequency is too fast!", "warning"))
                 lastupdated = curtime
                 data = []
                 # Read the sensors
                 sensorsworking = True
+                sampletime = datetime.datetime.now()
                 for i in PLUGINSSENSORS:
                     datadict = {}
                     if i == gpsplugininstance:
@@ -1027,7 +1033,7 @@ def sample():
                         for i in PLUGINSOUTPUTS:
                             LOGGER.debug("Dataset to output to " + str(i) + ":")
                             LOGGER.debug(data)
-                            if i.output_data(data) == False:
+                            if i.output_data(data, sampletime) == False:
                                 outputsworking = False
                         # Record the outcome of outputting data
                         if outputsworking:
@@ -1071,14 +1077,13 @@ def sample():
                     if (SETTINGS['REDPIN'] and
                             SETTINGS['FAILLED'] != "constant"):
                         led_off(SETTINGS['REDPIN'])
-            global samples
-            samples += 1
-            if samples == SETTINGS['STOPAFTER']:
-                msg = "Reached requested number of samples - stopping run."
-                msg = format_msg(msg, 'sys')
-                print(msg)
-                LOGGER.info(msg)
-                stop_sampling(None, None)
+                samples += 1
+                if samples == SETTINGS['STOPAFTER']:
+                    msg = "Reached requested number of samples - stopping run."
+                    msg = format_msg(msg, 'sys')
+                    print(msg)
+                    LOGGER.info(msg)
+                    stop_sampling(None, None)
             try:
                 time.sleep(SETTINGS['SAMPLEFREQ'] - (time.time() - curtime))
             except KeyboardInterrupt:
@@ -1161,7 +1166,7 @@ def stop_sampling(dummy, _):
         sys.exit(1)
     led_off(SETTINGS['GREENPIN'])
     led_off(SETTINGS['REDPIN'])
-    timedelta = datetime.utcnow() - STARTTIME
+    timedelta = datetime.datetime.utcnow() - STARTTIME
     hours, remainder = divmod(timedelta.seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     msg = "This run lasted " + str(hours) + "h " + str(minutes) + "m "
@@ -1191,7 +1196,7 @@ if __name__ == '__main__':
     SETTINGS = set_settings()
     notificationsMade = {}
     samples = 0
-    STARTTIME = datetime.utcnow()
+    STARTTIME = datetime.datetime.utcnow()
 
     #Set up plugins
     PLUGINSSENSORS = set_up_sensors()

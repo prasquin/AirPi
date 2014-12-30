@@ -66,7 +66,7 @@ class Print(output.Output):
                 toprint += metadata['STOPAFTER']
             print(toprint)
 
-    def output_data(self, datapoints):
+    def output_data(self, datapoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration
@@ -81,6 +81,7 @@ class Print(output.Output):
         Args:
             self: self.
             datapoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         Returns:
             boolean True if data successfully printed to stdout.
@@ -89,7 +90,7 @@ class Print(output.Output):
         if self.docal == 1:
             datapoints = self.cal.calibrate(datapoints)
         if self.format == "csv":
-            theoutput = "\"" + time.strftime("%Y-%m-%d %H:%M:%S") + "\","
+            theoutput = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S,%f") + "\","
             for point in datapoints:
                 if point["name"] == "Location":
                     props = ["latitude",
@@ -104,7 +105,7 @@ class Print(output.Output):
             theoutput = theoutput[:-1]
             print(theoutput)
         else:
-            print("Time".ljust(17) + ": " + time.strftime("%Y-%m-%d %H:%M:%S"))
+            print("Time".ljust(17) + ": " + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f"))
             for point in datapoints:
                 if point["name"] == "Location":
                     print(self.format_output_gps("Loc - Latitude",

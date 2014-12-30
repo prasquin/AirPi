@@ -28,7 +28,7 @@ class Xively(output.Output):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkCal(params)
 
-    def output_data(self, dataPoints):
+    def output_data(self, dataPoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration is
@@ -42,6 +42,7 @@ class Xively(output.Output):
         Args:
             self: self.
             dataPoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         Returns:
             boolean True if output successfully. False if not.

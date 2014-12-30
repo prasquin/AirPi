@@ -21,8 +21,8 @@ class MyOutputClass(output.Output):
     # Parameters listed in requiredParams *MUST* be defined in outputs.cfg
     # Parameters listed in optionalParams can be defined in outputs.cfg if
     # appropriate, but are optional.
-    requiredParams = ["outputDir", "outputFile"]
-    optionalParams = ["calibration", "metadatareqd"]
+    requiredParams = ["firstparamhere", "secondparamhere"]
+    optionalParams = ["xthparamhere", "ythparamhere"]
 
     def __init__(self, params):
         """
@@ -47,23 +47,16 @@ class MyOutputClass(output.Output):
         if self.metadatareqd:
             # Output the metadata somehow.
 
-    def output_data(self, datapoints):
+    def output_data(self, datapoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration
         is carried out first if required.
-        Note this method takes account of the different data formats for
-        'standard' sensors as distinct from the GPS. The former present
-        a dict containing one value and associated properties such as
-        units and symbols, while the latter presents a dict containing
-        several readings such as latitude, longitude and altitude, but
-        no units or symbols.
-        Remember, one JSON object is output per datapoint, so the file
-        will contain lots of them (which isn't valid JSON).
 
         Args:
             self: self.
             datapoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         Returns:
             boolean True if data successfully written to file.

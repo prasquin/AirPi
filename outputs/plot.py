@@ -51,7 +51,7 @@ class Plot(output.Output):
         """
         return True
 
-    def output_data(self, datapoints):
+    def output_data(self, datapoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration

@@ -5,7 +5,7 @@ class Output(object):
     def __init__(self, params):
         raise NotImplementedError
 
-    def output_data(self, dataPoints):
+    def output_data(self, dataPoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration is
@@ -19,6 +19,7 @@ class Output(object):
         Args:
             self: self.
             dataPoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         """
         raise NotImplementedError

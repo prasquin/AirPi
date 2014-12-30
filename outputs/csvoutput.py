@@ -70,7 +70,7 @@ class CSVOutput(output.Output):
                 towrite += metadata['STOPAFTER'] + "\""
             self.file.write(towrite + "\n")
 
-    def output_data(self, datapoints):
+    def output_data(self, datapoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration is
@@ -84,6 +84,7 @@ class CSVOutput(output.Output):
         Args:
             self: self.
             datapoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         Returns:
             boolean True if data successfully written to file.

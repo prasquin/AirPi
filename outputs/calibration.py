@@ -100,7 +100,7 @@ class Calibration(output.Output):
         """
         return True
 
-    def output_data(self, dataPoints):
+    def output_data(self, dataPoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Even if it
@@ -112,6 +112,7 @@ class Calibration(output.Output):
         Args:
             self: self.
             dataPoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         """
         return True

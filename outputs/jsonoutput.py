@@ -78,7 +78,7 @@ class JSONOutput(output.Output):
                 towrite += metadata['STOPAFTER'] + "\""
             self.file.write(towrite + "}\n")
 
-    def output_data(self, datapoints):
+    def output_data(self, datapoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration
@@ -95,6 +95,7 @@ class JSONOutput(output.Output):
         Args:
             self: self.
             datapoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         Returns:
             boolean True if data successfully written to file.
@@ -103,7 +104,7 @@ class JSONOutput(output.Output):
         if self.docal == 1:
             datapoints = self.cal.calibrate(datapoints)
 
-        line = '{"Date and time":"' + str(datetime.datetime.now()) + '",'
+        line = '{"Date and time":"' + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f") + '",'
         line += '"Unix time":"' + str(time.time()) + '",'
         for point in datapoints:
             if point["name"] != "Location":

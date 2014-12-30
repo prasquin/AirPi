@@ -1,5 +1,7 @@
 """
 
+** This file is required to support the plot.py output for AirPi. **
+
 AP by Morgan Fouesneau:
 https://github.com/mfouesneau/asciiplot
 

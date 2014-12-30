@@ -29,7 +29,7 @@ class Dweet(output.Output):
         if "<hostname>" in self.thing:
             self.thing = self.thing.replace("<hostname>", self.getHostname())
 
-    def output_data(self, datapoints):
+    def output_data(self, datapoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration
@@ -40,6 +40,7 @@ class Dweet(output.Output):
         Args:
             self: self.
             datapoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         Returns:
             boolean True if data successfully output to dweet; False if
