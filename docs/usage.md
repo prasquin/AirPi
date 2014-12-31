@@ -338,7 +338,11 @@ Display information on an HTTP server created on the Raspberry Pi. This will
 usually output information at `http://127.0.0.1:8080`, but running the software
 with `help = on` in `cfg/settings.cfg` will display the network
 address.
-+ `wwwPath` 
++ `wwwPath` is the folder where web server files can be found. The default is
+  `www`, which works fine for most applications. If you are using the HTTP
+  plugin with the AirPi "bootstart" feature then you must declare `wwwPath` as
+  a full explicit path (*e.g.* `/home/myname/AirPi/www`). If you do not, AirPi
+  will assume that the full explicit path is `/home/pi/AirPi/www`.
 + `port` is the port number on which the website should be served. The default
   is 8080.
 + `history` specifies whether or not historical data should be stored / loaded.

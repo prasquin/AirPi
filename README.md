@@ -15,6 +15,12 @@ Scroll down for information on previous software versions.
 The following development has been carried out by 
 [Haydn Williams](http://github.com/haydnw/airpi):
 
+**31/12/2014:**
++ [FIX] HTTP output plugin now works correctly with bootstart. *N.B.* Full path
+        for `wwwPath` must be set explicitly in `cfg/outputs.cfg` in such cases.
+        If not, AirPi assumes `/home/pi/AirPi/www`.
++ Updates to `settings.cfg` for case of parameter names, and LED explanations.
+
 **30/12/2014:**
 + [NEW] Show warning if cannot sample quickly enough (*i.e.* sampling frequency
         is too short / fast).

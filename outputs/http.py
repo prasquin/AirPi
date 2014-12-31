@@ -44,8 +44,11 @@ class HTTP(output.Output):
 
     def __init__(self, params):
 
-        self.www = params["wwwPath"]
-
+        if os.path.exists(params["wwwPath"]):
+            self.www = params["wwwPath"]
+        else:
+            self.www = "/home/pi/AirPi/www"
+        
         if "port" in params:
             self.port = int(params["port"])
         else:
@@ -309,9 +312,11 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             page = pageFile.read()
             pageFile.close()
             response = 200
+            #print("Loading page: " + toread)
             lm = time.strftime('%a, %d %b %Y %H:%M:%S %Z', time.localtime(os.stat(toread).st_mtime))
         else:
-            page = "quoth the raven, 404"
+            page = "<a href=\"http://www.plinko.net/nevermore.htm\">quoth the raven, 404</a><br />"
+            page += "Unable to find page: " + toread
             response = 404
             lm = "Tue, 15 Nov 1994 12:45:26 GMT"
 
