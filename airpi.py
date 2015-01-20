@@ -305,6 +305,7 @@ def set_up_sensors():
                     # 'a' means nothing below, but argument must be non-null
                     LOGGER.info("Trying to import sensors." + filename)
                     mod = __import__('sensors.' + filename, fromlist=['a'])
+                    LOGGER.info("Successfully imported sensors." + filename)
                 except Exception as excep:
                     msg = "Could not import sensor module " + filename
                     msg = format_msg(msg, 'error')
