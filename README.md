@@ -15,6 +15,10 @@ Scroll down for information on previous software versions.
 The following development has been carried out by 
 [Haydn Williams](http://github.com/haydnw/airpi):
 
+**09/02/2015**
++ [NEW] Automated install script - just run `curl -s https://github.com/haydnw/AirPi/blob/development2/install.sh | sudo sh`
+        If you're worried about security, replace `sudo sh` with `more` to view the entire script in all its glory first.
+
 **31/12/2014:**
 + [FIX] HTTP output plugin now works correctly with bootstart. *N.B.* Full path
         for `wwwPath` must be set explicitly in `cfg/outputs.cfg` in such cases.
