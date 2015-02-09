@@ -20,14 +20,14 @@ header on the Raspberry Pi.
 
 At a terminal, run the following:
 ```shell
-curl -s https://github.com/haydnw/AirPi/blob/development2/install.sh | sudo sh
+curl -s https://raw.githubusercontent.com/haydnw/AirPi/development2/install.sh | sudo sh
 ```
 This will automatically run all of the steps required to get your AirPi up and running.
 If you're worried about running a script with superuser rights, then you can check
 the contents first either on [GitHub](https://github.com/haydnw/AirPi/blob/development2/install.sh)
 or by running:
 ```shell
-curl -s https://github.com/haydnw/AirPi/blob/development2/install.sh | more
+curl -s https://raw.githubusercontent.com/haydnw/AirPi/development2/install.sh | more
 ```
 Please do read the notes at the beginning of the installation, because the install
 script makes some assumptions about your system setup which may not necessarily
