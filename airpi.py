@@ -970,7 +970,7 @@ def sample():
                 lastupdated = curtime
                 data = []
                 # Read the sensors
-                sensorsworking = True
+                failedsensors = []
                 sampletime = datetime.datetime.now()
                 for i in PLUGINSSENSORS:
                     datadict = {}
@@ -982,7 +982,7 @@ def sample():
                         if (datadict["value"] is None or
                                 isnan(float(datadict["value"])) or
                                 datadict["value"] == 0):
-                            sensorsworking = False
+                            failedsensors.append(i.sensorName)
                     # Average the data if required
                     if (('AVERAGEFREQ' in SETTINGS) and
                             (i != gpsplugininstance)):
@@ -1002,20 +1002,20 @@ def sample():
                 # Record the outcome of reading sensors
                 if 'AVERAGEFREQ' in SETTINGS:
                     countcurrent += 1
-                if sensorsworking:
-                    msg = "Data obtained from all sensors."
-                    msg = format_msg(msg, 'success')
-                    LOGGER.info(msg)
-                else:
+                if failedsensors:
                     if not alreadysentsensornotifications:
                         for j in PLUGINSNOTIFICATIONS:
                             j.sendNotification("alertsensor")
                         alreadysentsensornotifications = True
-                    msg = "Failed to obtain data from all sensors."
+                    msg = "Failed to obtain data from these sensors: " + ", ".join(failedsensors)
                     msg = format_msg(msg, 'error')
                     LOGGER.error(msg)
                     if SETTINGS['PRINTERRORS']:
                         print(msg)
+                else:
+                    msg = "Data successfully obtained from all sensors."
+                    msg = format_msg(msg, 'success')
+                    LOGGER.info(msg)
 
                 # Output data
                 try:

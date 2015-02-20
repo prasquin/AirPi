@@ -16,6 +16,8 @@ The following development has been carried out by
 [Haydn Williams](http://github.com/haydnw/airpi):
 
 **20/02/2014**
++ [NEW] Print the name of sensors which fail to obtain data
+        (instead of generic "*something* failed").
 + [FIX] Time on HTTP graph x-axes now correct for most timezones
         (thanks to [tvoverbeek](http://www.timeanddate.com/time/zones/aedt)).
 
