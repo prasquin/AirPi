@@ -15,6 +15,10 @@ Scroll down for information on previous software versions.
 The following development has been carried out by 
 [Haydn Williams](http://github.com/haydnw/airpi):
 
+**20/02/2014**
++ [FIX] Time on HTTP graph x-axes now correct for most timezones
+        (thanks to [tvoverbeek](http://www.timeanddate.com/time/zones/aedt)).
+
 **09/02/2015**
 + [NEW] Automated install script - just run:
         `curl -s https://raw.githubusercontent.com/haydnw/AirPi/development2/install.sh | sudo sh`
