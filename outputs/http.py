@@ -203,7 +203,7 @@ class HTTP(output.Output):
     def recordData(self,dataPoints,now=0):
         t = numpy.zeros(len(self.sensorIds)+1)
         if now == 0:
-            t[0] = time.time()
+            t[0] = time.time() - time.timezone
         else:
             t[0] = now
 
