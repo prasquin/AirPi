@@ -15,6 +15,9 @@ Scroll down for information on previous software versions.
 The following development has been carried out by 
 [Haydn Williams](http://github.com/haydnw/airpi):
 
+**25/02/2015**
++ [NEW] Output to Ubidots (www.ubidots.com).
+
 **20/02/2014**
 + [NEW] Print the name of sensors which fail to obtain data
         (instead of generic "*something* failed").
