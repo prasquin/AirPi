@@ -83,12 +83,12 @@ class Ubidot(output.Output):
         try:
             req = requests.post(url, data=json.dumps(payload), headers=headers)
         except Exception, e:
-            print("ERROR: Failed to POST any values to Ubidots")
+            print("ERROR: Failed to contact the Ubidots service.")
             print("ERROR: " + str(e))
             return False
         for response in req.json():
             if response["status_code"] is not 201:
-                print("ERROR: Failed to POST this value to Ubidots.")
+                print("ERROR: Ubidots responded with an error for this value.")
                 return False
             else:
                 cost += 1

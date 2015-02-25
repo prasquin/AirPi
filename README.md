@@ -17,6 +17,7 @@ The following development has been carried out by
 
 **25/02/2015**
 + [NEW] Output to Ubidots (www.ubidots.com).
++ [FIX] More informative output regarding Dweet errors.
 
 **20/02/2014**
 + [NEW] Print the name of sensors which fail to obtain data

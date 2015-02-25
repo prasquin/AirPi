@@ -50,6 +50,7 @@ class Dweet(output.Output):
         if self.docal == 1:
             datapoints = self.cal.calibrate(datapoints)
         data = {}
+        req = None
         for point in datapoints:
             if point["name"] != "Location":
                 data[point["name"].replace(" ", "_")] = round(point["value"],
@@ -57,13 +58,14 @@ class Dweet(output.Output):
         try:
             req = requests.get("https://dweet.io/dweet/for/" + self.thing,
                                 params=data)
-            response = req.json()
-            if "succeeded" not in response['this']: 
-                print("Error: dweet.io error - " + req.text)
-                print("Error: dweet.io URL  - " + req.url)
-                return False
-        except Exception:
-            print("Error: Failed to dweet")
+        except Exception, e:
+            print("ERROR: Failed to contact the dweet service.")
+            print("ERROR: " + str(e))
+            return False
+        response = req.json()
+        if "succeeded" not in response['this']: 
+            print("ERROR: dweet.io responded with an error - " + req.text)
+            print("ERROR: dweet.io URL  - " + req.url)
             return False
         return True
 
