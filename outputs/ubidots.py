@@ -28,7 +28,7 @@ class Ubidot(output.Output):
                       "ID-BMP085-pres",
                       "ID-DHT22-hum",
                       "ID-DHT22-temp",
-                      "ID-LDR ",
+                      "ID-LDR",
                       "ID-TGS2600",
                       "ID-MiCS-2710",
                       "ID-MiCS-5525",
