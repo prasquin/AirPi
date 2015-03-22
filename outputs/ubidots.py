@@ -37,7 +37,7 @@ class Ubidot(output.Output):
 
     def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkCal(params)
+        self.docal = self.checkcal(params)
         self.token = params["token"]
         if "showcost" in params:
             self.showcost = params["showcost"]
@@ -48,16 +48,19 @@ class Ubidot(output.Output):
             if key[:3] == "ID-":
                 self.ubivariables[key[3:]] = value
 
-    def output_data(self, datapoints, sampletime):
+    def output_data(self, datapoints, dummy):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration
         is carried out first if required.
+        Because this particular plugin (ubidots) does not show time, the
+        third argument (normally called 'sampletime') is called 'dummy'
+        to facilitate compliance with pylint.
 
         Args:
             self: self.
             datapoints: A dict containing the data to be output.
-            sampletime: datetime representing the time the sample was taken.
+            dummy: datetime representing the time the sample was taken.
 
         Returns:
             boolean True if data successfully output to Ubidots; False if
@@ -96,23 +99,20 @@ class Ubidot(output.Output):
             print("Ubidots upload cost " + str(cost) + " dots.")
         return True
 
-    def output_metadata(self, metadata):
+    def output_metadata(self):
         """Output metadata.
 
         Output metadata for the run in the format stipulated by this
-        plugin. Metadata is set in airpi.py and then passed as a dict to
-        each plugin which wants to output it. Even if it is not
-        appropriate for the output plugin to output metadata, this
-        method is required because airpi.py looks for it in its own
-        output_metadata() method. In such cases, this method will simply
-        return boolean True.
+        plugin. This particular plugin cannot output metadata, so this
+        method will always return True. This is an abstract method of
+        the Output class, which this class inherits from; this means you
+        shouldn't (and can't) remove this method. See docs in the Output
+        class for more info.
 
         Args:
             self: self.
-            metadata: dict The metadata for the run.
 
         Returns:
             boolean True in all cases.
-
         """
         return True

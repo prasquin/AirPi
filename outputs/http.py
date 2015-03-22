@@ -34,13 +34,13 @@ class HTTP(output.Output):
     </div>
     <div id="collapse-$sensorId$" class="panel-collapse collapse">
         <div class="panel-body"><p>
-            Sensor: <em>$sensorName$</em><br/>
+            Sensor: <em>$sensorname$</em><br/>
             Description: <em>$sensorText$</em>
         </p></div>
     </div>
 </div>""";
 
-    rssItem = "<item><title>$sensorName$</title><description>$reading$ $units$</description></item>\n"
+    rssItem = "<item><title>$sensorname$</title><description>$reading$ $units$</description></item>\n"
 
     def __init__(self, params):
 
@@ -84,7 +84,7 @@ class HTTP(output.Output):
         else:
             self.historyCalibrated = 0
         
-        hostname = self.getHostname()
+        hostname = self.gethostname()
 
         if "title" in params:
             if "<hostname>" in params["title"]:
@@ -103,9 +103,9 @@ class HTTP(output.Output):
             self.about = "An AirPi weather station."
 
         self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkCal(params)
+        self.docal = self.checkcal(params)
         self.sensorIds = []
-        self.readingTypes = dict()
+        self.readingtypes = dict()
         self.historicData = []
         self.historicAt = 0
         self.tempHistory = []
@@ -131,7 +131,7 @@ class HTTP(output.Output):
     def createSensorIds(self,dataPoints):
         for i in dataPoints:
             self.sensorIds.append(i["sensor"]+" "+i["name"])
-            self.readingTypes[len(self.sensorIds)-1] = i["readingType"]
+            self.readingtypes[len(self.sensorIds)-1] = i["readingtype"]
         self.historicData = numpy.zeros([2, len(self.sensorIds)+1])
         self.tempHistory = numpy.zeros([2, len(self.sensorIds)])
 
@@ -175,7 +175,7 @@ class HTTP(output.Output):
                         sensor["sensor"] = r.group(1)
                         sensor["name"] = r.group(2)
                         sensor["symbol"] = r.group(3)
-                        sensor["readingType"] = r.group(4)
+                        sensor["readingtype"] = r.group(4)
                         data.append(sensor)
                     if len(self.historicData) == 0:
                         self.createSensorIds(data)
@@ -213,7 +213,7 @@ class HTTP(output.Output):
                 t[sid+1] = i["value"]
             else:
                 t[sid+1] = 0
-            self.readingTypes[sid] = i["readingType"] 
+            self.readingtypes[sid] = i["readingtype"] 
 
         # put the readings into temporary history for averaging
         self.tempHistory[self.tempHistoryAt] = t[1:]
@@ -229,9 +229,9 @@ class HTTP(output.Output):
 
         # take average reading etc
         for i, r in enumerate(self.tempHistory[0]):
-            if self.readingTypes[i] == "sample":
+            if self.readingtypes[i] == "sample":
                 t[i+1] = numpy.mean(self.tempHistory[:self.tempHistoryAt,i])
-            elif self.readingTypes[i] == "pulseCount":
+            elif self.readingtypes[i] == "pulseCount":
                 t[i+1] = numpy.sum(self.tempHistory[:self.tempHistoryAt,i])
         self.tempHistoryAt = 0 #reset
 
@@ -246,7 +246,22 @@ class HTTP(output.Output):
             self.historicData[0:self.historicAt-1,:] = self.historicData[1:self.historicAt,:]
             self.historicAt -= 1
 
-    def output_metadata(self, metadata):
+    def output_metadata(self):
+        """Output metadata.
+
+        Output metadata for the run in the format stipulated by this
+        plugin. This particular plugin cannot output metadata, so this
+        method will always return True. This is an abstract method of
+        the Output class, which this class inherits from; this means you
+        shouldn't (and can't) remove this method. See docs in the Output
+        class for more info.
+
+        Args:
+            self: self.
+
+        Returns:
+            boolean True in all cases.
+        """
         return True
 
     def output_data(self,dataPoints, sampletime):
@@ -335,7 +350,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
                     line = replace(line, "$reading$", 'None')
                 line = replace(line, "$units$", i["symbol"])
                 line = replace(line, "$sensorId$", str(self.server.httpoutput.getSensorId(i["sensor"]+" "+i["name"])))
-                line = replace(line, "$sensorName$", i["sensor"])
+                line = replace(line, "$sensorname$", i["sensor"])
                 line = replace(line, "$sensorText$", i["description"])
                 details += line
             if self.server.httpoutput.history != 0:
@@ -349,7 +364,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             page = replace(page, "$time$", self.server.httpoutput.lastUpdate)
             items = ''
             for i in self.server.httpoutput.data:
-                line = replace(self.server.httpoutput.rssItem, "$sensorName$", i["name"])
+                line = replace(self.server.httpoutput.rssItem, "$sensorname$", i["name"])
                 if i["value"] != None:
                     line = replace(line, "$reading$", str(round(i["value"], 2)))
                 else:
@@ -360,7 +375,7 @@ class requestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         elif graph > 0 and response == 200 and self.server.httpoutput.history != 0:
             x = self.server.httpoutput.historicData[0:self.server.httpoutput.historicAt,0]
             y = self.server.httpoutput.historicData[0:self.server.httpoutput.historicAt,graph]
-            if self.server.httpoutput.readingTypes[graph-1] == "pulseCount":
+            if self.server.httpoutput.readingtypes[graph-1] == "pulseCount":
                 y = numpy.cumsum(y)
             data = ''
             for index, item in enumerate(x):

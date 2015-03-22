@@ -94,43 +94,31 @@ class RRDOutput(output.Output):
                 params["outputFile"].replace("<date>", filenamedate)
         if "<hostname>" in params["outputFile"]:
             params["outputFile"] = \
-                params["outputFile"].replace("<hostname>", self.getHostname())
+                params["outputFile"].replace("<hostname>", self.gethostname())
         # open the file persistently for append
         self.filename = params["outputDir"] + "/" + params["outputFile"]
         #self.file = open(self.filename, "a")
         self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkCal(params)
+        self.docal = self.checkcal(params)
         self.metadatareqd = params["metadatareqd"]
 
-    def output_metadata(self, metadata):
+    def output_metadata(self):
         """Output metadata.
 
         Output metadata for the run in the format stipulated by this
-        plugin. Metadata is set in airpi.py and then passed as a dict to
-        each plugin which wants to output it.
+        plugin. This particular plugin cannot output metadata, so this
+        method will always return True. This is an abstract method of
+        the Output class, which this class inherits from; this means you
+        shouldn't (and can't) remove this method. See docs in the Output
+        class for more info.
 
         Args:
             self: self.
-            metadata: dict The metadata for the run.
 
+        Returns:
+            boolean True in all cases.
         """
-        if self.metadatareqd:
-            towrite = "{\"Run started\":\"" + metadata['STARTTIME'] + "\""
-            towrite += "\n,\"Operator\":\"" + metadata['OPERATOR'] + "\""
-            towrite += "\n,\"Raspberry Pi name\":\"" + metadata['PINAME'] + "\""
-            towrite += "\n,\"Raspberry Pi ID\":\"" +  metadata['PIID'] + "\""
-            towrite += "\n,\"Sampling frequency\":\"" \
-                + metadata['SAMPLEFREQ'] + "\""
-            if 'AVERAGEFREQ' in metadata:
-                towrite += "\n,\"Averaging frequency\":\""
-                towrite += metadata['AVERAGEFREQ'] + "\""
-            if 'DUMMYDURATION' in metadata:
-                towrite += "\n,\"Initialising runs\":\""
-                towrite += metadata['DUMMYDURATION'] + "\""
-            if 'STOPAFTER' in metadata:
-                towrite += "\n,\"Stopping after\":\""
-                towrite += metadata['STOPAFTER'] + "\""
-            self.file.write(towrite + "}\n")
+        return True
 
     def output_data(self, datapoints, sampletime):
         """Output data.

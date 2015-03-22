@@ -27,16 +27,16 @@ class MySensorClass(sensor.Sensor):
 
         Any initialisation code goes here.
         """
-        self.readingType = "sample"
-        self.pinNum = int(data["pinNumber"])
-        self.sensorName = "ABC123"
-        self.valName = "Gas-I-Measure"
-        self.valUnit = "Parts Per Million"
-        self.valSymbol = "ppm"
+        self.readingtype = "sample"
+        self.pinnum = int(data["pinnumber"])
+        self.sensorname = "ABC123"
+        self.valname = "Gas-I-Measure"
+        self.valunit = "Parts Per Million"
+        self.valsymbol = "ppm"
         self.description = "An ABC123 sensor which measures a gas."
         return
 
-    def getVal(self):
+    def getval(self):
         """Get the current sensor value.
 
         Get the current sensor value.
@@ -49,7 +49,7 @@ class MySensorClass(sensor.Sensor):
 
         """
         try:
-            # temp = getValueSomehow()
+            # temp = getvalueSomehow()
         except TypeError as terr:
             # This will be thrown if the sensor fails to read,
             # and so 'temp' has type 'None'. That usually

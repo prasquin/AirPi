@@ -46,7 +46,7 @@ class MyNotificationClass(notification.Notification):
         else:
             self.msgdata = "Something interesting has happened with AirPi " + hostname + ". You'd better come see this..."
 
-    def sendNotification(self, event):
+    def sendnotification(self, event):
         """Send a notification.
 
         Send an AirPi notification.

@@ -25,7 +25,7 @@ class SMS(notification.Notification):
 
         """
 
-	hostname = self.getHostname()
+    hostname = self.gethostname()
 
         # Set messages
         if "msgalertsensor" in params:
@@ -56,7 +56,7 @@ class SMS(notification.Notification):
         # Warn user this will cost money!
         print("Info: SMS notifications enabled. Data costs will be incurred.")
 
-    def sendNotification(self, event):
+    def sendnotification(self, event):
         """Send an SMS notification.
 
         Send an SMS notification.

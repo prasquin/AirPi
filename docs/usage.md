@@ -185,7 +185,7 @@ defining custom sensors, see the [Defining Custom Sensors](#customSensors)
 section of this file.
 
 Values in the file do not need any quote marks around them. Strings may include
-spaces (except for `sensorName` and `measurement`). There is equivalence
+spaces (except for `sensorname` and `measurement`). There is equivalence
 between `yes`,`on`, and `true` and between `no`,`off`, and `false`;
 these are not case-sensitive. Comments take an entire line, and begin with a
 hash (`#`).
@@ -475,7 +475,7 @@ measurement. The following fields are **mandatory** for every sensor
 file extension or path details are required. All analogue sensors use the same
 module; this should be set to `analogue` for all analogue sensors.
 + `enabled` specifies whether or not the sensor is enabled.
-+ `sensorName` specifies the short name for the sensor. This must be unique to
++ `sensorname` specifies the short name for the sensor. This must be unique to
 this sensor. Do not include any spaces in this (use underscores if required).
 Note that some sensor names are determined automatically in the relevant Python module file
 (namely measurements from the DHT22 and BMP085 sensors).
@@ -484,13 +484,13 @@ Note that some sensor names are determined automatically in the relevant Python 
 The following fields may be required for some sensor definitions, but not all:
 + `measurement` specifies the phenomenon which the sensor measures. Do not
 include any spaces in this (use underscores if required).
-+ `adcPin` specifies the ADC pin to which an analogue sensor is connected.
-+ `pullDownResistance` specifies the value of the pull-down resistor used with
++ `adcpin` specifies the ADC pin to which an analogue sensor is connected.
++ `pulldownResistance` specifies the value of the pull-down resistor used with
   the sensor.
-+ `pullUpResistance` specifies the value of the pull-up resistor used with the
++ `pullupResistance` specifies the value of the pull-up resistor used with the
   sensor.
-+ `pinNumber` specifies the GPIO pin which a sensor is connected to.
-+ `sensorVoltage` specifies the voltage at which the sensor is running.
++ `pinnumber` specifies the GPIO pin which a sensor is connected to.
++ `sensorvoltage` specifies the voltage at which the sensor is running.
 + `i2cbus` specifies the port number for the i2c bus (`0` for first version
   Raspberry Pi, `1` for subsequent revisions).
 + `mslp` specifies whether Mean Sea Level Pressure should be returned instead

@@ -45,14 +45,37 @@ def format_msg(msg, msgtype):
     Format messages in a consistent format for display to the user, or
     for recording in the LOGGER.
 
+    Args:
+        msg: The message to be formatted.
+        msgtype: The type of message represented by msg.
+
+    Returns:
+        The formatted string.
+
     """
-    msgtypes = ['error', 'warning']
+    msgtypes = ['error', 'warning', 'info']
     if msgtype in msgtypes:
         return(msgtype.upper() + ":").ljust(8, ' ') + " " + msg
     elif msgtype is 'sys':
         return("[AirPi] " + msg)
     else:
         return(msgtype.title() + ":").ljust(8, ' ') + " " + msg
+
+def logthis(kind, msg):
+    """ Add spaces to align debug output.
+
+    Add spaces to LOGGER messages, so that debug output is nicely
+    aligned and therefore more readable.
+
+    Args:
+        kind: The kind of message to be processed.
+        msg: The message to be processed.
+
+    """
+    if kind == "debug" or kind == "error":
+        LOGGER.debug(" " + msg)
+    else:
+        LOGGER.info("  " + msg)
 
 def get_subclasses(mod, cls):
     """Load subclasses for a module.
@@ -221,11 +244,11 @@ def check_cfg_file(filetocheck):
     if not os.path.isfile(filetocheck):
         msg = "Unable to access config file: " + filetocheck
         print(msg)
-        LOGGER.error(msg)
+        logthis("error", msg)
         exit(1)
     else:
         msg = "Config file: " + filetocheck
-        LOGGER.info(msg)
+        logthis("info", msg)
         return True
 
 def any_plugins_enabled(plugins, plugintype):
@@ -245,7 +268,7 @@ def any_plugins_enabled(plugins, plugintype):
         msg = "There are no " + plugintype + " plugins enabled!"
         msg += " Please enable at least one and try again."
         print(msg)
-        LOGGER.error(msg)
+        logthis("error", msg)
         sys.exit(1)
     else:
         return True
@@ -271,7 +294,7 @@ def set_up_sensors():
     SENSORCONFIG = ConfigParser.SafeConfigParser()
     SENSORCONFIG.read(CFGPATHS['sensors'])
 
-    SENSORNAMES = SENSORCONFIG.sections()
+    sensornameS = SENSORCONFIG.sections()
 
     sensorplugins = []
 
@@ -283,7 +306,7 @@ def set_up_sensors():
             # See if the plugin is enabled
             try:
                 enabled = SENSORCONFIG.getboolean(i, "enabled")
-                LOGGER.info(str(i) + " requested: " + str(enabled))
+                logthis("info", str(i) + " requested: " + str(enabled))
             except Exception as excep:
                 enabled = True
 
@@ -292,25 +315,25 @@ def set_up_sensors():
 
                 try:
                     filename = SENSORCONFIG.get(i, "filename")
-                    LOGGER.info("filename is " + filename)
+                    logthis("info", "Filename is: " + filename)
                 except Exception:
                     msg = "No filename config option found for sensor plugin "
                     msg += str(i)
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                     raise
 
                 try:
                     # 'a' means nothing below, but argument must be non-null
-                    LOGGER.info("Trying to import sensors." + filename)
+                    logthis("info", "Trying to import sensors." + filename)
                     mod = __import__('sensors.' + filename, fromlist=['a'])
-                    LOGGER.info("Successfully imported sensors." + filename)
+                    logthis("info", "Successfully imported sensors." + filename)
                 except Exception as excep:
                     msg = "Could not import sensor module " + filename
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                     raise
 
                 try:
@@ -322,7 +345,7 @@ def set_up_sensors():
                     msg += " module " + filename
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                     raise
 
                 try:
@@ -342,34 +365,34 @@ def set_up_sensors():
                 try:
                     instclass = sensorclass(plugindata)
                 except Exception:
-                    msg = "GPS instance not created - socket not set up?"
+                    msg = " GPS instance not created - socket not set up?"
                     msg = format_msg(msg, 'error')
                     LOGGER.error(msg)
                     raise
 
-                # Check for a getVal() method
-                if callable(getattr(instclass, "getVal", None)):
+                # Check for a getval() method
+                if callable(getattr(instclass, "getval", None)):
                     sensorplugins.append(instclass)
                     # Store sensorplugins array length for GPS plugin
                     if "serial_gps" in filename:
                         global gpsplugininstance
                         gpsplugininstance = instclass
-                    msg = "Loaded sensor plugin  " + str(i)
+                    msg = "Loaded sensor plugin " + str(i)
                     msg = format_msg(msg, 'success')
                     print(msg)
-                    LOGGER.info(msg)
                 else:
-                    msg = "Loaded support plugin " + str(i)
+                    msg = "Loaded sensor support plugin " + str(i)
                     msg = format_msg(msg, 'success')
                     print(msg)
-                    LOGGER.info(msg)
         except Exception as excep:
             # TODO: add specific exception for missing module
             msg = "Did not import sensor plugin " + str(i) + ": " + str(excep)
             msg = format_msg(msg, 'error')
             print(msg)
-            LOGGER.error(msg)
             continue
+
+        LOGGER.info("*******************")
+
 
     if any_plugins_enabled(sensorplugins, 'sensor'):
         return sensorplugins
@@ -408,27 +431,39 @@ def set_up_outputs():
                 msg += str(i)
                 msg = format_msg(msg, 'error')
                 print(msg)
-                LOGGER.error(msg)
+                logthis("error", msg)
                 raise
             try:
                 enabled = OUTPUTCONFIG.getboolean(i, "enabled")
             except Exception:
                 enabled = True
 
+            try:
+                support = OUTPUTCONFIG.getboolean(i, "support")
+            except Exception:
+                support = False
+
             #if enabled, load the plugin
-            if enabled:
+            if enabled and not support:
                 try:
                     # 'a' means nothing below, but argument must be non-null
+                    
                     mod = __import__('outputs.' + filename, fromlist=['a'])
+                    msg = "Successfully imported output module: " + filename
+                    msg = format_msg(msg, 'success')
+                    logthis("info", msg)
                 except Exception:
                     msg = "Could not import output module " + filename
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                     raise
 
                 try:
                     outputclass = get_subclasses(mod, output.Output)
+                    msg = "Successfully got subclasses for " + filename
+                    msg = format_msg(msg, 'success')
+                    logthis("info", msg)
                     if outputclass == None:
                         raise AttributeError
                 except Exception:
@@ -436,7 +471,7 @@ def set_up_outputs():
                     msg += " module " + filename
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                     raise
 
                 try:
@@ -444,11 +479,14 @@ def set_up_outputs():
                 except Exception:
                     reqd = []
                 try:
-                    opt = outputclass.optionalParams
+                    if outputclass.optionalParams is None:
+                        opt = []
+                    else:
+                        opt = outputclass.optionalParams
                 except Exception:
                     opt = []
                 # Output plugins don't have any common params so this is empty
-                common = []
+                common = None
 
                 plugindata = define_plugin_params(OUTPUTCONFIG,
                                 i, reqd, opt, common)
@@ -460,10 +498,28 @@ def set_up_outputs():
                     msg += " because no internet connectivity."
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    LOGGER.info(msg)
+                    logthis("info", msg)
                 else:
-                    instclass = outputclass(plugindata)
+                    try:
+                        #limitsreqd = OUTPUTCONFIG.getboolean(i, "limits")
+                        limitsreqd = True
+                    except Exception:
+                        limitsreqd = False
+                    if limitsreqd:
+                        # TODO: Make one instance of limits and pass it to
+                        #       every output plugin which needs it, instead
+                        #       of one instance of limits every time.
+                        mod = __import__('outputs.limits', fromlist=['a'])
+                        limitclass = get_subclasses(mod, output.Output)
+                        thelimits = limitclass(dict(OUTPUTCONFIG.items('Limits')))
+                        instclass = outputclass(plugindata, thelimits)
+                    else:
+                        instclass = outputclass(plugindata)
+                    
                     instclass.async = plugindata['async']
+                    msg = "Successfully set instclass for " + filename
+                    msg = format_msg(msg, 'success')
+                    logthis("info", msg)
 
                     # check for an output_data function
                     if callable(getattr(instclass, "output_data", None)):
@@ -471,18 +527,16 @@ def set_up_outputs():
                         msg = "Loaded output plugin " + str(i)
                         msg = format_msg(msg, 'success')
                         print(msg)
-                        LOGGER.info(msg)
                     else:
-                        msg = "Loaded support plugin " + str(i)
+                        msg = "Loaded output support plugin " + str(i)
                         msg = format_msg(msg, 'success')
                         print(msg)
-                        LOGGER.info(msg)
+                    LOGGER.info("*******************")
 
         except Exception as excep: #add specific exception for missing module
             msg = "Did not import output plugin " + str(i) + ": " + str(excep)
             msg = format_msg(msg, 'error')
             print(msg)
-            LOGGER.error(msg)
             raise excep
 
     if any_plugins_enabled(outputplugins, 'output'):
@@ -508,7 +562,7 @@ def fix_duplicate_outputs(plugins):
     plotenabled = False
     plotindex = 0
     for plugin in plugins:
-        name = plugin.get_name()
+        name = plugin.getname()
         if name is 'Plot':
             plotenabled = True
         if name is 'Print':
@@ -539,9 +593,9 @@ def define_plugin_params(config, name, reqd, opt, common):
     parameters are normally defined in the plugin Class.
 
     Args:
-        outputconfig: The configparser containing the parameters defined
-                      by the user.
-        outputname: The name of the plugin defined in the config file.
+        config: The configparser containing the parameters defined by
+                the user.
+        name: The name of the plugin defined in the config file.
         reqd: List of parameters required by the plugin.
         opt: List of parameters considered optional for the plugin.
         common: List of parameters which are common across all plugins.
@@ -550,26 +604,33 @@ def define_plugin_params(config, name, reqd, opt, common):
         dict A dict containing the various parameters.
 
     """
+    LOGGER.debug(" Defining plugin params for " + name)
+    LOGGER.debug(" - reqd:   " + str(reqd))
+    LOGGER.debug(" - opt:    " + str(opt))
+    LOGGER.debug(" - common: " + str(common))
     params = {}
-    for reqdfield in reqd:
-        if config.has_option(name, reqdfield):
-            params[reqdfield] = config.get(name, reqdfield)
-        else:
-            msg = "Missing required field '" + reqdfield
-            msg += "' for plugin " + name + "."
-            print(msg)
-            LOGGER.error(msg)
-            msg += "This should be found in file: " + CFGPATHS['outputs']
-            msg = format_msg(msg, 'error')
-            print(msg)
-            LOGGER.error(msg)
-            raise MissingField
-    for optfield in opt:
-        if config.has_option(name, optfield):
-            params[optfield] = config.get(name, optfield)
-    for commonfield in common:
-        if config.has_option("Common", commonfield):
-            params[commonfield] = config.get("Common", commonfield)
+    if reqd:
+        for reqdfield in reqd:
+            if config.has_option(name, reqdfield):
+                params[reqdfield] = config.get(name, reqdfield)
+            else:
+                msg = "Missing required field '" + reqdfield
+                msg += "' for plugin " + name + "."
+                print(msg)
+                logthis("error", msg)
+                msg += "This should be found in file: " + CFGPATHS['outputs']
+                msg = format_msg(msg, 'error')
+                print(msg)
+                logthis("error", msg)
+                raise MissingField
+    if opt:
+        for optfield in opt:
+            if config.has_option(name, optfield):
+                params[optfield] = config.get(name, optfield)
+    if common:
+        for commonfield in common:
+            if config.has_option("Common", commonfield):
+                params[commonfield] = config.get("Common", commonfield)
 
     # Only applies to output plugins
     if (config.has_option(name, "metadatareqd") and
@@ -582,7 +643,8 @@ def define_plugin_params(config, name, reqd, opt, common):
         params['async'] = config.getboolean(name, "async")
     else:
         params['async'] = False
-
+    LOGGER.debug(" Final combined params to be used to create " + name + " instance are:")
+    LOGGER.debug(" " + str(params))
     return params
 
 def set_up_notifications():
@@ -622,7 +684,7 @@ def set_up_notifications():
                 msg += str(i)
                 msg = format_msg(msg, 'error')
                 print(msg)
-                LOGGER.error(msg)
+                logthis("error", msg)
                 raise
             try:
                 enabled = NOTIFICATIONCONFIG.getboolean(i, "enabled")
@@ -639,7 +701,7 @@ def set_up_notifications():
                     msg = "Could not import notification module " + filename
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                     raise
 
                 try:
@@ -652,7 +714,7 @@ def set_up_notifications():
                     msg += " notification.Notification in module " + filename
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                     raise
                 try:
                     reqd = notificationclass.requiredParams
@@ -677,31 +739,31 @@ def set_up_notifications():
                         msg += " because no internet connectivity."
                         msg = format_msg(msg, 'error')
                         print(msg)
-                        LOGGER.info(msg)
+                        logthis("info", msg)
                     else:
                         instclass = notificationclass(plugindata)
                         instclass.async = plugindata['async']
 
-                    # check for a sendNotification function
-                    if callable(getattr(instclass, "sendNotification", None)):
+                    # check for a sendnotification function
+                    if callable(getattr(instclass, "sendnotification", None)):
                         notificationPlugins.append(instclass)
                         msg = "Loaded notification plugin " + str(i)
                         msg = format_msg(msg, 'success')
                         print(msg)
-                        LOGGER.info(msg)
+                        logthis("info", msg)
                     else:
-                        msg = "No callable sendNotification() function"
+                        msg = "No callable sendnotification() function"
                         msg += " for notification plugin " + str(i)
                         msg = format_msg(msg, 'error')
                         print(msg)
-                        LOGGER.info(msg)
+                        logthis("info", msg)
 
         except Exception as excep:
             msg = "Did not import notification plugin " + str(i) + ": "
             msg += str(excep)
             msg = format_msg(msg, 'error')
             print(msg)
-            LOGGER.error(msg)
+            logthis("error", msg)
             raise excep
 
     # Don't run any_plugins_enabled() here, because it's OK to NOT have any
@@ -710,7 +772,6 @@ def set_up_notifications():
         msg = "No Notifications enabled."
         msg = format_msg(msg, 'info')
         print(msg)
-        LOGGER.info(msg)
     return notificationPlugins
 
 def set_settings():
@@ -748,7 +809,7 @@ def set_settings():
                     msg = "averageFreq must be a least twice sampleFreq."
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                     sys.exit(1)
                 else:
                     settingslist['AVERAGECOUNT'] = averagecount
@@ -874,7 +935,6 @@ def dummy_runs(dummyduration):
     msg = "Doing initialising runs for " + str(dummyduration) + " seconds."
     msg = format_msg(msg, 'info')
     print(msg)
-    LOGGER.info(msg)
     startdummy = time.time()
     diff = 0
     while diff < dummyduration:
@@ -900,13 +960,13 @@ def read_sensor(sensorplugin):
 
     """
     reading = {}
-    reading["value"] = sensorplugin.getVal()
-    reading["unit"] = sensorplugin.valUnit
-    reading["symbol"] = sensorplugin.valSymbol
-    reading["name"] = sensorplugin.valName
-    reading["sensor"] = sensorplugin.sensorName
+    reading["value"] = sensorplugin.getval()
+    reading["unit"] = sensorplugin.valunit
+    reading["symbol"] = sensorplugin.valsymbol
+    reading["name"] = sensorplugin.valname
+    reading["sensor"] = sensorplugin.sensorname
     reading["description"] = sensorplugin.description
-    reading["readingType"] = sensorplugin.readingType
+    reading["readingtype"] = sensorplugin.readingtype
     return reading
 
 def read_gps(sensorplugin):
@@ -924,16 +984,16 @@ def read_gps(sensorplugin):
 
     """
     reading = {}
-    val = sensorplugin.getVal()
-    LOGGER.debug("GPS output %s" % (val,))
+    val = sensorplugin.getval()
+    LOGGER.debug(" GPS output %s" % (val,))
     reading["latitude"] = val[0]
     reading["longitude"] = val[1]
     if not isnan(val[2]):
         reading["altitude"] = val[2]
     reading["disposition"] = val[3]
     reading["exposure"] = val[4]
-    reading["name"] = sensorplugin.valName
-    reading["sensor"] = sensorplugin.sensorName
+    reading["name"] = sensorplugin.valname
+    reading["sensor"] = sensorplugin.sensorname
     return reading
 
 def sample():
@@ -982,7 +1042,7 @@ def sample():
                         if (datadict["value"] is None or
                                 isnan(float(datadict["value"])) or
                                 datadict["value"] == 0):
-                            failedsensors.append(i.sensorName)
+                            failedsensors.append(i.sensorname)
                     # Average the data if required
                     if (('AVERAGEFREQ' in SETTINGS) and
                             (i != gpsplugininstance)):
@@ -1005,17 +1065,17 @@ def sample():
                 if failedsensors:
                     if not alreadysentsensornotifications:
                         for j in PLUGINSNOTIFICATIONS:
-                            j.sendNotification("alertsensor")
+                            j.sendnotification("alertsensor")
                         alreadysentsensornotifications = True
                     msg = "Failed to obtain data from these sensors: " + ", ".join(failedsensors)
                     msg = format_msg(msg, 'error')
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                     if SETTINGS['PRINTERRORS']:
                         print(msg)
                 else:
                     msg = "Data successfully obtained from all sensors."
                     msg = format_msg(msg, 'success')
-                    LOGGER.info(msg)
+                    logthis("info", msg)
 
                 # Output data
                 try:
@@ -1032,15 +1092,15 @@ def sample():
                         # Output the data
                         outputsworking = True
                         for i in PLUGINSOUTPUTS:
-                            LOGGER.debug("Dataset to output to " + str(i) + ":")
-                            LOGGER.debug(data)
+                            LOGGER.debug(" Dataset to output to " + str(i) + ":")
+                            LOGGER.debug(" " + str(data))
                             if i.output_data(data, sampletime) == False:
                                 outputsworking = False
                         # Record the outcome of outputting data
                         if outputsworking:
                             msg = "Data output in all requested formats."
                             msg = format_msg(msg, 'success')
-                            LOGGER.info(msg)
+                            logthis("info", msg)
                             if (SETTINGS['GREENPIN'] and
                                     (SETTINGS['SUCCESSLED'] == "all" or
                                     (SETTINGS['SUCCESSLED'] == "first" and
@@ -1050,11 +1110,11 @@ def sample():
                         else:
                             if not alreadysentoutputnotifications:
                                 for j in PLUGINSNOTIFICATIONS:
-                                    j.sendNotification("alertoutput")
+                                    j.sendnotification("alertoutput")
                                 alreadysentoutputnotifications = True
                             msg = "Failed to output in all requested formats."
                             msg = format_msg(msg, 'error')
-                            LOGGER.error(msg)
+                            logthis("error", msg)
                             if SETTINGS['PRINTERRORS']:
                                 print(msg)
                             if (SETTINGS['REDPIN'] and
@@ -1069,7 +1129,7 @@ def sample():
                 except Exception as excep:
                     msg = "Exception during output: %s" % excep
                     msg = format_msg(msg, 'error')
-                    LOGGER.error(msg)
+                    logthis("error", msg)
                 else:
                     # Delay before turning off LED
                     time.sleep(1)
@@ -1083,7 +1143,7 @@ def sample():
                     msg = "Reached requested number of samples - stopping run."
                     msg = format_msg(msg, 'sys')
                     print(msg)
-                    LOGGER.info(msg)
+                    logthis("info", msg)
                     stop_sampling(None, None)
             try:
                 time.sleep(SETTINGS['SAMPLEFREQ'] - (time.time() - curtime))
@@ -1128,7 +1188,7 @@ def average_dataset(identifier, dataset):
     # For each identifier, divide the sum by the number of samples
     for identifier, total in totals.iteritems():
         dataset[identifier]['value'] = total / numberofsamples[identifier]
-        dataset[identifier]['readingType'] = "average"
+        dataset[identifier]['readingtype'] = "average"
     # Re-format to that expected by output_data() methods of the output
     # plugins
     formatted = []
@@ -1156,10 +1216,10 @@ def stop_sampling(dummy, _):
     msg = "Sampling stopping..."
     msg = format_msg(msg, 'sys')
     print(msg)
-    LOGGER.info(msg)
+    logthis("info", msg)
     try:
         if gpsplugininstance:
-            gpsplugininstance.stopController()
+            gpsplugininstance.stopcontroller()
     except NameError:
         # If GPS socket isn't set, gpsplugininstance won't exist. It
         # raises it's own error and quits before here, but quit again
@@ -1174,11 +1234,11 @@ def stop_sampling(dummy, _):
     msg += str(seconds)  + "s, and consisted of " + str(samples) + " samples."
     msg = format_msg(msg, 'sys')
     print(msg)
-    LOGGER.info(msg)
+    logthis("info", msg)
     msg = "Sampling stopped."
     msg = format_msg(msg, 'sys')
     print(msg)
-    LOGGER.info(msg)
+    logthis("info", msg)
     sys.exit(1)
 
 if __name__ == '__main__':

@@ -7,7 +7,6 @@ along with metadata (again, if present).
 """
 
 import output
-import datetime
 import time
 import calibration
 
@@ -30,14 +29,14 @@ class CSVOutput(output.Output):
                 params["outputFile"].replace("<date>", filenamedate)
         if "<hostname>" in params["outputFile"]:
             params["outputFile"] = \
-                params["outputFile"].replace("<hostname>", self.getHostname())
+                params["outputFile"].replace("<hostname>", self.gethostname())
         # open the file persistently for append
         filename = params["outputDir"] + "/" + params["outputFile"]
         self.file = open(filename, "a")
         # write a header line so we know which sensor is which?
         self.header = False
         self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkCal(params)
+        self.docal = self.checkcal(params)
         self.metadatareqd = params["metadatareqd"]
 
     def output_metadata(self, metadata):
@@ -95,8 +94,8 @@ class CSVOutput(output.Output):
 
         if self.header == False:
             header = "\"Date and time\",\"Unix time\""
-            
-        line = "\"" + str(datetime.datetime.now()) + "\"," + str(time.time())
+
+        line = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S,%f") + "\"," + sampletime
 
         for point in datapoints:
             if point["name"] != "Location":
@@ -105,7 +104,7 @@ class CSVOutput(output.Output):
                         point["sensor"],
                         point["name"],
                         point["symbol"],
-                        point["readingType"])
+                        point["readingtype"])
                 line += "," + str(point["value"])
             else:
                 if self.header == False:

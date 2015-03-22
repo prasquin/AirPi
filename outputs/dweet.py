@@ -4,6 +4,10 @@ A module which is used to output data from an AirPi to the 'dweet'
 service at http://dweet.io  This does not include GPS data or metadata,
 because dweet has no way of representing those data.
 
+Note that this module does not output metadata (dweet has no way of
+representing it), so the output_metadata() method is inherited from the
+parent class (Output), i.e. always returns True.
+
 """
 
 import output
@@ -24,12 +28,12 @@ class Dweet(output.Output):
 
     def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkCal(params)
+        self.docal = self.checkcal(params)
         self.thing = params["thing"]
         if "<hostname>" in self.thing:
-            self.thing = self.thing.replace("<hostname>", self.getHostname())
+            self.thing = self.thing.replace("<hostname>", self.gethostname())
 
-    def output_data(self, datapoints, sampletime):
+    def output_data(self, datapoints):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration
@@ -40,7 +44,6 @@ class Dweet(output.Output):
         Args:
             self: self.
             datapoints: A dict containing the data to be output.
-            sampletime: datetime representing the time the sample was taken.
 
         Returns:
             boolean True if data successfully output to dweet; False if
@@ -58,35 +61,32 @@ class Dweet(output.Output):
         try:
             req = requests.get("https://dweet.io/dweet/for/" + self.thing,
                                 params=data)
-        except Exception, e:
+        except Exception as e:
             print("ERROR: Failed to contact the dweet service.")
             print("ERROR: " + str(e))
             return False
         response = req.json()
-        if "succeeded" not in response['this']: 
+        if "succeeded" not in response['this']:
             print("ERROR: dweet.io responded with an error - " + req.text)
             print("ERROR: dweet.io URL  - " + req.url)
             return False
         return True
 
-    def output_metadata(self, metadata):
+    def output_metadata(self):
         """Output metadata.
 
         Output metadata for the run in the format stipulated by this
-        plugin. Metadata is set in airpi.py and then passed as a dict to
-        each plugin which wants to output it. Even if it is not
-        appropriate for the output plugin to output metadata, this
-        method is required because airpi.py looks for it in its own
-        output_metadata() method. In such cases, this method will simply
-        return boolean True.
+        plugin. This particular plugin cannot output metadata, so this
+        method will always return True. This is an abstract method of
+        the Output class, which this class inherits from; this means you
+        shouldn't (and can't) remove this method. See docs in the Output
+        class for more info.
 
         Args:
             self: self.
-            metadata: dict The metadata for the run.
 
         Returns:
             boolean True in all cases.
-
         """
         return True
 

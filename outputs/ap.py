@@ -691,7 +691,7 @@ def plot(x, y=None, marker=None, shape=(50, 20), draw_axes=True,
 
     p = AFigure(**flags)
 
-    print p.plot(x, y, marker=marker, plot_slope=plot_slope)
+    print(p.plot(x, y, marker=marker, plot_slope=plot_slope))
 
 
 def steppify(x, y):
@@ -816,4 +816,4 @@ def imshow(im, extent=None, width=50, ncolors=16):
             for w in xrange(width):
                 string += color[int(sum(_im[w, h]) * (ncolors - 1) )]
             string += "\n"
-    print string
+    print(string)

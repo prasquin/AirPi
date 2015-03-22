@@ -17,7 +17,6 @@ https://github.com/river-io/AirPi/blob/master/outputs/log.py
 """
 
 import output
-import datetime
 import time
 import calibration
 
@@ -40,12 +39,12 @@ class JSONOutput(output.Output):
                 params["outputFile"].replace("<date>", filenamedate)
         if "<hostname>" in params["outputFile"]:
             params["outputFile"] = \
-                params["outputFile"].replace("<hostname>", self.getHostname())
+                params["outputFile"].replace("<hostname>", self.gethostname())
         # open the file persistently for append
         filename = params["outputDir"] + "/" + params["outputFile"]
         self.file = open(filename, "a")
         self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkCal(params)
+        self.docal = self.checkcal(params)
         self.metadatareqd = params["metadatareqd"]
 
     def output_metadata(self, metadata):

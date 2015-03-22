@@ -11,6 +11,7 @@ import datetime
 import time
 import calibration
 import os
+from geopy.geocoders import Nominatim
 
 class Print(output.Output):
     """A module to print AirPi data to screen.
@@ -22,11 +23,12 @@ class Print(output.Output):
     """
 
     requiredParams = ["format"]
-    optionalParams = ["calibration", "metadatareqd"]
+    optionalParams = ["calibration", "limits", "metadatareqd"]
 
-    def __init__(self, params):
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkCal(params)
+    def __init__(self, params, limits = False):
+        #self.cal = calibration.Calibration.sharedClass
+        self.docal = self.checkcal(params)
+        self.limits = limits
         self.format = params["format"]
         self.metadatareqd = params["metadatareqd"]
 
@@ -91,6 +93,7 @@ class Print(output.Output):
             datapoints = self.cal.calibrate(datapoints)
         if self.format == "csv":
             theoutput = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S,%f") + "\","
+            breach = None
             for point in datapoints:
                 if point["name"] == "Location":
                     props = ["latitude",
@@ -102,6 +105,12 @@ class Print(output.Output):
                         theoutput += str(point[prop]) + ","
                 else:
                     theoutput += str(point["value"]) + ","
+                    if self.limits and self.limits.isbreach(point):
+                        if breach is None:
+                            breach = "BREACHES: "
+                        breach += point["name"] + ","
+            if breach:
+                theoutput += breach
             theoutput = theoutput[:-1]
             print(theoutput)
         else:
@@ -117,15 +126,19 @@ class Print(output.Output):
                     disp = (("Loc - Disp./Exp.").ljust(17)).replace("_", " ")
                     disp += ": " + str(point["disposition"].title()) + ", "
                     disp += point["exposure"].title().ljust(8)
+                    geolocator = Nominatim()
+                    disp += geolocator.reverse(point["latitude"], point["longitude"])
                     print(disp)
                 else:
                     value = "{0:.2f}".format(point["value"])
                     line = (point["name"].ljust(17)).replace("_", " ")
                     line += ": " + str(value).rjust(10) + " "
                     line += point["symbol"].ljust(5) + "("
-                    line += point["readingType"] + ")"
+                    line += point["readingtype"] + ")"
+                    if self.limits and self.limits.isbreach(point):
+                        line += " BREACH!"
                     print(line)
-            print "=========================================================="
+            print("==========================================================")
         return True
 
     def format_output_gps(self, prop, value, unit):

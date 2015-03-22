@@ -1,11 +1,26 @@
+""" Read data from BMP085 sensor.
+
+A high-level Class to read data from the Bosch BMP085 sensor, which
+provides barometric (air pressure) and temperature readings. Requires
+the bmpBackend Class to read the raw data from the sensor.
+
+"""
 import sensor
 import bmpBackend
 
 class BMP085(sensor.Sensor):
+    """ Read data from BMP085 sensor.
+
+    A high-level Class to read data from the Bosch BMP085 sensor, which
+    provides barometric (air pressure) and temperature readings. Requires
+    the bmpBackend Class to read the raw data from the sensor.
+
+    """
+
     bmpClass = None
     requiredData = ["measurement", "i2cbus"]
     optionalData = ["altitude", "mslp", "unit", "description"]
-    
+
     def __init__(self, data):
         """Initialise BMP085 sensor class.
 
@@ -14,13 +29,13 @@ class BMP085(sensor.Sensor):
         ('temp') or pressure ('pres'). This is determined by the contents of
         'data' passed to this __init__ function. If you want to read both
         properties, you'll need two instances of the class.
-        When set to read temperature, self.valName is 'Temperature-BMP' to
+        When set to read temperature, self.valname is 'Temperature-BMP' to
         differentiate it from other temperature sensors on the AirPi (such as
         the DHT22). By default temperatures are read in Celsius; data["unit"]
         can be set to "F" to return readings in Fahrenheit instead if required.
         Pressures are returned in Hectopascals. If data["altitude"] is provided,
         and data["mslp"] is true, then Mean Sea Level Pressure will be returned
-        by getVal() instead of absolute local pressure.
+        by getval() instead of absolute local pressure.
 
         Args:
             self: self.
@@ -29,21 +44,21 @@ class BMP085(sensor.Sensor):
         Return:
 
         """
-        self.readingType = "sample"
+        self.readingtype = "sample"
         if "temp" in data["measurement"].lower():
-            self.sensorName = "BMP085-temp"
-            self.valName = "Temperature-BMP"
-            self.valUnit = "Celsius"
-            self.valSymbol = "C"
+            self.sensorname = "BMP085-temp"
+            self.valname = "Temperature-BMP"
+            self.valunit = "Celsius"
+            self.valsymbol = "C"
             if "unit" in data:
                 if data["unit"] == "F":
-                    self.valUnit = "Fahrenheit"
-                    self.valSymbol = "F"
+                    self.valunit = "Fahrenheit"
+                    self.valsymbol = "F"
         elif "pres" in data["measurement"].lower():
-            self.sensorName = "BMP085-pres"
-            self.valName = "Pressure"
-            self.valSymbol = "hPa"
-            self.valUnit = "Hectopascal"
+            self.sensorname = "BMP085-pres"
+            self.valname = "Pressure"
+            self.valsymbol = "hPa"
+            self.valunit = "Hectopascal"
             self.altitude = 0
             self.mslp = False
             if "mslp" in data:
@@ -60,11 +75,11 @@ class BMP085(sensor.Sensor):
             self.description = data["description"]
         else:
             self.description = "BOSCH combined temperature and pressure sensor."
-        if (BMP085.bmpClass == None):
-            BMP085.bmpClass = bmpBackend.BMP085(bus = int(data["i2cbus"]))
+        if BMP085.bmpClass == None:
+            BMP085.bmpClass = bmpBackend.BMP085(bus=int(data["i2cbus"]))
         return
 
-    def getVal(self):
+    def getval(self):
         """Get the current sensor value.
 
         Get the current sensor value, for either temperature or pressure
@@ -77,12 +92,12 @@ class BMP085(sensor.Sensor):
             float The current value for the sensor.
 
         """
-        if self.valName == "Temperature-BMP":
-            temp = BMP085.bmpClass.readTemperature()
-            if self.valUnit == "Fahrenheit":
+        if self.valname == "Temperature-BMP":
+            temp = BMP085.bmpClass.readtemperature()
+            if self.valunit == "Fahrenheit":
                 try:
                     temp = temp * 1.8 + 32
-                except TypeError as terr:
+                except TypeError:
                     # This will be thrown if the sensor fails to read,
                     # and so 'temp' has type 'None'. That usually
                     # happens at the start of the run, and is dealt with
@@ -91,8 +106,9 @@ class BMP085(sensor.Sensor):
                     # main airpi.py script (~ line 908).
                     pass
             return temp
-        elif self.valName == "Pressure":
+        elif self.valname == "Pressure":
+            # Multiply by 0.01 to convert to Hectopascals
             if self.mslp:
-                return BMP085.bmpClass.readMSLPressure(self.altitude) * 0.01 #to convert to Hectopascals
+                return BMP085.bmpClass.readmslpressure(self.altitude) * 0.01
             else:
-                return BMP085.bmpClass.readPressure() * 0.01 #to convert to Hectopascals
+                return BMP085.bmpClass.readpressure() * 0.01

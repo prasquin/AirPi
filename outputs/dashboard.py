@@ -1,36 +1,31 @@
-"""A module to print AirPi data to screen as a graph.
+"""A module to print AirPi data to screen.
 
 A module which is used to output data from an AirPi onto screen (or more
-accurately, stdout) in a simple ASCII graph format. This will not
-include GPS data.
+accurately, stdout). This does not include GPS or metadata.
 
 """
 
-import os
 import output
 import calibration
-import ap
+import limits
 
-class Plot(output.Output):
-    """A module to print AirPi data to screen as a graph.
+class Dashboard(output.Output):
+    """A module to print AirPi data to screen.
 
-    A module which is used to output data from an AirPi onto screen (or
-    more accurately, stdout). This can include GPS data if present,
-    along with metadata (again, if present).
+    A module which is used to output data from an AirPi onto screen (or more
+    accurately, stdout). This does not include GPS or metadata.
 
     """
 
-    requiredParams = ["metric"]
+    requiredParams = ["limits"]
     optionalParams = ["calibration"]
 
-    def __init__(self, params):
+    def __init__(self, params, limits = None):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
-        self.history = []
-        self.metric = params["metric"]
-        self.unit = None
+        self.limits = limits
 
-    def output_metadata(self):
+    def output_metadata(self, metadata = None):
         """Output metadata.
 
         Output metadata for the run in the format stipulated by this
@@ -48,7 +43,7 @@ class Plot(output.Output):
         """
         return True
 
-    def output_data(self, datapoints, dummy):
+    def output_data(self, datapoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration
@@ -59,13 +54,11 @@ class Plot(output.Output):
         units and symbols, while the latter presents a dict containing
         several readings such as latitude, longitude and altitude, but
         no units or symbols.
-        Because this particular plugin (plot) does not show time, the
-        third argument (normally called 'sampletime') is called 'dummy'
-        to facilitate compliance with pylint.
 
         Args:
             self: self.
             datapoints: A dict containing the data to be output.
+            sampletime: datetime representing the time the sample was taken.
 
         Returns:
             boolean True if data successfully printed to stdout.
@@ -73,20 +66,13 @@ class Plot(output.Output):
         """
         if self.docal == 1:
             datapoints = self.cal.calibrate(datapoints)
-
+        print("Time".ljust(17) + ": " + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f"))
         for point in datapoints:
-            if point["name"] == self.metric:
-                self.history.append(int(point["value"]))
-                if self.unit is None:
-                    self.unit = point["unit"]
-
-        x = range(0, len(self.history))
-        y = self.history
-        xlimits = [min(x), max(x)]
-        ylimits = [min(self.history)-(0.11*min(self.history)), max(self.history)+(0.1*max(self.history))]
-        p = ap.AFigure(margins=(0, 0), xlim=xlimits, ylim=ylimits)
-        _ = p.plot(x, y, marker='_o', plot_slope=True)
-        os.system("clear")
-        print("[AirPi] Plotting " + self.metric + " (" + self.unit + "):" + os.linesep)
-        print(p.plot(x, y, marker='_s'))
+            if point["name"] in ["Nitrogen_Dioxide", "Carbon_Monoxide"]:
+                if self.limits.isbreach(point):
+                    colour = '\033[41m'
+                else:
+                    colour = '\033[42m'
+                print(point["name"].ljust(17).replace("_", " ") + ": " + colour + " " + '\033[0m')
+        print("==========================================================")
         return True

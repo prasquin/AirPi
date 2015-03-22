@@ -1,12 +1,22 @@
+""" Send an tweet notification.
+
+Send an tweet notification when a particular event type occurs.
+
+"""
 import notification
 import os
 import time
 from twitter import *
 
 class Tweet(notification.Notification):
+    """ Send an tweet notification.
+
+    Send an tweet notification when a particular event type occurs.
+    "commonParams" are defined in the parent Notification class, as they
+    are common to all Notification sub-classes (as the name suggests!).
+    """
     requiredParams = ["consumerkey", "consumersecret"]
     optionalParams = []
-    # Common params are defined in the parent "notification" Class
     commonParams = notification.Notification.commonParams
 
     def __init__(self, params):
@@ -23,21 +33,21 @@ class Tweet(notification.Notification):
         """
 
         # Set up Twitter authentication
-        CONSUMER_KEY = params["consumerkey"]
-        CONSUMER_SECRET = params["consumersecret"]
+        consumerkey = params["consumerkey"]
+        consumersecret = params["consumersecret"]
 
-        oauth_filename = os.path.join(os.path.expanduser("~"),".twitterairpi_oauth")
+        oauth_filename = os.path.join(os.path.expanduser("~"), ".twitterairpi_oauth")
         if not os.path.exists(oauth_filename):
-           oauth_dance("UoL AirPis", CONSUMER_KEY, CONSUMER_SECRET, oauth_filename)
+            oauth_dance("UoL AirPis", consumerkey, consumersecret, oauth_filename)
         (oauth_token, oauth_token_secret) = read_token_file(oauth_filename)
 
         # Log in to Twitter
-        auth = OAuth(oauth_token, oauth_token_secret, CONSUMER_KEY, CONSUMER_SECRET)
+        auth = OAuth(oauth_token, oauth_token_secret, consumerkey, consumersecret)
         self.twitter = Twitter(auth=auth)
 
-        # Set messages 
-        hostname = self.getHostname()
-        
+        # Set messages
+        hostname = self.gethostname()
+
         if "msgalertsensor" in params:
             self.msgalertsensor = params["msgalertsensor"].replace("<hostname>", hostname)
         else:
@@ -52,7 +62,7 @@ class Tweet(notification.Notification):
         else:
             self.msgdata = "Something interesting has happened with AirPi " + hostname + ". You'd better come see this..."
 
-    def sendNotification(self, event):
+    def sendnotification(self, event):
         """Send a Tweet notification.
 
         Send a Tweet notification.
@@ -66,11 +76,11 @@ class Tweet(notification.Notification):
         # Twitter won't let you repeat the same Tweet twice in a row
         stamp = time.strftime("%H:%M: ")
         if event == "alertsensor":
-                msg = (stamp + self.msgalertsensor)[:140]
+            msg = (stamp + self.msgalertsensor)[:140]
         elif event == "alertoutput":
-                msg = (stamp + self.msgalertoutput)[:140]
+            msg = (stamp + self.msgalertoutput)[:140]
         elif event == "data":
-                msg = (stamp + self.msgdata)[:140]
+            msg = (stamp + self.msgdata)[:140]
         try:
             self.twitter.statuses.update(status=msg)
         except Exception as excep:

@@ -18,17 +18,17 @@ class serial_gps(sensor.Sensor):
             data: A dict containing the parameters to be used during setup.
 
         """
-        self.sensorName = "MTK3339"
+        self.sensorname = "MTK3339"
         self.valName = "Location"
         global gpsc
         try:
             gpsc = GpsController.GpsController()
             gpsc.start()
         except Exception as e:
-            print "Exception:", e
+            print("Exception:", e)
             raise
 
-    def getVal(self):
+    def getval(self):
         """Get the current sensor values.
 
         Get the current sensor values. Actually returns five different values,

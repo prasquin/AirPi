@@ -1,11 +1,12 @@
 from gps import *
 from time import sleep
 import subprocess
+import sys
 import threading
 
 class GpsSocketError(Exception):
-    """Exception to raise when the GPS sock at /var/run/gpsd.sock does not
-    exist.
+    """Exception to raise when the GPS sock at /var/run/gpsd.sock does
+    not exist.
 
     """
     pass
@@ -34,7 +35,8 @@ class GpsController(threading.Thread):
 
         Args:
             self: self.
-            data: A dict containing the parameters to be used during setup.
+            data: A dict containing the parameters to be used during
+                  setup.
 
         """
         threading.Thread.__init__(self)
@@ -44,9 +46,9 @@ class GpsController(threading.Thread):
     def run(self):
         """Continually get data from gpsd.
 
-        Continually get the data from gpsd, clearing the buffer in the process.
-        If we don't do it continually, the buffer will fill up and then we're in
-        trouble.
+        Continually get the data from gpsd, clearing the buffer in the
+        process. If we don't do it continually, the buffer will fill up
+        and then we're in trouble.
 
         """
         self.running = True
@@ -93,13 +95,13 @@ if __name__ == '__main__':
             print "sats ", gpsc.satellites
             sleep(0.5)
     except KeyboardInterrupt:
-        print "User cancelled"
+        print("User cancelled")
     except:
-        print "Unexpected error:", sys.exc_info()[0]
+        print("Unexpected error:", sys.exc_info()[0])
         raise
     finally:
         gpsc.stopController()
         # wait for the thread to finish
         gpsc.join()
 
-    print "Done"
+    print("Done")
