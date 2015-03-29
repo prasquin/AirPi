@@ -294,7 +294,7 @@ def set_up_sensors():
     SENSORCONFIG = ConfigParser.SafeConfigParser()
     SENSORCONFIG.read(CFGPATHS['sensors'])
 
-    sensornameS = SENSORCONFIG.sections()
+    SENSORNAMES = SENSORCONFIG.sections()
 
     sensorplugins = []
 

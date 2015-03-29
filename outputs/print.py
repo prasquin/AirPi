@@ -11,7 +11,7 @@ import datetime
 import time
 import calibration
 import os
-from geopy.geocoders import Nominatim
+#from geopy.geocoders import Nominatim
 
 class Print(output.Output):
     """A module to print AirPi data to screen.
@@ -26,7 +26,7 @@ class Print(output.Output):
     optionalParams = ["calibration", "limits", "metadatareqd"]
 
     def __init__(self, params, limits = False):
-        #self.cal = calibration.Calibration.sharedClass
+        self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
         self.limits = limits
         self.format = params["format"]
@@ -126,8 +126,9 @@ class Print(output.Output):
                     disp = (("Loc - Disp./Exp.").ljust(17)).replace("_", " ")
                     disp += ": " + str(point["disposition"].title()) + ", "
                     disp += point["exposure"].title().ljust(8)
-                    geolocator = Nominatim()
-                    disp += geolocator.reverse(point["latitude"], point["longitude"])
+                    #TODO: Finish reverse geocode
+                    #geolocator = Nominatim()
+                    #disp += geolocator.reverse(point["latitude"], point["longitude"])
                     print(disp)
                 else:
                     value = "{0:.2f}".format(point["value"])
