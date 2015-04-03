@@ -11,6 +11,8 @@ import datetime
 import time
 import calibration
 import os
+import limits
+
 #from geopy.geocoders import Nominatim
 
 class Print(output.Output):
@@ -25,10 +27,19 @@ class Print(output.Output):
     requiredParams = ["format"]
     optionalParams = ["calibration", "limits", "metadatareqd"]
 
-    def __init__(self, params, limits = False):
+    def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
-        self.limits = limits
+        self.limits = None
+        if ("limits" in params) and (params["limits"]["enabled"] == "yes"):
+            try:
+                self.limits = limits.Limits(params["limits"])
+                print("Success: Loaded Limits for plugin Print")
+            except Exception as e:
+                print("ERROR:   Failed to set Limits for plugin Print")
+                print("ERROR:   " + str(e))
+        else:
+            self.limits = False
         self.format = params["format"]
         self.metadatareqd = params["metadatareqd"]
 
@@ -114,7 +125,7 @@ class Print(output.Output):
             theoutput = theoutput[:-1]
             print(theoutput)
         else:
-            print("Time".ljust(17) + ": " + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f"))
+            print("Time".ljust(17) + ": " + sampletime.strftime("%Y-%m-%d %H:%M:%S"))
             for point in datapoints:
                 if point["name"] == "Location":
                     print(self.format_output_gps("Loc - Latitude",

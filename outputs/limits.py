@@ -48,7 +48,9 @@ class Limits(output.Output):
             params: Parameters to be used in the initialisation.
 
         """
-        self.limits = {}
+        for element in ["enabled", "support", "filename"]:
+            if element in params:
+                del params[element]
         self.limits = params
 
     def isbreach(self, datapoint):

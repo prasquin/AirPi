@@ -488,9 +488,16 @@ def set_up_outputs():
                 # Output plugins don't have any common params so this is empty
                 common = None
 
-                plugindata = define_plugin_params(OUTPUTCONFIG,
-                                i, reqd, opt, common)
+                limits = {}
+                if OUTPUTCONFIG.has_section("Limits"):
+                    for option in OUTPUTCONFIG.options("Limits"):
+                        limits[option] = OUTPUTCONFIG.get("Limits", option)
 
+                # Only output plugins have "limits"; note different method signature
+                # on this call versus the same call for SENSORS and NOTIFICATIONS.
+                plugindata = define_plugin_params(OUTPUTCONFIG,
+                                i, reqd, opt, common, limits)
+ 
                 if (OUTPUTCONFIG.has_option(i, "needsinternet") and
                         OUTPUTCONFIG.getboolean(i, "needsinternet") and
                         not check_conn()):
@@ -500,22 +507,8 @@ def set_up_outputs():
                     print(msg)
                     logthis("info", msg)
                 else:
-                    try:
-                        #limitsreqd = OUTPUTCONFIG.getboolean(i, "limits")
-                        limitsreqd = True
-                    except Exception:
-                        limitsreqd = False
-                    if limitsreqd:
-                        # TODO: Make one instance of limits and pass it to
-                        #       every output plugin which needs it, instead
-                        #       of one instance of limits every time.
-                        mod = __import__('outputs.limits', fromlist=['a'])
-                        limitclass = get_subclasses(mod, output.Output)
-                        thelimits = limitclass(dict(OUTPUTCONFIG.items('Limits')))
-                        instclass = outputclass(plugindata, thelimits)
-                    else:
-                        instclass = outputclass(plugindata)
-                    
+                    logthis("info", "Starting to set instclass for " + filename)
+                    instclass = outputclass(plugindata)
                     instclass.async = plugindata['async']
                     msg = "Successfully set instclass for " + filename
                     msg = format_msg(msg, 'success')
@@ -579,7 +572,7 @@ def fix_duplicate_outputs(plugins):
             plotindex += 1
     return plugins
 
-def define_plugin_params(config, name, reqd, opt, common):
+def define_plugin_params(config, name, reqd, opt, common, limits=False):
     """Define setup parameters for an plugin.
 
     Take a list of parameters supplied by the user ('config'), and
@@ -609,6 +602,11 @@ def define_plugin_params(config, name, reqd, opt, common):
     LOGGER.debug(" - opt:    " + str(opt))
     LOGGER.debug(" - common: " + str(common))
     params = {}
+    # Defaults:
+    params["metadatareqd"] = False
+    params["limits"] = False
+    params['async'] = False
+    # Read params which have been defined
     if reqd:
         for reqdfield in reqd:
             if config.has_option(name, reqdfield):
@@ -631,18 +629,9 @@ def define_plugin_params(config, name, reqd, opt, common):
         for commonfield in common:
             if config.has_option("Common", commonfield):
                 params[commonfield] = config.get("Common", commonfield)
+    if limits:
+        params["limits"] = limits
 
-    # Only applies to output plugins
-    if (config.has_option(name, "metadatareqd") and
-            config.getboolean(name, "metadatareqd")):
-        params['metadatareqd'] = True
-    else:
-        params['metadatareqd'] = False
-
-    if config.has_option(name, "async"):
-        params['async'] = config.getboolean(name, "async")
-    else:
-        params['async'] = False
     LOGGER.debug(" Final combined params to be used to create " + name + " instance are:")
     LOGGER.debug(" " + str(params))
     return params
