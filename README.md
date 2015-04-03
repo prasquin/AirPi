@@ -1,3 +1,8 @@
+# 3rd APRIL 2015:
+# THIS VERSION IS A BIT DODGY!
+# RECOMMENDED TO CHECK OUT COMMIT [c0a67c6](https://github.com/haydnw/AirPi/commit/c0a67c66fc0cfbf0f6197f09c3d106e8d1c3ab84) instead.
+# ISSUES WILL BE FIXED SHORTLY AND THIS NOTE REMOVED.
+
 # AirPi
 ========
 
