@@ -31,9 +31,9 @@ class Print(output.Output):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
         self.limits = None
-        if ("limits" in params) and (params["limits"]["enabled"] == "yes"):
+        if ("limitsinfo" in params) and (params["limitsinfo"]["enabled"] == "yes"):
             try:
-                self.limits = limits.Limits(params["limits"])
+                self.limits = limits.Limits(params["limitsinfo"])
                 print("Success: Loaded Limits for plugin Print")
             except Exception as e:
                 print("ERROR:   Failed to set Limits for plugin Print")
@@ -103,7 +103,7 @@ class Print(output.Output):
         if self.docal == 1:
             datapoints = self.cal.calibrate(datapoints)
         if self.format == "csv":
-            theoutput = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S,%f") + "\","
+            theoutput = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f") + "\","
             breach = None
             for point in datapoints:
                 if point["name"] == "Location":
@@ -119,7 +119,7 @@ class Print(output.Output):
                     if self.limits and self.limits.isbreach(point):
                         if breach is None:
                             breach = "BREACHES: "
-                        breach += point["name"] + ","
+                        breach += point["name"] + ";"
             if breach:
                 theoutput += breach
             theoutput = theoutput[:-1]

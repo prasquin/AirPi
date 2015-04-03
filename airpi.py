@@ -487,16 +487,24 @@ def set_up_outputs():
                     opt = []
                 # Output plugins don't have any common params so this is empty
                 common = None
-
-                limits = {}
-                if OUTPUTCONFIG.has_section("Limits"):
-                    for option in OUTPUTCONFIG.options("Limits"):
-                        limits[option] = OUTPUTCONFIG.get("Limits", option)
+               
+                limitsinfo = {}
+                if (OUTPUTCONFIG.has_option(i, "limits") and
+                        OUTPUTCONFIG.getboolean(i, "limits")):
+                    if OUTPUTCONFIG.has_section("Limits"):
+                        for option in OUTPUTCONFIG.options("Limits"):
+                            limitsinfo[option] = OUTPUTCONFIG.get("Limits", option)
+                    else:
+                        msg = "Limits requested, but details not found in cfg file."
+                        print(msg)
+                        logthis("error", msg)
+                else:
+                    limitsinfo = False
 
                 # Only output plugins have "limits"; note different method signature
                 # on this call versus the same call for SENSORS and NOTIFICATIONS.
                 plugindata = define_plugin_params(OUTPUTCONFIG,
-                                i, reqd, opt, common, limits)
+                                i, reqd, opt, common, limitsinfo)
  
                 if (OUTPUTCONFIG.has_option(i, "needsinternet") and
                         OUTPUTCONFIG.getboolean(i, "needsinternet") and
@@ -572,7 +580,7 @@ def fix_duplicate_outputs(plugins):
             plotindex += 1
     return plugins
 
-def define_plugin_params(config, name, reqd, opt, common, limits=False):
+def define_plugin_params(config, name, reqd, opt, common, limitsinfo=False):
     """Define setup parameters for an plugin.
 
     Take a list of parameters supplied by the user ('config'), and
@@ -629,8 +637,8 @@ def define_plugin_params(config, name, reqd, opt, common, limits=False):
         for commonfield in common:
             if config.has_option("Common", commonfield):
                 params[commonfield] = config.get("Common", commonfield)
-    if limits:
-        params["limits"] = limits
+    if limitsinfo:
+        params["limitsinfo"] = limitsinfo
 
     LOGGER.debug(" Final combined params to be used to create " + name + " instance are:")
     LOGGER.debug(" " + str(params))
