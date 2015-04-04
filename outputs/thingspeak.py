@@ -3,13 +3,14 @@ import requests
 import calibration
 
 class Thingspeak(output.Output):
-    requiredParams = ["apikey", "needsinternet"]
+    requiredParams = ["target", "apikey", "needsinternet"]
     optionalParams = ["calibration"]
 
     def __init__(self, params):
         self.apikey = params["apikey"]
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.cal.checkcal(params)
+        self.target = params["target"]
 
     def output_data(self, datapoints, dummy):
         #TODO: Include GPS location data in this output

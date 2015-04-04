@@ -22,7 +22,7 @@ import calibration
 # http://bytes.com/topic/python/answers/158332-persistent-xmlrpc-connection
 
 class HTTP(output.Output):
-    requiredParams = ["wwwPath"]
+    requiredParams = ["target", "wwwPath"]
     optionalParams = ["port", "history", "title", "about", "calibration", "historySize", "historyInterval", "historyCalibrated", "httpVersion"]
 
     details = """
@@ -43,6 +43,8 @@ class HTTP(output.Output):
     rssItem = "<item><title>$sensorname$</title><description>$reading$ $units$</description></item>\n"
 
     def __init__(self, params):
+
+        self.target = ["target"]
 
         if os.path.exists(params["wwwPath"]):
             self.www = params["wwwPath"]

@@ -13,7 +13,7 @@ class Xively(output.Output):
     #      in airpi.py? Applies to other output plugins too.
     #TODO: Expand proxy info to a single setting in settings.cfg and
     #      make available to all plugins which require internet access.
-    requiredParams = ["apikey", "feedid", "needsinternet"]
+    requiredParams = ["target", "apikey", "feedid", "needsinternet"]
     optionalParams = ["calibration", "proxyhttp", "proxyhttps"]
     proxies = None
 
@@ -27,6 +27,7 @@ class Xively(output.Output):
             }
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
+        self.target = params["target"]
 
     def output_data(self, dataPoints, dummy):
         """Output data.

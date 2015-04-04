@@ -84,7 +84,7 @@ class RRDOutput(output.Output):
 
     """
 
-    requiredParams = ["outputDir", "outputFile"]
+    requiredParams = ["target", "outputDir", "outputFile"]
     optionalParams = ["calibration", "metadatareqd"]
 
     def __init__(self, params):
@@ -100,6 +100,7 @@ class RRDOutput(output.Output):
         #self.file = open(self.filename, "a")
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
+        self.target = params["target"]
         self.metadatareqd = params["metadatareqd"]
 
     def output_metadata(self):

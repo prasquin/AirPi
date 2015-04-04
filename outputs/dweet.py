@@ -23,12 +23,13 @@ class Dweet(output.Output):
 
     """
 
-    requiredParams = ["needsinternet"]
+    requiredParams = ["target", "needsinternet"]
     optionalParams = ["calibration", "thing"]
 
     def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
+        self.target = params["target"]
         self.thing = params["thing"]
         if "<hostname>" in self.thing:
             self.thing = self.thing.replace("<hostname>", self.gethostname())

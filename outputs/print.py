@@ -24,12 +24,13 @@ class Print(output.Output):
 
     """
 
-    requiredParams = ["format"]
+    requiredParams = ["target", "format"]
     optionalParams = ["calibration", "limits", "metadatareqd"]
 
     def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
+        self.target = params["target"]
         self.limits = None
         if ("limitsinfo" in params) and (params["limitsinfo"]["enabled"] == "yes"):
             try:

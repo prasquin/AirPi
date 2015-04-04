@@ -546,39 +546,41 @@ def set_up_outputs():
 def fix_duplicate_outputs(plugins):
     """Ensure only one output plugin for stdout is enabled.
 
-    Check whether the list of enabled output plugins includes Print and
-    Plot (both of which print to stdout). If it does, disable Plot and
-    leave Print enabled to avoid mayhem on screen!
+    Check whether the list of enabled output plugins includes more than
+    one which prints to stdout. If it does, disable all except Print to
+    avoid mayhem on screen!
 
     Args:
-        enabledplugins: A list containing the enabled output plugin
-                        objects.
+        plugins: A list containing the enabled output plugin
+                 objects.
 
     Returns:
         list A new list of enabled output plugin objects, containing
-             either Print or Plot but never both.
+             only one plugin which outputs to screen.
 
     """
-    printenabled = False
-    plotenabled = False
-    plotindex = 0
-    for plugin in plugins:
+    enabled = []
+    for index, plugin in enumerate(plugins):
         name = plugin.getname()
-        if name is 'Plot':
-            plotenabled = True
-        if name is 'Print':
-            printenabled = True
-        if printenabled and plotenabled:
-            del plugins[plotindex]
-            msg = "Only one plugin can output to screen at at time."
-            msg += os.linesep
-            msg += "         Plot has been disabled; Print is still enabled."
-            msg = format_msg(msg, 'warning')
-            print(msg)
-            break
-        else:
-            plotindex += 1
+        if plugin.target == "screen":
+            thisPlugin = {}
+            thisPlugin["name"] = name
+            thisPlugin["index"] = index
+            enabled.append(thisPlugin)
+
+    removed = 0 # pop() changes indices; this helps us keep track
+    if len(enabled) >= 2: 
+        for plugin in enabled:
+            if plugin["name"] != "Print":
+                plugins.pop(plugin["index"] - removed)
+                removed += 1
+        msg = "Only one plugin can output to screen at at time."
+        msg += os.linesep
+        msg += "         Print is enabled; others have been disabled."
+        msg = format_msg(msg, 'warning')
+        print(msg)
     return plugins
+
 
 def define_plugin_params(config, name, reqd, opt, common, limitsinfo=False):
     """Define setup parameters for an plugin.

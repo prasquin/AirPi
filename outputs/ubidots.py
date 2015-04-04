@@ -21,7 +21,7 @@ class Ubidot(output.Output):
 
     """
 
-    requiredParams = ["token", "needsinternet"]
+    requiredParams = ["target", "token", "needsinternet"]
     optionalParams = ["calibration",
                       "showcost",
                       "ID-BMP085-temp",
@@ -38,6 +38,7 @@ class Ubidot(output.Output):
     def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
+        self.target = params["target"]
         self.token = params["token"]
         if "showcost" in params:
             self.showcost = params["showcost"]

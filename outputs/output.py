@@ -18,7 +18,7 @@ class Output(object):
     """
 
     __metaclass__ = ABCMeta
-    requiredParams = None
+    requiredParams = ["target"]
     optionalParams = None
     commonParams = None
 

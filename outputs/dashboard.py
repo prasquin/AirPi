@@ -17,12 +17,13 @@ class Dashboard(output.Output):
 
     """
 
-    requiredParams = ["limits"]
+    requiredParams = ["target", "limits"]
     optionalParams = ["calibration"]
 
     def __init__(self, params, limits = None):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
+        self.target = params["target"]
         self.limits = limits
 
     def output_metadata(self, metadata = None):

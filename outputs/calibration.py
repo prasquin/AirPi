@@ -21,7 +21,7 @@ class Calibration(output.Output):
 
     """
 
-    requiredParams = []
+    requiredParams = ["target"]
     optionalParams = ["Light_Level", "Air_Quality", "Nitrogen_Dioxide",
                       "Carbon_Monoxide", "Volume", "UVI", "Bucket_tips"]
     sharedClass = None
@@ -42,6 +42,7 @@ class Calibration(output.Output):
             params: Parameters to be used in the initialisation.
 
         """
+        self.target = params["target"]
         self.calibrations = []
         self.calibrated = []
         self.lastuncalibrated = []

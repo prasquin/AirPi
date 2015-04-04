@@ -20,12 +20,13 @@ class Plot(output.Output):
 
     """
 
-    requiredParams = ["metric"]
+    requiredParams = ["target", "metric"]
     optionalParams = ["calibration"]
 
     def __init__(self, params):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
+        self.target = params["target"]
         self.history = []
         self.metric = params["metric"]
         self.unit = None
