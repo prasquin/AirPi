@@ -289,9 +289,8 @@ The following options are common to a number of output plugins:
   the hostname of the Raspberry Pi in the filename. Use `<date>` (no
   apostrophes) to automatically include the start date of the sampling in the
   filename.
-+ `needsinternet` specifies whether or not the output plugin requires internet
-  connectivity to function correctly. If it does, and there is no connectivity,
-  the plugin will be disabled.
++ `target` specifies where the output plugin sends data to. Should be `screen`,
+  `internet`, `file`, or `support`.
 
 **\[Calibration\]**  
 *Change raw data by applying custom functions.*  
@@ -415,9 +414,8 @@ The following options are common to a number of notification plugins:
 + `filename` specifies the name of the Python script file for the notification
   plugin. No file extension or path details are required.
 + `enabled` specifies whether or not the notification plugin is enabled.
-+ `needsinternet` specifies whether or not the notification plugin requires internet
-  connectivity to function correctly. If it does, and there is no connectivity,
-  the plugin will be disabled.
++ `target` specifies where the notification plugin sends data to. Should be
+  `screen`, `internet`, `file`, or `support`.
 
 **\[Tweet\]**  
 *Send notifications by Tweeting.*  
@@ -542,9 +540,10 @@ definition:
 + `filename` specifies the name of the Python script file for the output
   plugin. No file extension or path details are required.
 + `enabled` specifies whether or not the notification plugin is enabled.
-+ `needsinternet` specifies whether or not the notification plugin requires internet
-  connectivity to function correctly. If it does, and there is no connectivity,
-  the plugin will be disabled.
++ `target` specifies where the notification plugin sends data to. Should be
+  `screen`, `internet`, `file`, or `support`. If the target is `internet` it specifies
+  that the notification plugin requires internet connectivity to function correctly. If
+  it does, and there is no connectivity, the plugin will be disabled.
 
 There are a number of other parameters which can be defined for each notification
 plugin. These can be customised for each individual plugin and are therefore

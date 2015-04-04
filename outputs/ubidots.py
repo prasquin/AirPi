@@ -21,7 +21,7 @@ class Ubidot(output.Output):
 
     """
 
-    requiredParams = ["target", "token", "needsinternet"]
+    requiredParams = ["target", "token"]
     optionalParams = ["calibration",
                       "showcost",
                       "ID-BMP085-temp",

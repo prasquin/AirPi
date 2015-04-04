@@ -506,9 +506,7 @@ def set_up_outputs():
                 plugindata = define_plugin_params(OUTPUTCONFIG,
                                 i, reqd, opt, common, limitsinfo)
  
-                if (OUTPUTCONFIG.has_option(i, "needsinternet") and
-                        OUTPUTCONFIG.getboolean(i, "needsinternet") and
-                        not check_conn()):
+                if (OUTPUTCONFIG.get(i, "target") == "internet") and not check_conn():
                     msg = "Skipping output plugin " + i
                     msg += " because no internet connectivity."
                     msg = format_msg(msg, 'error')
@@ -731,31 +729,29 @@ def set_up_notifications():
                 plugindata = define_plugin_params(NOTIFICATIONCONFIG, i,
                                 reqd, opt, common)
 
-                if NOTIFICATIONCONFIG.has_option(i, "needsinternet"):
-                    if (NOTIFICATIONCONFIG.getboolean(i, "needsinternet") and
-                            not check_conn()):
-                        msg = "Skipping notification plugin " + i
-                        msg += " because no internet connectivity."
-                        msg = format_msg(msg, 'error')
-                        print(msg)
-                        logthis("info", msg)
-                    else:
-                        instclass = notificationclass(plugindata)
-                        instclass.async = plugindata['async']
+                if NOTIFICATIONCONFIG.get(i, "target") == "internet" and not check_conn():
+                    msg = "Skipping notification plugin " + i
+                    msg += " because no internet connectivity."
+                    msg = format_msg(msg, 'error')
+                    print(msg)
+                    logthis("info", msg)
+                else:
+                    instclass = notificationclass(plugindata)
+                    instclass.async = plugindata['async']
 
-                    # check for a sendnotification function
-                    if callable(getattr(instclass, "sendnotification", None)):
-                        notificationPlugins.append(instclass)
-                        msg = "Loaded notification plugin " + str(i)
-                        msg = format_msg(msg, 'success')
-                        print(msg)
-                        logthis("info", msg)
-                    else:
-                        msg = "No callable sendnotification() function"
-                        msg += " for notification plugin " + str(i)
-                        msg = format_msg(msg, 'error')
-                        print(msg)
-                        logthis("info", msg)
+                # check for a sendnotification function
+                if callable(getattr(instclass, "sendnotification", None)):
+                    notificationPlugins.append(instclass)
+                    msg = "Loaded notification plugin " + str(i)
+                    msg = format_msg(msg, 'success')
+                    print(msg)
+                    logthis("info", msg)
+                else:
+                    msg = "No callable sendnotification() function"
+                    msg += " for notification plugin " + str(i)
+                    msg = format_msg(msg, 'error')
+                    print(msg)
+                    logthis("info", msg)
 
         except Exception as excep:
             msg = "Did not import notification plugin " + str(i) + ": "

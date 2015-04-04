@@ -9,11 +9,11 @@ class Xively(output.Output):
     http://airpi.freeforums.net/thread/98/proxy-airpi-py-helpful-schools
     """
 
-    #TODO: Is "needsinternet" really required here? Don't we just use it
+    #TODO: Is "target" really required here? Don't we just use it
     #      in airpi.py? Applies to other output plugins too.
     #TODO: Expand proxy info to a single setting in settings.cfg and
     #      make available to all plugins which require internet access.
-    requiredParams = ["target", "apikey", "feedid", "needsinternet"]
+    requiredParams = ["target", "apikey", "feedid"]
     optionalParams = ["calibration", "proxyhttp", "proxyhttps"]
     proxies = None
 

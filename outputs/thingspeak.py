@@ -3,7 +3,7 @@ import requests
 import calibration
 
 class Thingspeak(output.Output):
-    requiredParams = ["target", "apikey", "needsinternet"]
+    requiredParams = ["target", "apikey"]
     optionalParams = ["calibration"]
 
     def __init__(self, params):

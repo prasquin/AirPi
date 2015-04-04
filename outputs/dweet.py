@@ -23,7 +23,7 @@ class Dweet(output.Output):
 
     """
 
-    requiredParams = ["target", "needsinternet"]
+    requiredParams = ["target"]
     optionalParams = ["calibration", "thing"]
 
     def __init__(self, params):
