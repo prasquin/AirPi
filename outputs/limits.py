@@ -29,32 +29,30 @@ class Limits(output.Output):
 
     """
 
-    requiredParams = ["target"]
-    optionalParams = []
-
     def __init__(self, params):
         """Initialise.
 
         Initialise the Limits class, using the parameters passed in
         'params'. Note that the 'requiredParams' and 'optionalParams'
-        are used to check that 'params' contains the appropriate
-        options (this happens in define_plugin_params() in airpi.py
-        after this object has been created).
-        TODO: Move that functionality to the output.py module and let
-              output plugins inherit it.
 
         Args:
             self: self.
-            params: Parameters to be used in the initialisation.
+            params: Parameters to be used as the limits. Can be empty. If not, must be
+                    a list of phenomena names with corresponding strings containing
+                    comma-separated value and unit, e.g.:
+                    params["nitrogen_dioxide"] = ["10,Ohms"]
+                    params["carbon_monoxide"] = ["20",ppm"]
 
         """
-        self.target = params["target"]
-        for element in ["enabled", "support", "filename"]:
-            if element in params:
-                del params[element]
-        self.limits = params
+        temp = dict((k.lower(), v) for k,v in params.iteritems())
+        self.limits = {}
+        for name, detail in temp.iteritems():
+            self.limits[name] = {}
+            self.limits[name]["value"] = float(detail[0])
+            self.limits[name]["unit"] = detail[1]
 
-    def isbreach(self, datapoint):
+
+    def isbreach(self, samplename, samplevalue, sampleunit):
         """Check whether a data point breaches a limit.
 
         Checks whether the value of a specific data point breaches the
@@ -63,28 +61,20 @@ class Limits(output.Output):
         cases, EU limits per hourly average, calendar year (NO2) or
         eight-hour average (CO).
 
-        The 'measures' list below could be extended to include other
-        measures; in this case the FIRST element in the array should be
-        what matches the reference throughout the rest of this module
-        (e.g. "co" is first in the array and matches self.limit["co"]
-        and self.unit["co"]. It wouldn't work if we used "co" 1st below
-        and then self.limit["carbmono"]).
-
         Args:
             self: self.
             datapoint: The datapoint to be tested. Passed by the output
                        plugin which is checking for the breach.
 
         """
-        for measure, detail in self.limits.iteritems():
-            if datapoint["name"].lower() == measure:
-                [value, units] = detail.split(',', 1)
-                if datapoint["value"] > float(value):
-                    if datapoint["unit"] == units:
-                        return True
-                    else:
-                        print("ERROR: Limit units do not match measurement units for " + datapoint["name"])
-                        print("       " + datapoint["unit"] + " is not the same as " + units)
+        samplename = samplename.lower()
+        if samplename in self.limits:
+            if samplevalue > float(self.limits[samplename]["value"]):
+                if sampleunit == self.limits[samplename]["unit"]:
+                    return True
+                else:
+                    print("ERROR: Limit units do not match measurement units for " + samplename)
+                    print("       " + sampleunit + " is not the same as " + self.limits[samplename]["unit"])
         return False
 
     @staticmethod

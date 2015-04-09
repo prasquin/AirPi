@@ -30,6 +30,7 @@ from logging import handlers
 from math import isnan
 from sensors import sensor
 from outputs import output
+from outputs import limits
 from notifications import notification
 
 class MissingField(Exception):
@@ -769,6 +770,43 @@ def set_up_notifications():
         print(msg)
     return notificationPlugins
 
+def set_up_limits():
+    """Set up limits.
+
+    Set up AirPi sensors by reading sensors.cfg to determine which
+    should be enabled, then checking that all required fields are
+    present in sensors.cfg.
+
+    Returns:
+        list A list containing the enabled 'sensor' objects.
+
+    """
+    print("==========================================================")
+    print(format_msg("LIMITS", 'loading'))
+
+    check_cfg_file(CFGPATHS['settings'])
+    mainconfig = ConfigParser.SafeConfigParser()
+    mainconfig.read(CFGPATHS['settings'])
+
+    if mainconfig.has_section("Limits"):
+        thelimits = {}
+        for phenomena, limit in mainconfig.items("Limits"):
+            [value, units] = limit.split(',', 1)
+            thelimits[phenomena.lower()] = [value, units]
+        LOGGER.debug("Values used to init Limit object are: " + str(thelimits))
+        try:
+            limitsobj = limits.Limits(thelimits)
+            msg = "Loaded Limits."
+            msg = format_msg(msg, 'success')
+            print(msg)
+            return limitsobj;
+        except Exception as e:
+            msg = "Failed to set Limits."
+            msg += str(e)
+            msg = format_msg(msg, 'error')
+            print(msg)
+    return None
+
 def set_settings():
     """Set up settings.
 
@@ -818,18 +856,22 @@ def set_settings():
     if mainconfig.has_option("Sampling", "dummyduration"):
         settingslist['DUMMYDURATION'] = mainconfig.getint("Sampling",
             "dummyduration")
+    # LEDs
     settingslist['REDPIN'] = mainconfig.getint("LEDs", "redPin")
     settingslist['GREENPIN'] = mainconfig.getint("LEDs", "greenPin")
     settingslist['SUCCESSLED'] = mainconfig.get("LEDs", "successLED")
     settingslist['FAILLED'] = mainconfig.get("LEDs", "failLED")
+    # Misc
     settingslist['OPERATOR'] = mainconfig.get("Misc", "operator")
     settingslist['HELP'] = mainconfig.getboolean("Misc", "help")
     settingslist['PRINTERRORS'] = mainconfig.getboolean("Misc", "printErrors")
+    # Debug
     settingslist['WAITTOSTART'] = mainconfig.getboolean("Debug", "waittostart")
 
     msg = "Loaded settings."
     msg = format_msg(msg, 'success')
     print(msg)
+    logthis("info", msg)
 
     return settingslist
 
@@ -937,11 +979,11 @@ def dummy_runs(dummyduration):
             if i == gpsplugininstance:
                 read_gps(i)
             else:
-                read_sensor(i)
+                read_sensor(i, LIMITS)
         diff = time.time() - startdummy
     return True
 
-def read_sensor(sensorplugin):
+def read_sensor(sensorplugin, limit):
     """Read from a non-GPS sensor.
 
     Read info from a sensor. Note this is not just the value, but also the
@@ -962,6 +1004,10 @@ def read_sensor(sensorplugin):
     reading["sensor"] = sensorplugin.sensorname
     reading["description"] = sensorplugin.description
     reading["readingtype"] = sensorplugin.readingtype
+    if LIMITS is not None:
+        reading["breach"] = limit.isbreach(reading["name"], reading["value"], reading["unit"])
+    else:
+        reading["breach"] = False
     return reading
 
 def read_gps(sensorplugin):
@@ -1027,20 +1073,20 @@ def sample():
                 # Read the sensors
                 failedsensors = []
                 sampletime = datetime.datetime.now()
-                for i in PLUGINSSENSORS:
+                for sensor in PLUGINSSENSORS:
                     datadict = {}
-                    if i == gpsplugininstance:
-                        datadict = read_gps(i)
+                    if sensor == gpsplugininstance:
+                        datadict = read_gps(sensor)
                     else:
-                        datadict = read_sensor(i)
+                        datadict = read_sensor(sensor, LIMITS)
                         # TODO: Ensure this is robust
                         if (datadict["value"] is None or
                                 isnan(float(datadict["value"])) or
                                 datadict["value"] == 0):
-                            failedsensors.append(i.sensorname)
+                            failedsensors.append(sensor.sensorname)
                     # Average the data if required
                     if (('AVERAGEFREQ' in SETTINGS) and
-                            (i != gpsplugininstance)):
+                            (sensor != gpsplugininstance)):
                         identifier = datadict['sensor'] + "-"
                         identifier += datadict['name']
                         if identifier not in dataset:
@@ -1258,6 +1304,7 @@ if __name__ == '__main__':
     PLUGINSSENSORS = set_up_sensors()
     PLUGINSOUTPUTS = set_up_outputs()
     PLUGINSNOTIFICATIONS = set_up_notifications()
+    LIMITS = set_up_limits()
 
     # Set up metadata
     METADATA = set_metadata()

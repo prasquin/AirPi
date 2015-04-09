@@ -11,7 +11,6 @@ import datetime
 import time
 import calibration
 import os
-import limits
 
 #from geopy.geocoders import Nominatim
 
@@ -31,17 +30,11 @@ class Print(output.Output):
         self.cal = calibration.Calibration.sharedClass
         self.docal = self.checkcal(params)
         self.target = params["target"]
-        self.limits = None
-        if ("limitsinfo" in params) and (params["limitsinfo"]["enabled"] == "yes"):
-            try:
-                self.limits = limits.Limits(params["limitsinfo"])
-                print("Success: Loaded Limits for plugin Print")
-            except Exception as e:
-                print("ERROR:   Failed to set Limits for plugin Print")
-                print("ERROR:   " + str(e))
+        self.format = params["format"]
+        if "limits" in params:
+            self.limits = True
         else:
             self.limits = False
-        self.format = params["format"]
         self.metadatareqd = params["metadatareqd"]
 
     def output_metadata(self, metadata):
@@ -117,12 +110,11 @@ class Print(output.Output):
                         theoutput += str(point[prop]) + ","
                 else:
                     theoutput += str(point["value"]) + ","
-                    if self.limits and self.limits.isbreach(point):
+                    if self.limits and point["breach"]:
                         if breach is None:
                             breach = "BREACHES: "
                         breach += point["name"] + ";"
-            if breach:
-                theoutput += breach
+            theoutput += breach
             theoutput = theoutput[:-1]
             print(theoutput)
         else:
@@ -148,7 +140,7 @@ class Print(output.Output):
                     line += ": " + str(value).rjust(10) + " "
                     line += point["symbol"].ljust(5) + "("
                     line += point["readingtype"] + ")"
-                    if self.limits and self.limits.isbreach(point):
+                    if self.limits and point["breach"]:
                         line += " BREACH!"
                     print(line)
             print("==========================================================")
