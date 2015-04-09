@@ -12,9 +12,7 @@ AirPi to them, so this is not entirely accurate (close enough though!).
 
 """
 
-import output
-
-class Limits(output.Output):
+class Limits(object):
     """A module to define exposure limits.
 
     A support module which is used to define exposure limits for gases.
@@ -76,44 +74,3 @@ class Limits(output.Output):
                     print("ERROR: Limit units do not match measurement units for " + samplename)
                     print("       " + sampleunit + " is not the same as " + self.limits[samplename]["unit"])
         return False
-
-    @staticmethod
-    def output_metadata(metadata):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            metadata: Dict containing the metadata to be output.
-
-        Returns:
-            boolean True in all cases.
-        """
-        return True
-
-    @staticmethod
-    def output_data(self, dummy_a, dummy_b):
-        """Output data.
-
-        Output data in the format stipulated by the plugin. Even if it
-        is not appropriate for the plugin to output data (e.g. for
-        support plugins), this method is required because airpi.py
-        looks for it in when setting up plugins. In such cases, arguments
-        will be named 'dummy' to facilitate compliance with pylint, and
-        this method will simply return boolean True.
-
-        Args:
-            self: self.
-            dummy_a: A dict containing the data to be output.
-            dummy_b: datetime representing the time the sample was taken.
-
-        Returns:
-            boolean True in all cases (for this partiular plugin).
-
-        """
-        return True

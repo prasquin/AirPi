@@ -30,7 +30,7 @@ from logging import handlers
 from math import isnan
 from sensors import sensor
 from outputs import output
-from outputs import limits
+import limits
 from notifications import notification
 
 class MissingField(Exception):
