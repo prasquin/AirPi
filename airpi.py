@@ -788,11 +788,12 @@ def set_up_limits():
     mainconfig = ConfigParser.SafeConfigParser()
     mainconfig.read(CFGPATHS['settings'])
 
-    if mainconfig.has_section("Limits"):
+    if mainconfig.has_section("Limits") and mainconfig.has_option("Limits", "enabled") and mainconfig.getboolean("Limits", "enabled"):
         thelimits = {}
         for phenomena, limit in mainconfig.items("Limits"):
-            [value, units] = limit.split(',', 1)
-            thelimits[phenomena.lower()] = [value, units]
+            if phenomena != "enabled":
+                [value, units] = limit.split(',', 1)
+                thelimits[phenomena.lower()] = [value, units]
         LOGGER.debug("Values used to init Limit object are: " + str(thelimits))
         try:
             limitsobj = limits.Limits(thelimits)
@@ -805,6 +806,9 @@ def set_up_limits():
             msg += str(e)
             msg = format_msg(msg, 'error')
             print(msg)
+    else:
+        msg = format_msg("Limits not enabled.", 'info')
+        print(msg)
     return None
 
 def set_settings():
