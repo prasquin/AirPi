@@ -48,8 +48,6 @@ class HTTP(output.Output):
     rssItem = "<item><title>$sensorname$</title><description>$reading$ $units$</description></item>\n"
 
     def __init__(self, params):
-
-    def __init__(self, params):
         super(HTTP, self).__init__(params)
 
         self.target = ["target"]
