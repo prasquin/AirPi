@@ -359,7 +359,8 @@ def set_up_sensors():
                     opt = []
                 # Sensors don't have any common params, so this is empty
                 common = []
-
+                
+                #TODO: Get rid of this when it's all activated in Output
                 plugindata = define_plugin_params(SENSORCONFIG,
                                 i, reqd, opt, common)
 
@@ -475,39 +476,35 @@ def set_up_outputs():
                     logthis("error", msg)
                     raise
 
+                #TODO: Get rid of all of this once it's activated in Output
                 try:
-                    reqd = outputclass.requiredParams
-                except Exception:
+                    reqd = outputclass.requiredGenericParams
+                    if outputclass.requiredSpecificParams is not None:
+                        reqd = reqd + outputclass.requiredSpecificParams
+                except Exception as e:
+                    print(str(e))
                     reqd = []
                 try:
-                    if outputclass.optionalParams is None:
-                        opt = []
+                    if outputclass.optionalGenericParams is None:
+                        if outputclass.optionalSpecificParams is None:
+                            opt = []
+                        else:
+                            opt = outputclass.optionalSpecificParams
                     else:
-                        opt = outputclass.optionalParams
-                except Exception:
+                        opt = outputclass.optionalGenericParams
+                        if outputclass.optionalSpecificParams is not None:
+                            opt = opt + outputclass.optionalSpecificParams
+                except Exception as e:
+                    print(str(e))
                     opt = []
                 # Output plugins don't have any common params so this is empty
                 common = None
                
-                limitsinfo = {}
-                if (OUTPUTCONFIG.has_option(i, "limits") and
-                        OUTPUTCONFIG.getboolean(i, "limits")):
-                    if OUTPUTCONFIG.has_section("Limits"):
-                        for option in OUTPUTCONFIG.options("Limits"):
-                            limitsinfo[option] = OUTPUTCONFIG.get("Limits", option)
-                    else:
-                        msg = "Limits requested, but details not found in cfg file."
-                        print(msg)
-                        logthis("error", msg)
-                else:
-                    limitsinfo = False
-
-                # Only output plugins have "limits"; note different method signature
-                # on this call versus the same call for SENSORS and NOTIFICATIONS.
+                #TODO: Get rid of this when it's all activated in Output
                 plugindata = define_plugin_params(OUTPUTCONFIG,
-                                i, reqd, opt, common, limitsinfo)
+                                i, reqd, opt, common)
  
-                if (OUTPUTCONFIG.get(i, "target") == "internet") and not check_conn():
+                if (plugindata["target"] == "internet") and not check_conn():
                     msg = "Skipping output plugin " + i
                     msg += " because no internet connectivity."
                     msg = format_msg(msg, 'error')
@@ -581,7 +578,7 @@ def fix_duplicate_outputs(plugins):
     return plugins
 
 
-def define_plugin_params(config, name, reqd, opt, common, limitsinfo=False):
+def define_plugin_params(config, name, reqd, opt, common):
     """Define setup parameters for an plugin.
 
     Take a list of parameters supplied by the user ('config'), and
@@ -612,7 +609,7 @@ def define_plugin_params(config, name, reqd, opt, common, limitsinfo=False):
     LOGGER.debug(" - common: " + str(common))
     params = {}
     # Defaults:
-    params["metadatareqd"] = False
+    params["metadata"] = False
     params["limits"] = False
     params['async'] = False
     # Read params which have been defined
@@ -638,8 +635,6 @@ def define_plugin_params(config, name, reqd, opt, common, limitsinfo=False):
         for commonfield in common:
             if config.has_option("Common", commonfield):
                 params[commonfield] = config.get("Common", commonfield)
-    if limitsinfo:
-        params["limitsinfo"] = limitsinfo
 
     LOGGER.debug(" Final combined params to be used to create " + name + " instance are:")
     LOGGER.debug(" " + str(params))
@@ -727,6 +722,7 @@ def set_up_notifications():
                 except Exception:
                     common = []
 
+                #TODO: Get rid of this when it's all activated in Output
                 plugindata = define_plugin_params(NOTIFICATIONCONFIG, i,
                                 reqd, opt, common)
 

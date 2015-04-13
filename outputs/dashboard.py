@@ -7,7 +7,6 @@ accurately, stdout). This does not include GPS or metadata.
 
 import output
 import calibration
-import limits
 
 class Dashboard(output.Output):
     """A module to print AirPi data to screen.
@@ -17,32 +16,9 @@ class Dashboard(output.Output):
 
     """
 
-    requiredParams = ["target", "limits"]
+    #TODO: Delete these
+    requiredParams = ["target"]
     optionalParams = ["calibration"]
-
-    def __init__(self, params, limits = None):
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
-        self.target = params["target"]
-        self.limits = limits
-
-    def output_metadata(self, metadata = None):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            self: self.
-
-        Returns:
-            boolean True in all cases.
-        """
-        return True
 
     def output_data(self, datapoints, sampletime):
         """Output data.
@@ -65,7 +41,7 @@ class Dashboard(output.Output):
             boolean True if data successfully printed to stdout.
 
         """
-        if self.docal == 1:
+        if self.cal:
             datapoints = self.cal.calibrate(datapoints)
         print("Time".ljust(17) + ": " + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f"))
         for point in datapoints:

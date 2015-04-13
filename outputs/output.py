@@ -18,53 +18,79 @@ class Output(object):
     """
 
     __metaclass__ = ABCMeta
-    requiredParams = ["target"]
-    optionalParams = None
+    requiredGenericParams = ["target"]
+    optionalGenericParams = ["calibration", "metadata", "limits"]
+    requiredSpecificParams = None
+    optionalSpecificParams = None
     commonParams = None
 
-    @abstractmethod
     def __init__(self, params):
-        """Error if sub-class doesn't init itself.
-
-        This is an abstract method, so an error will be raised if a
-        sub-class which inherits from this Class doesn't init itself.
-        By implication, this means that each output is expected to init
-        differently; this is a fair assumption, since a very wide range
-        of outputs may be created.
+        self.name = type(self).__name__
+        #TODO: Enable this
+        #config = self.check_cfg_file(filetocheck)
+        #self.doparams = {}
+        #if self.doparams(config)
+        self.dolimits = self.checklimits(params)
+        self.dometadata = self.checkmetadata(params)
+        self.cal = self.checkcal(params)
+        self.target = params["target"]
+        #else:
+        #    # doparams failed so we can actually delete these two lines
+ 
+    def doparams(OUTPUTCONFIG):
+        """
+ 
+        Check that 'params' used to init the object contains the required
+        parameters; raise an error if not. Then check whether it contains
+        any of the optional parameters; set them to False if not.
+        This is done for both the 'generic' parameters which apply to all
+        subclasses of this Output object, and for 'specific' parameters
+        which are defined for individual subclasses.
 
         """
-        pass
-
-    @staticmethod
-    def checkparams():
-        OUTPUTCONFIG = ConfigParser.SafeConfigParser()
-        OUTPUTCONFIG.read(CFGPATHS['outputs'])
-
-        OUTPUTNAMES = OUTPUTCONFIG.sections()
-        for reqdfield in requiredParams:
-            if OUTPUTCONFIG.has_option(name, reqdfield):
-                params[reqdfield] = OUTPUTCONFIG.get(name, reqdfield)
-            else:
-                msg = "Missing required field '" + reqdfield
-                msg += "' for plugin " + name + "."
-                print(msg)
-                msg += "This should be found in file: " + CFGPATHS['outputs']
-                msg = format_msg(msg, 'error')
-                print(msg)
-                raise MissingField
-        for optfield in optionalParams:
-            if OUTPUTCONFIG.has_option(name, optfield):
-                params[optfield] = OUTPUTCONFIG.get(name, optfield)
-        for commonfield in common:
-            if OUTPUTCONFIG.has_option("Common", commonfield):
-                params[commonfield] = OUTPUTCONFIG.get("Common", commonfield)
-
-        # Only applies to output plugins
-        if (OUTPUTCONFIG.has_option(name, "metadatareqd") and
-            OUTPUTCONFIG.getboolean(name, "metadatareqd")):
-            params['metadatareqd'] = True
+        #TODO: Actually use this function instead of airpi.py
+        if self.name in OUTPUTCONFIG.sections():
+            for paramset in ["requiredGenericParams", "requiredSpecificParams"]:
+                for reqdparam in paramset:
+                    if OUTPUTCONFIG.has_option(self.name, reqdparam):
+                        self.params[reqdparam] = self.sanitiseparam(OUTPUTCONFIG.get(name, reqdparam))
+                    else:
+                        msg = "Missing required parameter '" + reqdparam
+                        msg += "' for plugin " + self.name + "."
+                        print(msg)
+                        msg += "This should be found in file: " + filetocheck
+                        msg = format_msg(msg, 'error')
+                        print(msg)
+                        raise MissingParameter
+            for paramset in ["optionalGenericParams", "optionalSpecificParams"]:
+                for optparam in paramset:
+                    if OUTPUTCONFIG.has_option(name, optparam):
+                        self.params[optparam] = self.sanitiseparam(OUTPUTCONFIG.get(name, optparam))
+                    else:
+                        msg = "Missing optional parameter '" + optparam 
+                        msg += "' for plugin " + self.name + ". Setting to False."
+                        msg = format_msg(msg, 'info')
+                        print(msg)
+                        self.params[optparam] = False
+            return True
         else:
-            params['metadatareqd'] = False 
+            msg = "Missing config section for plugin " + self.name + "."
+            print(msg)
+            msg += "This should be found in file: " + filetocheck
+            msg = format_msg(msg, 'error')
+            print(msg)
+            raise MissingSection
+
+    def sanitiseparam(value):
+        # Test for bool first: http://www.peterbe.com/plog/bool-is-int
+        if isinstance(value, bool):
+            return value
+        if value.lower() in ["on", "yes", "true", "1"]:
+            return True
+        if value.lower() in ["off", "no", "false", "0"]:
+            return False
+        return value
+
 
     @staticmethod
     def check_cfg_file(filetocheck):
@@ -88,7 +114,9 @@ class Output(object):
         else:
             msg = "Config file: " + filetocheck
             LOGGER.info(msg)
-            return True
+            outputconfig = ConfigParser.SafeConfigParser()
+            outputconfig.read(filetocheck)
+            return outputconfig
 
     @abstractmethod
     def output_data(self):
@@ -109,10 +137,10 @@ class Output(object):
            was taken.
 
         In situations where the sub-class defines a support plugin (e.g.
-        "calibration" or "limits") the sub-class may not actually be
-        able/designed to ouptput data; in such circumstances the method
-        should just return True. In those cases, the method signature
-        can have a single 'self' argument as shown above.
+        "calibration") the sub-class may not actually be able/designed
+        to ouptput data; in such circumstances the method should just
+        return True. In those cases, the method signature can have a
+        single 'self' argument as shown above.
 
         See the docstrings for individual methods within sub-classes for
         more detail on specific cases.
@@ -123,8 +151,7 @@ class Output(object):
         """
         pass
 
-    @abstractmethod
-    def output_metadata(self, metadata):
+    def output_metadata(self, metadata = False):
         """Output metadata.
 
         Output metadata in the format stipulated by this plugin.
@@ -134,11 +161,11 @@ class Output(object):
         is abstract.
 
         In situations where the sub-class defines a support plugin (e.g.
-        "calibration" or "limits") the sub-class may not actually be
-        able/designed to ouptput metadata; in such circumstances the
-        method should just return True. In those cases, the method
-        signature remains the same but the value of the 'metadata'
-        argument is never used.
+        "calibration") the sub-class may not actually be able/designed
+        to ouptput data; in such circumstances the method should just
+        return True. In those cases, the method signature can have a
+        single 'self' argument as shown above;  the 'metadata' argument 
+        is never used.
 
         See the docstrings for individual methods within sub-classes for
         more detail on specific cases.
@@ -148,7 +175,7 @@ class Output(object):
             metadata: Dict containing the metadata to be output.
 
         """
-        pass
+        return True
 
     @staticmethod
     def checkcal(params):
@@ -163,33 +190,53 @@ class Output(object):
         Args:
             params: dict The setup parameters for the run.
 
+        Returns:
+            calibration object if calibration is requested. False if not.
         """
-        docal = 0
         if "calibration" in params:
+            if isinstance(params["calibration"], bool):
+                return params["calibration"]
             if params["calibration"].lower() in ["on", "yes", "true", "1"]:
-                docal = 1
-        return docal
+                return calibration.Calibration.sharedClass
+        return False
+
 
     @staticmethod
     def checklimits(params):
         """Check whether limits have been requested.
 
-        Check whether limits have been requested for this output
-        plugin. This will have been done in airpi.py as part of set_up_outputs()
-        - more specifically, by define_plugin_params(). This method does not
-        actually set any limits; it just records whether or not it
-        *should* be done.
+        Check whether breach detection using the limits function has been
+        requested for this output plugin.
 
         Args:
             params: dict The setup parameters for the run.
 
+        Returns: True if limits are requested. False if not.
         """
-        dolimits = 0
-        print(params)
         if "limits" in params:
+            if isinstance(params["limits"], bool):
+                return params["limits"]
             if params["limits"].lower() in ["on", "yes", "true", "1"]:
-                dolimits = 1
-        return dolimits
+                return True
+        return False
+
+
+    @staticmethod
+    def checkmetadata(params):
+        """Check whether metadata output has been requested.
+
+        Check whether output of metadata has been requested for this output plugin.
+
+        Args:
+            params: dict The setup parameters for the run.
+
+        Returns: True if metadata are requested. False if not.
+        """
+        if "metadata" in params:
+            if params["metadata"].lower() in ["on", "yes", "true", "1"]:
+                return True
+        return False
+
 
     @staticmethod
     def gethostname():
@@ -219,9 +266,16 @@ class Output(object):
         """
         return self.__class__.__name__
 
-class MissingField(Exception):
-    """Exception to raise when an imported plugin is missing a required
-    field.
+class MissingParameter(Exception):
+    """Exception to raise when the outputs.cfg file is missing a required
+    parameter.
+
+    """
+    pass
+
+class MissingSection(Exception):
+    """ Exception to raise when there is no section for the plugin in
+    the outputs.cfg config file.
 
     """
     pass

@@ -23,16 +23,16 @@ class Dweet(output.Output):
 
     """
 
+    #TODO: Delete these
     requiredParams = ["target"]
     optionalParams = ["calibration", "thing"]
 
+    requiredSpecificParams = ["thing"]
+
     def __init__(self, params):
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
-        self.target = params["target"]
-        self.thing = params["thing"]
-        if "<hostname>" in self.thing:
-            self.thing = self.thing.replace("<hostname>", self.gethostname())
+        super(Dweet, self).__init__(params)
+        if "<hostname>" in params["thing"]:
+            self.thing = params["thing"].replace("<hostname>", self.gethostname())
 
     def output_data(self, datapoints):
         """Output data.
@@ -51,7 +51,7 @@ class Dweet(output.Output):
                 not
 
         """
-        if self.docal == 1:
+        if self.cal:
             datapoints = self.cal.calibrate(datapoints)
         data = {}
         req = None
@@ -71,24 +71,6 @@ class Dweet(output.Output):
             print("ERROR: dweet.io responded with an error - " + req.text)
             print("ERROR: dweet.io URL  - " + req.url)
             return False
-        return True
-
-    def output_metadata(self):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            self: self.
-
-        Returns:
-            boolean True in all cases.
-        """
         return True
 
     def get_url(self):

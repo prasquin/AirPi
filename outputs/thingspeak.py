@@ -3,14 +3,18 @@ import requests
 import calibration
 
 class Thingspeak(output.Output):
+
+    #TODO: Class docs
+
+    #TODO: Delete these
     requiredParams = ["target", "apikey"]
     optionalParams = ["calibration"]
 
+    requiredSpecificParams = ["apikey"]
+
     def __init__(self, params):
         self.apikey = params["apikey"]
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.cal.checkcal(params)
-        self.target = params["target"]
+        super(Thingspeak, self).__init__(params)
 
     def output_data(self, datapoints, dummy):
         #TODO: Include GPS location data in this output
@@ -29,7 +33,7 @@ class Thingspeak(output.Output):
             dummy: datetime representing the time the sample was taken.
 
         """
-        if self.docal == 1:
+        if self.cal:
             datapoints = self.cal.calibrate(datapoints)
         arr = {}
         counter = 1
@@ -47,22 +51,4 @@ class Thingspeak(output.Output):
                 return False
         except Exception:
             return False
-        return True
-
-    def output_metadata(self):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            self: self.
-
-        Returns:
-            boolean True in all cases.
-        """
         return True

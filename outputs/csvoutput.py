@@ -19,9 +19,12 @@ class CSVOutput(output.Output):
 
     """
 
+    #TODO: Delete these
     requiredParams = ["target", "outputDir", "outputFile"]
-    optionalParams = ["calibration", "metadatareqd"]
+    optionalParams = ["calibration", "metadata"]
 
+    requiredSpecificParams = ["outputDir", "outputFile"]
+    
     def __init__(self, params):
         if "<date>" in params["outputFile"]:
             filenamedate = time.strftime("%Y%m%d-%H%M")
@@ -35,10 +38,7 @@ class CSVOutput(output.Output):
         self.file = open(filename, "a")
         # write a header line so we know which sensor is which?
         self.header = False
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
-        self.target = params["target"]
-        self.metadatareqd = params["metadatareqd"]
+        super(CSVOutput, self).__init__(params)
 
     def output_metadata(self, metadata):
         """Output metadata.
@@ -52,7 +52,7 @@ class CSVOutput(output.Output):
             metadata: dict The metadata for the run.
 
         """
-        if self.metadatareqd:
+        if self.dometadata:
             towrite = "\"Run started\",\"" + metadata['STARTTIME'] + "\""
             towrite += "\n\"Operator\",\"" + metadata['OPERATOR'] + "\""
             towrite += "\n\"Raspberry Pi name\",\"" + metadata['PINAME'] + "\""
@@ -70,7 +70,7 @@ class CSVOutput(output.Output):
                 towrite += metadata['STOPAFTER'] + "\""
             self.file.write(towrite + "\n")
 
-    def output_data(self, datapoints, sampletime, limits=False):
+    def output_data(self, datapoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration is
@@ -90,13 +90,13 @@ class CSVOutput(output.Output):
             boolean True if data successfully written to file.
 
         """
-        if self.docal == 1:
+        if self.cal:
             datapoints = self.cal.calibrate(datapoints)
 
         if self.header == False:
             header = "\"Date and time\",\"Unix time\""
 
-        line = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S,%f") + "\"," + sampletime
+        line = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S,%f") + "\"," + str(sampletime)
 
         for point in datapoints:
             if point["name"] != "Location":

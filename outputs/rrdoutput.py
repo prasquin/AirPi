@@ -84,8 +84,11 @@ class RRDOutput(output.Output):
 
     """
 
+    #TODO: Delete these
     requiredParams = ["target", "outputDir", "outputFile"]
-    optionalParams = ["calibration", "metadatareqd"]
+    optionalParams = ["calibration", "metadata"]
+
+    requiredSpecificParams = ["outputDir", "outputFile"]
 
     def __init__(self, params):
         if "<date>" in params["outputFile"]:
@@ -98,28 +101,7 @@ class RRDOutput(output.Output):
         # open the file persistently for append
         self.filename = params["outputDir"] + "/" + params["outputFile"]
         #self.file = open(self.filename, "a")
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
-        self.target = params["target"]
-        self.metadatareqd = params["metadatareqd"]
-
-    def output_metadata(self):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            self: self.
-
-        Returns:
-            boolean True in all cases.
-        """
-        return True
+        super(RRDOutput, self).__init__(params)
 
     def output_data(self, datapoints, sampletime):
         """Output data.
@@ -142,7 +124,7 @@ class RRDOutput(output.Output):
             boolean True if data successfully written to file.
 
         """
-        if self.docal == 1:
+        if self.cal:
             datapoints = self.cal.calibrate(datapoints)
         print("writing file")
         names = []

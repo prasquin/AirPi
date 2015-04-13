@@ -20,34 +20,17 @@ class Plot(output.Output):
 
     """
 
+    #TODO: Delete these
     requiredParams = ["target", "metric"]
     optionalParams = ["calibration"]
 
+    requiredSpecificParams = ["metric"]
+
     def __init__(self, params):
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
-        self.target = params["target"]
+        super(Plot, self).__init__(params)
         self.history = []
         self.metric = params["metric"]
         self.unit = None
-
-    def output_metadata(self):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            self: self.
-
-        Returns:
-            boolean True in all cases.
-        """
-        return True
 
     def output_data(self, datapoints, dummy):
         """Output data.
@@ -72,7 +55,7 @@ class Plot(output.Output):
             boolean True if data successfully printed to stdout.
 
         """
-        if self.docal == 1:
+        if self.cal:
             datapoints = self.cal.calibrate(datapoints)
 
         for point in datapoints:

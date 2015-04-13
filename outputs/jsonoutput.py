@@ -29,8 +29,11 @@ class JSONOutput(output.Output):
 
     """
 
+    #TODO: Delete these
     requiredParams = ["target", "outputDir", "outputFile"]
-    optionalParams = ["calibration", "metadatareqd"]
+    optionalParams = ["calibration ", "metadata"]
+
+    requiredSpecificParams = ["outputDir", "outputFile"]
 
     def __init__(self, params):
         if "<date>" in params["outputFile"]:
@@ -43,10 +46,7 @@ class JSONOutput(output.Output):
         # open the file persistently for append
         filename = params["outputDir"] + "/" + params["outputFile"]
         self.file = open(filename, "a")
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
-        self.target = params["target"]
-        self.metadatareqd = params["metadatareqd"]
+        super(JSONOutput, self).__init__(params)
 
     def output_metadata(self, metadata):
         """Output metadata.
@@ -60,7 +60,7 @@ class JSONOutput(output.Output):
             metadata: dict The metadata for the run.
 
         """
-        if self.metadatareqd:
+        if self.dometadata:
             towrite = "{\"Run started\":\"" + metadata['STARTTIME'] + "\""
             towrite += "\n,\"Operator\":\"" + metadata['OPERATOR'] + "\""
             towrite += "\n,\"Raspberry Pi name\":\"" + metadata['PINAME'] + "\""
@@ -101,7 +101,7 @@ class JSONOutput(output.Output):
             boolean True if data successfully written to file.
 
         """
-        if self.docal == 1:
+        if self.cal:
             datapoints = self.cal.calibrate(datapoints)
 
         line = '{"Date and time":"' + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f") + '",'

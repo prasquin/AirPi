@@ -21,6 +21,7 @@ class Ubidot(output.Output):
 
     """
 
+    #TODO: Delete these
     requiredParams = ["target", "token"]
     optionalParams = ["calibration",
                       "showcost",
@@ -35,10 +36,21 @@ class Ubidot(output.Output):
                       "ID-Microphone"
                       ]
 
+    requiredSpecificParams = ["token"]
+    optionalSpecificParams = ["showcost",
+                      "ID-BMP085-temp",
+                      "ID-BMP085-pres",
+                      "ID-DHT22-hum",
+                      "ID-DHT22-temp",
+                      "ID-LDR",
+                      "ID-TGS2600",
+                      "ID-MiCS-2710",
+                      "ID-MiCS-5525",
+                      "ID-Microphone"
+                      ]
+
     def __init__(self, params):
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
-        self.target = params["target"]
+        super(Ubidot, self).__init__(params)        
         self.token = params["token"]
         if "showcost" in params:
             self.showcost = params["showcost"]
@@ -68,7 +80,7 @@ class Ubidot(output.Output):
                 not
 
         """
-        if self.docal == 1:
+        if self.cal:
             datapoints = self.cal.calibrate(datapoints)
         payload= []
         for point in datapoints:
@@ -98,22 +110,4 @@ class Ubidot(output.Output):
                 cost += 1
         if self.showcost:
             print("Ubidots upload cost " + str(cost) + " dots.")
-        return True
-
-    def output_metadata(self):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            self: self.
-
-        Returns:
-            boolean True in all cases.
-        """
         return True

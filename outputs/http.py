@@ -22,9 +22,14 @@ import calibration
 # http://bytes.com/topic/python/answers/158332-persistent-xmlrpc-connection
 
 class HTTP(output.Output):
+
+    #TODO: Delete these
     requiredParams = ["target", "wwwPath"]
     optionalParams = ["port", "history", "title", "about", "calibration", "historySize", "historyInterval", "historyCalibrated", "httpVersion"]
 
+    requiredSpecificParams = ["wwwPath"]
+    optionalSpecificParams = ["port", "history", "title", "about", "historySize", "historyInterval", "historyCalibrated", "httpVersion"]
+    
     details = """
 <div class="panel panel-default">
     <div class="panel-heading">
@@ -43,6 +48,9 @@ class HTTP(output.Output):
     rssItem = "<item><title>$sensorname$</title><description>$reading$ $units$</description></item>\n"
 
     def __init__(self, params):
+
+    def __init__(self, params):
+        super(HTTP, self).__init__(params)
 
         self.target = ["target"]
 
@@ -248,26 +256,8 @@ class HTTP(output.Output):
             self.historicData[0:self.historicAt-1,:] = self.historicData[1:self.historicAt,:]
             self.historicAt -= 1
 
-    def output_metadata(self):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            self: self.
-
-        Returns:
-            boolean True in all cases.
-        """
-        return True
-
     def output_data(self,dataPoints, sampletime):
-        if self.docal == 1:
+        if self.cal:
             dataPoints = self.cal.calibrate(dataPoints[:])
         if len(self.sensorIds) == 0:
             self.createSensorIds(dataPoints)

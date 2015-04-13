@@ -21,7 +21,6 @@ class Calibration(output.Output):
 
     """
 
-    requiredParams = ["target"]
     optionalParams = ["Light_Level", "Air_Quality", "Nitrogen_Dioxide",
                       "Carbon_Monoxide", "Volume", "UVI", "Bucket_tips"]
     sharedClass = None
@@ -88,24 +87,6 @@ class Calibration(output.Output):
         # Update which object we last worked on:
         self.lastuncalibrated = datapoints
         return self.calibrated
-
-    def output_metadata(self):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            self: self.
-
-        Returns:
-            boolean True in all cases.
-        """
-        return True
 
     def findval(self, key):
         """Find (calibrated) data value for a given key.

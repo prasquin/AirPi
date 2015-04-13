@@ -280,7 +280,7 @@ The following options are common to a number of output plugins:
 + `enabled` specifies whether or not the output plugin is enabled.
 + `calibration` specifies whether or not user-defined calibration functions
   should be applied to raw data.
-+ `metadatareqd` specifies whether or not metadata should be output by the
++ `metadata` specifies whether or not metadata should be output by the
   plugin (if it is capable of doing so).
 + `outputDir` specifies the directory where the output plugin should save any
   output file(s).

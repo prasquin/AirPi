@@ -13,9 +13,13 @@ class Xively(output.Output):
     #      in airpi.py? Applies to other output plugins too.
     #TODO: Expand proxy info to a single setting in settings.cfg and
     #      make available to all plugins which require internet access.
+    #TODO: Delete these
     requiredParams = ["target", "apikey", "feedid"]
     optionalParams = ["calibration", "proxyhttp", "proxyhttps"]
     proxies = None
+
+    requiredSpecificParams = ["apikey", "feedid"]
+    optionalSpecificParams = ["proxyhttp", "proxyhttps"]
 
     def __init__(self, params):
         self.apikey = params["apikey"]
@@ -25,9 +29,7 @@ class Xively(output.Output):
                           http: params["proxyhttp"],
                           https: params["proxyhttps"]
             }
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
-        self.target = params["target"]
+        super(Xively, self).__init__(params)
 
     def output_data(self, dataPoints, dummy):
         """Output data.
@@ -52,7 +54,7 @@ class Xively(output.Output):
             boolean True if output successfully. False if not.
 
         """
-        if self.docal == 1:
+        if self.cal:
             dataPoints = self.cal.calibrate(dataPoints)
         arr = []
         for i in dataPoints:
@@ -73,24 +75,6 @@ class Xively(output.Output):
                 return False
         except Exception:
             return False
-        return True
-
-    def output_metadata(self):
-        """Output metadata.
-
-        Output metadata for the run in the format stipulated by this
-        plugin. This particular plugin cannot output metadata, so this
-        method will always return True. This is an abstract method of
-        the Output class, which this class inherits from; this means you
-        shouldn't (and can't) remove this method. See docs in the Output
-        class for more info.
-
-        Args:
-            self: self.
-
-        Returns:
-            boolean True in all cases.
-        """
         return True
 
     def get_help(self):

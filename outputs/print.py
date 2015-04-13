@@ -23,19 +23,11 @@ class Print(output.Output):
 
     """
 
-    requiredParams = ["target", "format"]
-    optionalParams = ["calibration", "limits", "metadatareqd"]
+    requiredSpecificParams = ["format"]
 
     def __init__(self, params):
-        self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
-        self.target = params["target"]
         self.format = params["format"]
-        if "limits" in params:
-            self.limits = True
-        else:
-            self.limits = False
-        self.metadatareqd = params["metadatareqd"]
+        super(Print, self).__init__(params)
 
     def output_metadata(self, metadata):
         """Output metadata.
@@ -49,7 +41,7 @@ class Print(output.Output):
             metadata: dict The metadata for the run.
 
         """
-        if self.metadatareqd:
+        if self.dometadata:
             print("==========================================================")
             print("Loading: METADATA")
             toprint = "Run started".ljust(23, '.')
@@ -94,7 +86,7 @@ class Print(output.Output):
             boolean True if data successfully printed to stdout.
 
         """
-        if self.docal == 1:
+        if self.cal:
             datapoints = self.cal.calibrate(datapoints)
         if self.format == "csv":
             theoutput = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f") + "\","
@@ -110,7 +102,7 @@ class Print(output.Output):
                         theoutput += str(point[prop]) + ","
                 else:
                     theoutput += str(point["value"]) + ","
-                    if self.limits and point["breach"]:
+                    if self.dolimits and point["breach"]:
                         if breach is None:
                             breach = "BREACHES: "
                         breach += point["name"] + ";"
@@ -140,7 +132,7 @@ class Print(output.Output):
                     line += ": " + str(value).rjust(10) + " "
                     line += point["symbol"].ljust(5) + "("
                     line += point["readingtype"] + ")"
-                    if self.limits and point["breach"]:
+                    if self.dolimits and point["breach"]:
                         line += " BREACH!"
                     print(line)
             print("==========================================================")
