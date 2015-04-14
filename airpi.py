@@ -26,6 +26,7 @@ import os
 import signal
 import urllib2
 import logging
+import subprocess
 from logging import handlers
 from math import isnan
 from sensors import sensor
@@ -462,6 +463,9 @@ def set_up_outputs():
                     raise
 
                 try:
+                    msg = "Trying to get subclass for " + filename
+                    msg = format_msg(msg, 'info')
+                    logthis('info', msg)
                     outputclass = get_subclasses(mod, output.Output)
                     msg = "Successfully got subclasses for " + filename
                     msg = format_msg(msg, 'success')
@@ -1299,6 +1303,25 @@ if __name__ == '__main__':
     notificationsMade = {}
     samples = 0
     STARTTIME = datetime.datetime.utcnow()
+
+    # Add Git commit ref to debug output
+    p1 = subprocess.Popen(["git", "log"], stdout=subprocess.PIPE)
+    p2 = subprocess.Popen(["head", "-1"], stdin=p1.stdout, stdout=subprocess.PIPE)
+    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+    commit,err = p2.communicate()
+    logthis('debug', "Git " + commit)
+    for theprocess in [p1,p2]:
+        if theprocess.stdin:
+            theprocess.stdin.close()
+        if theprocess.stdout:
+            theprocess.stdout.close()
+        if theprocess.stderr:
+            theprocess.stderr.close()
+        try:
+            theprocess.kill()
+        except OSError:
+            # can't kill a dead proc
+            pass
 
     #Set up plugins
     PLUGINSSENSORS = set_up_sensors()
