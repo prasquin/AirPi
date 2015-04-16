@@ -19,26 +19,22 @@ class CSVOutput(output.Output):
 
     """
 
-    #TODO: Delete these
-    requiredParams = ["target", "outputDir", "outputFile"]
-    optionalParams = ["calibration", "metadata"]
-
     requiredSpecificParams = ["outputDir", "outputFile"]
     
-    def __init__(self, params):
-        if "<date>" in params["outputFile"]:
+    def __init__(self, config):
+        super(CSVOutput, self).__init__(config)
+        if "<date>" in self.params["outputFile"]:
             filenamedate = time.strftime("%Y%m%d-%H%M")
-            params["outputFile"] = \
-                params["outputFile"].replace("<date>", filenamedate)
-        if "<hostname>" in params["outputFile"]:
-            params["outputFile"] = \
-                params["outputFile"].replace("<hostname>", self.gethostname())
+            self.params["outputFile"] = \
+                self.params["outputFile"].replace("<date>", filenamedate)
+        if "<hostname>" in self.params["outputFile"]:
+            self.params["outputFile"] = \
+                self.params["outputFile"].replace("<hostname>", self.gethostname())
         # open the file persistently for append
-        filename = params["outputDir"] + "/" + params["outputFile"]
+        filename = self.params["outputDir"] + "/" + self.params["outputFile"]
         self.file = open(filename, "a")
         # write a header line so we know which sensor is which?
         self.header = False
-        super(CSVOutput, self).__init__(params)
 
     def output_metadata(self, metadata):
         """Output metadata.
@@ -52,7 +48,7 @@ class CSVOutput(output.Output):
             metadata: dict The metadata for the run.
 
         """
-        if self.dometadata:
+        if self.params["metadata"]:
             towrite = "\"Run started\",\"" + metadata['STARTTIME'] + "\""
             towrite += "\n\"Operator\",\"" + metadata['OPERATOR'] + "\""
             towrite += "\n\"Raspberry Pi name\",\"" + metadata['PINAME'] + "\""
@@ -90,7 +86,7 @@ class CSVOutput(output.Output):
             boolean True if data successfully written to file.
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             datapoints = self.cal.calibrate(datapoints)
 
         if self.header == False:
@@ -98,6 +94,7 @@ class CSVOutput(output.Output):
 
         line = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S,%f") + "\"," + str(sampletime)
 
+        breach = None
         for point in datapoints:
             if point["name"] != "Location":
                 if self.header == False:
@@ -107,6 +104,10 @@ class CSVOutput(output.Output):
                         point["symbol"],
                         point["readingtype"])
                 line += "," + str(point["value"])
+                if self.params["limits"] and point["breach"]:
+                    if breach is None:
+                        breach = "BREACHES: "
+                    breach += point["name"] + ";"
             else:
                 if self.header == False:
                     header += ",\"Latitude (deg)\",\"Longitude (deg)\","
@@ -118,6 +119,8 @@ class CSVOutput(output.Output):
                             "disposition"]
                 for prop in props:
                     line += "," + str(point[prop])
+        if self.params["limits"] and breach:
+            line += "," + breach
         line = line[:-1]
         # If it's the first write of this instance do a header so we
         # know what's what:
