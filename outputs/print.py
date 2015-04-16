@@ -25,9 +25,8 @@ class Print(output.Output):
 
     requiredSpecificParams = ["format"]
 
-    def __init__(self, params):
-        self.format = params["format"]
-        super(Print, self).__init__(params)
+    def __init__(self, pathtoconfig):
+        super(Print, self).__init__(pathtoconfig)
 
     def output_metadata(self, metadata):
         """Output metadata.
@@ -41,7 +40,7 @@ class Print(output.Output):
             metadata: dict The metadata for the run.
 
         """
-        if self.dometadata:
+        if self.params["metadata"]:
             print("==========================================================")
             print("Loading: METADATA")
             toprint = "Run started".ljust(23, '.')
@@ -86,9 +85,9 @@ class Print(output.Output):
             boolean True if data successfully printed to stdout.
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             datapoints = self.cal.calibrate(datapoints)
-        if self.format == "csv":
+        if self.params["format"] == "csv":
             theoutput = "\"" + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f") + "\","
             breach = None
             for point in datapoints:
@@ -102,7 +101,7 @@ class Print(output.Output):
                         theoutput += str(point[prop]) + ","
                 else:
                     theoutput += str(point["value"]) + ","
-                    if self.dolimits and point["breach"]:
+                    if self.params["limits"] and point["breach"]:
                         if breach is None:
                             breach = "BREACHES: "
                         breach += point["name"] + ";"
@@ -132,7 +131,7 @@ class Print(output.Output):
                     line += ": " + str(value).rjust(10) + " "
                     line += point["symbol"].ljust(5) + "("
                     line += point["readingtype"] + ")"
-                    if self.dolimits and point["breach"]:
+                    if self.params["limits"] and point["breach"]:
                         line += " BREACH!"
                     print(line)
             print("==========================================================")

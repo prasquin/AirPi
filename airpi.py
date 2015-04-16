@@ -480,44 +480,10 @@ def set_up_outputs():
                     logthis("error", msg)
                     raise
 
-                #TODO: Get rid of all of this once it's activated in Output
                 try:
-                    reqd = outputclass.requiredGenericParams
-                    if outputclass.requiredSpecificParams is not None:
-                        reqd = reqd + outputclass.requiredSpecificParams
-                except Exception as e:
-                    print(str(e))
-                    reqd = []
-                try:
-                    if outputclass.optionalGenericParams is None:
-                        if outputclass.optionalSpecificParams is None:
-                            opt = []
-                        else:
-                            opt = outputclass.optionalSpecificParams
-                    else:
-                        opt = outputclass.optionalGenericParams
-                        if outputclass.optionalSpecificParams is not None:
-                            opt = opt + outputclass.optionalSpecificParams
-                except Exception as e:
-                    print(str(e))
-                    opt = []
-                # Output plugins don't have any common params so this is empty
-                common = None
-               
-                #TODO: Get rid of this when it's all activated in Output
-                plugindata = define_plugin_params(OUTPUTCONFIG,
-                                i, reqd, opt, common)
- 
-                if (plugindata["target"] == "internet") and not check_conn():
-                    msg = "Skipping output plugin " + i
-                    msg += " because no internet connectivity."
-                    msg = format_msg(msg, 'error')
-                    print(msg)
-                    logthis("info", msg)
-                else:
                     logthis("info", "Starting to set instclass for " + filename)
-                    instclass = outputclass(plugindata)
-                    instclass.async = plugindata['async']
+                    instclass = outputclass(CFGPATHS['outputs'])
+                    logthis("info", "Output plugin params are: " + str(instclass.params))
                     msg = "Successfully set instclass for " + filename
                     msg = format_msg(msg, 'success')
                     logthis("info", msg)
@@ -534,6 +500,12 @@ def set_up_outputs():
                         print(msg)
                     LOGGER.info("*******************")
 
+                except Exception as excep:
+                    msg = "Failed to import plugin " + i
+                    msg = format_msg(msg, 'error')
+                    print(msg)
+                    logthis("info", msg)
+
         except Exception as excep: #add specific exception for missing module
             msg = "Did not import output plugin " + str(i) + ": " + str(excep)
             msg = format_msg(msg, 'error')
@@ -541,7 +513,9 @@ def set_up_outputs():
             raise excep
 
     if any_plugins_enabled(outputplugins, 'output'):
-        return fix_duplicate_outputs(outputplugins)
+        # TODO: Fix this to look at plugin.params["target"]
+        #return fix_duplicate_outputs(outputplugins)
+        return outputplugins
 
 def fix_duplicate_outputs(plugins):
     """Ensure only one output plugin for stdout is enabled.

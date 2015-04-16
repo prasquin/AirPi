@@ -7,6 +7,8 @@ be instantiated directly.
 """
 from abc import ABCMeta, abstractmethod
 import socket
+import ConfigParser
+import os
 
 class Output(object):
     """Generic Output plugin description (abstract) for sub-classing.
@@ -24,20 +26,28 @@ class Output(object):
     optionalSpecificParams = None
     commonParams = None
 
-    def __init__(self, params):
+    def __init__(self, pathtoconfig):
         self.name = type(self).__name__
-        #TODO: Enable this
-        #config = self.check_cfg_file(filetocheck)
-        #self.doparams = {}
-        #if self.doparams(config)
-        self.dolimits = self.checklimits(params)
-        self.dometadata = self.checkmetadata(params)
-        self.cal = self.checkcal(params)
-        self.target = params["target"]
-        #else:
-        #    # doparams failed so we can actually delete these two lines
+        #TODO: Is self.async really required?
+        self.async = False
+        config = self.check_cfg_file(pathtoconfig)
+        self.params = {}
+        if self.setallparams(config):
+            print("Moving on...")
+            if (self.params["target"] == "internet") and not self.check_conn():
+                msg = "Skipping output plugin " + self.name
+                msg += " because no internet connectivity."
+                #msg = format_msg(msg, 'error')
+                print(msg)
+                #logthis("info", msg)
+                raise NoInternetConnection
+        else:
+            msg = "Failed to set parameters for output plugin " + self.name
+            print(msg)
+            #logthis("error", msg)
+        print("All done!")
  
-    def doparams(OUTPUTCONFIG):
+    def setallparams(self, OUTPUTCONFIG):
         """
  
         Check that 'params' used to init the object contains the required
@@ -48,41 +58,47 @@ class Output(object):
         which are defined for individual subclasses.
 
         """
-        #TODO: Actually use this function instead of airpi.py
         if self.name in OUTPUTCONFIG.sections():
-            for paramset in ["requiredGenericParams", "requiredSpecificParams"]:
-                for reqdparam in paramset:
-                    if OUTPUTCONFIG.has_option(self.name, reqdparam):
-                        self.params[reqdparam] = self.sanitiseparam(OUTPUTCONFIG.get(name, reqdparam))
-                    else:
-                        msg = "Missing required parameter '" + reqdparam
-                        msg += "' for plugin " + self.name + "."
-                        print(msg)
-                        msg += "This should be found in file: " + filetocheck
-                        msg = format_msg(msg, 'error')
-                        print(msg)
-                        raise MissingParameter
-            for paramset in ["optionalGenericParams", "optionalSpecificParams"]:
-                for optparam in paramset:
-                    if OUTPUTCONFIG.has_option(name, optparam):
-                        self.params[optparam] = self.sanitiseparam(OUTPUTCONFIG.get(name, optparam))
-                    else:
-                        msg = "Missing optional parameter '" + optparam 
-                        msg += "' for plugin " + self.name + ". Setting to False."
-                        msg = format_msg(msg, 'info')
-                        print(msg)
-                        self.params[optparam] = False
+            self.extractparams(OUTPUTCONFIG, self.requiredGenericParams, "required")
+            self.extractparams(OUTPUTCONFIG, self.requiredSpecificParams, "required")
+            self.extractparams(OUTPUTCONFIG, self.optionalGenericParams, "optional")
+            self.extractparams(OUTPUTCONFIG, self.optionalSpecificParams, "optional")
             return True
         else:
             msg = "Missing config section for plugin " + self.name + "."
             print(msg)
             msg += "This should be found in file: " + filetocheck
-            msg = format_msg(msg, 'error')
+            #msg = format_msg(msg, 'error')
             print(msg)
             raise MissingSection
+        return False
 
+    def extractparams(self, config, paramset, kind):
+        if paramset is not None:
+            extracted = {}
+            for reqdparam in paramset:
+                if config.has_option(self.name, reqdparam):
+                    extracted[reqdparam] = self.sanitiseparam(config.get(self.name, reqdparam))
+                else:
+                    if kind == "required":
+                        msg = "Missing required parameter '" + reqdparam
+                        msg += "' for plugin " + self.name + "."
+                        print(msg)
+                        msg += "This should be found in the outputs.cfg file."
+                        #msg = format_msg(msg, 'error')
+                        print(msg)
+                        raise MissingParameter 
+                    else:
+                        msg = "Missing optional parameter '" + optparam 
+                        msg += "' for plugin " + self.name + ". Setting to False."
+                        #msg = format_msg(msg, 'info')
+                        print(msg)
+                        extracted[optparam] = False
+            self.params.update(extracted)
+
+    @staticmethod
     def sanitiseparam(value):
-        # Test for bool first: http://www.peterbe.com/plog/bool-is-int
+        # Always test for bool first: http://www.peterbe.com/plog/bool-is-int
         if isinstance(value, bool):
             return value
         if value.lower() in ["on", "yes", "true", "1"]:
@@ -109,11 +125,11 @@ class Output(object):
         if not os.path.isfile(filetocheck):
             msg = "Unable to access config file: " + filetocheck
             print(msg)
-            LOGGER.error(msg)
+            #LOGGER.error(msg)
             exit(1)
         else:
             msg = "Config file: " + filetocheck
-            LOGGER.info(msg)
+            #LOGGER.info(msg)
             outputconfig = ConfigParser.SafeConfigParser()
             outputconfig.read(filetocheck)
             return outputconfig
@@ -151,7 +167,7 @@ class Output(object):
         """
         pass
 
-    def output_metadata(self, metadata = False):
+    def output_metadata(self, metadata = None):
         """Output metadata.
 
         Output metadata in the format stipulated by this plugin.
@@ -176,67 +192,6 @@ class Output(object):
 
         """
         return True
-
-    @staticmethod
-    def checkcal(params):
-        """Check whether calibration has been requested.
-
-        Check whether calibration of raw data has been requested for this output
-        plugin. This will have been done in airpi.py as part of set_up_outputs()
-        - more specifically, by define_plugin_params(). This method does not
-        actually carry out any calibration; it just records whether or not it
-        *should* be done.
-
-        Args:
-            params: dict The setup parameters for the run.
-
-        Returns:
-            calibration object if calibration is requested. False if not.
-        """
-        if "calibration" in params:
-            if isinstance(params["calibration"], bool):
-                return params["calibration"]
-            if params["calibration"].lower() in ["on", "yes", "true", "1"]:
-                return calibration.Calibration.sharedClass
-        return False
-
-
-    @staticmethod
-    def checklimits(params):
-        """Check whether limits have been requested.
-
-        Check whether breach detection using the limits function has been
-        requested for this output plugin.
-
-        Args:
-            params: dict The setup parameters for the run.
-
-        Returns: True if limits are requested. False if not.
-        """
-        if "limits" in params:
-            if isinstance(params["limits"], bool):
-                return params["limits"]
-            if params["limits"].lower() in ["on", "yes", "true", "1"]:
-                return True
-        return False
-
-
-    @staticmethod
-    def checkmetadata(params):
-        """Check whether metadata output has been requested.
-
-        Check whether output of metadata has been requested for this output plugin.
-
-        Args:
-            params: dict The setup parameters for the run.
-
-        Returns: True if metadata are requested. False if not.
-        """
-        if "metadata" in params:
-            if params["metadata"].lower() in ["on", "yes", "true", "1"]:
-                return True
-        return False
-
 
     @staticmethod
     def gethostname():
@@ -276,6 +231,12 @@ class MissingParameter(Exception):
 class MissingSection(Exception):
     """ Exception to raise when there is no section for the plugin in
     the outputs.cfg config file.
+
+    """
+    pass
+
+class NoInternetConnection(Exception):
+    """ Exceeption to raise when there is no internet connectivity.
 
     """
     pass
