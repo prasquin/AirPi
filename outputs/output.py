@@ -21,19 +21,17 @@ class Output(object):
 
     __metaclass__ = ABCMeta
     requiredGenericParams = ["target"]
-    optionalGenericParams = ["calibration", "metadata", "limits"]
+    optionalGenericParams = ["calibration", "metadata", "limits", "support"]
     requiredSpecificParams = None
     optionalSpecificParams = None
     commonParams = None
 
-    def __init__(self, pathtoconfig):
+    def __init__(self, config):
         self.name = type(self).__name__
         #TODO: Is self.async really required?
         self.async = False
-        config = self.check_cfg_file(pathtoconfig)
         self.params = {}
         if self.setallparams(config):
-            print("Moving on...")
             if (self.params["target"] == "internet") and not self.check_conn():
                 msg = "Skipping output plugin " + self.name
                 msg += " because no internet connectivity."
@@ -45,7 +43,6 @@ class Output(object):
             msg = "Failed to set parameters for output plugin " + self.name
             print(msg)
             #logthis("error", msg)
-        print("All done!")
  
     def setallparams(self, OUTPUTCONFIG):
         """
@@ -76,12 +73,12 @@ class Output(object):
     def extractparams(self, config, paramset, kind):
         if paramset is not None:
             extracted = {}
-            for reqdparam in paramset:
-                if config.has_option(self.name, reqdparam):
-                    extracted[reqdparam] = self.sanitiseparam(config.get(self.name, reqdparam))
+            for param in paramset:
+                if config.has_option(self.name, param):
+                    extracted[param] = self.sanitiseparam(config.get(self.name, param))
                 else:
                     if kind == "required":
-                        msg = "Missing required parameter '" + reqdparam
+                        msg = "Missing required parameter '" + param
                         msg += "' for plugin " + self.name + "."
                         print(msg)
                         msg += "This should be found in the outputs.cfg file."
@@ -89,11 +86,11 @@ class Output(object):
                         print(msg)
                         raise MissingParameter 
                     else:
-                        msg = "Missing optional parameter '" + optparam 
+                        msg = "Missing optional parameter '" + param 
                         msg += "' for plugin " + self.name + ". Setting to False."
                         #msg = format_msg(msg, 'info')
-                        print(msg)
-                        extracted[optparam] = False
+                        #logthis(msg)
+                        extracted[param] = False
             self.params.update(extracted)
 
     @staticmethod
@@ -106,33 +103,6 @@ class Output(object):
         if value.lower() in ["off", "no", "false", "0"]:
             return False
         return value
-
-
-    @staticmethod
-    def check_cfg_file(filetocheck):
-        """Check cfg file exists.
-
-        Check whether a specified cfg file exists. Print and log a warning
-        if not. Log the file name if it does exist.
-
-        Args:
-            filetocheck: The file to check the existence of.
-
-        Returns:
-            boolean True if the file exists.
-
-        """
-        if not os.path.isfile(filetocheck):
-            msg = "Unable to access config file: " + filetocheck
-            print(msg)
-            #LOGGER.error(msg)
-            exit(1)
-        else:
-            msg = "Config file: " + filetocheck
-            #LOGGER.info(msg)
-            outputconfig = ConfigParser.SafeConfigParser()
-            outputconfig.read(filetocheck)
-            return outputconfig
 
     @abstractmethod
     def output_data(self):

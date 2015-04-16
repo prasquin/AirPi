@@ -25,8 +25,8 @@ class Print(output.Output):
 
     requiredSpecificParams = ["format"]
 
-    def __init__(self, pathtoconfig):
-        super(Print, self).__init__(pathtoconfig)
+    def __init__(self, config):
+        super(Print, self).__init__(config)
 
     def output_metadata(self, metadata):
         """Output metadata.

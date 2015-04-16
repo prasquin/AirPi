@@ -425,29 +425,23 @@ def set_up_outputs():
 
     outputplugins = []
 
-    for i in OUTPUTNAMES:
+    for plugin in OUTPUTNAMES:
         try:
             try:
-                filename = OUTPUTCONFIG.get(i, "filename")
+                filename = OUTPUTCONFIG.get(plugin, "filename")
             except Exception:
                 msg = "No filename config option found for output plugin "
-                msg += str(i)
+                msg += str(plugin)
                 msg = format_msg(msg, 'error')
                 print(msg)
-                logthis("error", msg)
                 raise
             try:
-                enabled = OUTPUTCONFIG.getboolean(i, "enabled")
+                enabled = OUTPUTCONFIG.getboolean(plugin, "enabled")
             except Exception:
                 enabled = True
 
-            try:
-                support = OUTPUTCONFIG.getboolean(i, "support")
-            except Exception:
-                support = False
-
             #if enabled, load the plugin
-            if enabled and not support:
+            if enabled:
                 try:
                     # 'a' means nothing below, but argument must be non-null
                     
@@ -459,7 +453,6 @@ def set_up_outputs():
                     msg = "Could not import output module " + filename
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    logthis("error", msg)
                     raise
 
                 try:
@@ -477,37 +470,35 @@ def set_up_outputs():
                     msg += " module " + filename
                     msg = format_msg(msg, 'error')
                     print(msg)
-                    logthis("error", msg)
                     raise
 
                 try:
                     logthis("info", "Starting to set instclass for " + filename)
-                    instclass = outputclass(CFGPATHS['outputs'])
+                    instclass = outputclass(OUTPUTCONFIG)
                     logthis("info", "Output plugin params are: " + str(instclass.params))
                     msg = "Successfully set instclass for " + filename
                     msg = format_msg(msg, 'success')
                     logthis("info", msg)
 
-                    # check for an output_data function
-                    if callable(getattr(instclass, "output_data", None)):
+                    if not instclass.params["support"]:
                         outputplugins.append(instclass)
-                        msg = "Loaded output plugin " + str(i)
+                        msg = "Loaded output plugin " + str(plugin)
                         msg = format_msg(msg, 'success')
                         print(msg)
                     else:
-                        msg = "Loaded output support plugin " + str(i)
+                        msg = "Loaded output support plugin " + str(plugin)
                         msg = format_msg(msg, 'success')
                         print(msg)
                     LOGGER.info("*******************")
 
                 except Exception as excep:
-                    msg = "Failed to import plugin " + i
+                    msg = "Failed to import plugin " + plugin
                     msg = format_msg(msg, 'error')
                     print(msg)
                     logthis("info", msg)
 
         except Exception as excep: #add specific exception for missing module
-            msg = "Did not import output plugin " + str(i) + ": " + str(excep)
+            msg = "Did not import output plugin " + str(plugin) + ": " + str(excep)
             msg = format_msg(msg, 'error')
             print(msg)
             raise excep
