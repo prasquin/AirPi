@@ -16,10 +16,6 @@ class Dashboard(output.Output):
 
     """
 
-    #TODO: Delete these
-    requiredParams = ["target"]
-    optionalParams = ["calibration"]
-
     def output_data(self, datapoints, sampletime):
         """Output data.
 
@@ -41,12 +37,12 @@ class Dashboard(output.Output):
             boolean True if data successfully printed to stdout.
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             datapoints = self.cal.calibrate(datapoints)
-        print("Time".ljust(17) + ": " + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f"))
+        print("Time".ljust(17) + ": " + sampletime.strftime("%Y-%m-%d %H:%M:%S"))
         for point in datapoints:
             if point["name"] in ["Nitrogen_Dioxide", "Carbon_Monoxide"]:
-                if self.limits.isbreach(point):
+                if self.params["limits"] and point["breach"]:
                     colour = '\033[41m'
                 else:
                     colour = '\033[42m'

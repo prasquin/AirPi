@@ -79,6 +79,7 @@ class Analogue(sensor.Sensor):
         """
         result = self.adc.readadc(self.adcpin)
         if result == 0:
+            #TODO: Make this happy with 0 for LDR (i.e. total darkness)
             msg = "Error: Check wiring for the " + self.sensorname
             msg += " measurement, no voltage detected on ADC input "
             msg += str(self.adcpin)
