@@ -9,6 +9,7 @@ from abc import ABCMeta, abstractmethod
 import socket
 import ConfigParser
 import os
+import urllib2
 
 class Output(object):
     """Generic Output plugin description (abstract) for sub-classing.
@@ -103,6 +104,26 @@ class Output(object):
         if value.lower() in ["off", "no", "false", "0"]:
             return False
         return value
+
+    @staticmethod
+    def check_conn():
+        """Check internet connectivity.
+
+        Check for internet connectivity by trying to connect to a website.
+
+        Returns:
+            boolean True if successfully connects to the site within five
+                    seconds.
+            boolean False if fails to connect to the site within five
+                    seconds.
+
+        """
+        try:
+            urllib2.urlopen("http://www.google.com", timeout=5)
+            return True
+        except urllib2.URLError:
+            pass
+        return False
 
     @abstractmethod
     def output_data(self):

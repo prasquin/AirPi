@@ -13,6 +13,7 @@ parent class (Output), i.e. always returns True.
 import output
 import calibration
 import requests
+import datetime
 
 class Dweet(output.Output):
     """A module to output data to dweet.
@@ -23,18 +24,14 @@ class Dweet(output.Output):
 
     """
 
-    #TODO: Delete these
-    requiredParams = ["target"]
-    optionalParams = ["calibration", "thing"]
-
     requiredSpecificParams = ["thing"]
 
-    def __init__(self, params):
-        super(Dweet, self).__init__(params)
-        if "<hostname>" in params["thing"]:
-            self.thing = params["thing"].replace("<hostname>", self.gethostname())
+    def __init__(self, config):
+        super(Dweet, self).__init__(config)
+        if "<hostname>" in self.params["thing"]:
+            self.params["thing"] = self.params["thing"].replace("<hostname>", self.gethostname())
 
-    def output_data(self, datapoints):
+    def output_data(self, datapoints, sampletime):
         """Output data.
 
         Output data in the format stipulated by the plugin. Calibration
@@ -51,7 +48,7 @@ class Dweet(output.Output):
                 not
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             datapoints = self.cal.calibrate(datapoints)
         data = {}
         req = None
@@ -60,10 +57,11 @@ class Dweet(output.Output):
                 data[point["name"].replace(" ", "_")] = round(point["value"],
                                                                 2)
         try:
-            req = requests.get("https://dweet.io/dweet/for/" + self.thing,
+            req = requests.get("https://dweet.io/dweet/for/" + self.params["thing"],
                                 params=data)
+            print("[" + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + "] Successfully dweeted.")
         except Exception as e:
-            print("ERROR: Failed to contact the dweet service.")
+            print("ERROR: Did not dweet successfully.")
             print("ERROR: " + str(e))
             return False
         response = req.json()
@@ -88,7 +86,7 @@ class Dweet(output.Output):
             The dweet.io URL.
 
         """
-        return "https://dweet.io/follow/" + self.thing
+        return "https://dweet.io/follow/" + self.params["thing"]
 
     def get_help(self):
         """Get help for this plugin.
