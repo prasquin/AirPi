@@ -12,7 +12,7 @@ import calibration
 import requests
 import json
 
-class Ubidot(output.Output):
+class Ubidots(output.Output):
     """A module to output data to Ubidots.
 
     A module which is used to output data from an AirPi to the 'Ubidots'
@@ -35,16 +35,17 @@ class Ubidot(output.Output):
                       ]
 
     def __init__(self, config):
-        super(Ubidot, self).__init__(config)        
+        super(Ubidots, self).__init__(config)        
         self.token = self.params["token"]
-        if "showcost" in params:
+        if "showcost" in self.params:
             self.showcost = self.params["showcost"]
         else:
             self.showcost = False
         self.ubivariables = {}
-        for key, value in params.iteritems():
+        for key, value in self.params.iteritems():
             if key[:3] == "ID-":
-                self.ubivariables[key[3:]] = value
+                if value:
+                    self.ubivariables[key[3:]] = value
 
     def output_data(self, datapoints, dummy):
         """Output data.
@@ -87,9 +88,9 @@ class Ubidot(output.Output):
             print("ERROR: Failed to contact the Ubidots service.")
             print("ERROR: " + str(e))
             return False
-        for response in req.json():
+        for response in req.json:
             if response["status_code"] is not 201:
-                print("ERROR: Ubidots responded with an error for this value.")
+                print("ERROR: Ubidots responded with an error for one of the values.")
                 return False
             else:
                 cost += 1

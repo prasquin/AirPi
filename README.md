@@ -1,5 +1,4 @@
 # AirPi
-========
 
 A Raspberry Pi weather station and air quality monitor.
 
@@ -11,7 +10,6 @@ Scroll down for information on previous software versions.
 
 
 ## This Version - [Haydn Williams](http://www.haydnwilliams.com)
-------------------------
 The following development has been carried out by 
 [Haydn Williams](http://github.com/haydnw/airpi):
 
