@@ -21,21 +21,6 @@ class Ubidot(output.Output):
 
     """
 
-    #TODO: Delete these
-    requiredParams = ["target", "token"]
-    optionalParams = ["calibration",
-                      "showcost",
-                      "ID-BMP085-temp",
-                      "ID-BMP085-pres",
-                      "ID-DHT22-hum",
-                      "ID-DHT22-temp",
-                      "ID-LDR",
-                      "ID-TGS2600",
-                      "ID-MiCS-2710",
-                      "ID-MiCS-5525",
-                      "ID-Microphone"
-                      ]
-
     requiredSpecificParams = ["token"]
     optionalSpecificParams = ["showcost",
                       "ID-BMP085-temp",
@@ -49,11 +34,11 @@ class Ubidot(output.Output):
                       "ID-Microphone"
                       ]
 
-    def __init__(self, params):
-        super(Ubidot, self).__init__(params)        
-        self.token = params["token"]
+    def __init__(self, config):
+        super(Ubidot, self).__init__(config)        
+        self.token = self.params["token"]
         if "showcost" in params:
-            self.showcost = params["showcost"]
+            self.showcost = self.params["showcost"]
         else:
             self.showcost = False
         self.ubivariables = {}
@@ -80,9 +65,9 @@ class Ubidot(output.Output):
                 not
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             datapoints = self.cal.calibrate(datapoints)
-        payload= []
+        payload = []
         for point in datapoints:
             for ubivariablename, ubivariableid in self.ubivariables.iteritems():
                 if point["sensor"] == ubivariablename:
