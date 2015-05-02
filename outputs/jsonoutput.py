@@ -29,24 +29,20 @@ class JSONOutput(output.Output):
 
     """
 
-    #TODO: Delete these
-    requiredParams = ["target", "outputDir", "outputFile"]
-    optionalParams = ["calibration ", "metadata"]
-
     requiredSpecificParams = ["outputDir", "outputFile"]
 
-    def __init__(self, params):
-        if "<date>" in params["outputFile"]:
+    def __init__(self, config):
+        super(JSONOutput, self).__init__(config)
+        if "<date>" in self.params["outputFile"]:
             filenamedate = time.strftime("%Y%m%d-%H%M")
-            params["outputFile"] = \
-                params["outputFile"].replace("<date>", filenamedate)
-        if "<hostname>" in params["outputFile"]:
-            params["outputFile"] = \
-                params["outputFile"].replace("<hostname>", self.gethostname())
+            self.params["outputFile"] = \
+               self.params["outputFile"].replace("<date>", filenamedate)
+        if "<hostname>" in self.params["outputFile"]:
+            self.params["outputFile"] = \
+                self.params["outputFile"].replace("<hostname>", self.gethostname())
         # open the file persistently for append
-        filename = params["outputDir"] + "/" + params["outputFile"]
+        filename = self.params["outputDir"] + "/" + self.params["outputFile"]
         self.file = open(filename, "a")
-        super(JSONOutput, self).__init__(params)
 
     def output_metadata(self, metadata):
         """Output metadata.
@@ -60,7 +56,7 @@ class JSONOutput(output.Output):
             metadata: dict The metadata for the run.
 
         """
-        if self.dometadata:
+        if self.params["metadata"]:
             towrite = "{\"Run started\":\"" + metadata['STARTTIME'] + "\""
             towrite += "\n,\"Operator\":\"" + metadata['OPERATOR'] + "\""
             towrite += "\n,\"Raspberry Pi name\":\"" + metadata['PINAME'] + "\""
@@ -101,14 +97,19 @@ class JSONOutput(output.Output):
             boolean True if data successfully written to file.
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             datapoints = self.cal.calibrate(datapoints)
 
+        breach = None
         line = '{"Date and time":"' + sampletime.strftime("%Y-%m-%d %H:%M:%S.%f") + '",'
         line += '"Unix time":"' + str(time.time()) + '",'
         for point in datapoints:
             if point["name"] != "Location":
                 line += '"' + point["name"] + '"' + ":" + '"' + str(point["value"]) + '",'
+                if self.params["limits"] and point["breach"]:
+                    if breach is None:
+                        breach = "BREACHES: "
+                    breach += point["name"] + ";"
             else:
                 props = ["latitude",
                             "longitude",
@@ -117,6 +118,8 @@ class JSONOutput(output.Output):
                             "disposition"]
                 for prop in props:
                     line += "\"" + prop + "\":" + str(point[prop]) + "\","
+        if self.params["limits"] and breach:
+            line += "," + breach
         line = line[:-1] + "}"
         self.file.write(line + "\n")
         # Flush the file in case of power failure:
