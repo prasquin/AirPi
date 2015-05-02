@@ -6,15 +6,11 @@ class Thingspeak(output.Output):
 
     #TODO: Class docs
 
-    #TODO: Delete these
-    requiredParams = ["target", "apikey"]
-    optionalParams = ["calibration"]
-
     requiredSpecificParams = ["apikey"]
 
-    def __init__(self, params):
-        self.apikey = params["apikey"]
-        super(Thingspeak, self).__init__(params)
+    def __init__(self, config):
+        super(Thingspeak, self).__init__(config)
+        self.apikey = self.params["apikey"]
 
     def output_data(self, datapoints, dummy):
         #TODO: Include GPS location data in this output
@@ -33,7 +29,7 @@ class Thingspeak(output.Output):
             dummy: datetime representing the time the sample was taken.
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             datapoints = self.cal.calibrate(datapoints)
         arr = {}
         counter = 1
