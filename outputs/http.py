@@ -23,12 +23,8 @@ import calibration
 
 class HTTP(output.Output):
 
-    #TODO: Delete these
-    requiredParams = ["target", "wwwPath"]
-    optionalParams = ["port", "history", "title", "about", "calibration", "historySize", "historyInterval", "historyCalibrated", "httpVersion"]
-
     requiredSpecificParams = ["wwwPath"]
-    optionalSpecificParams = ["port", "history", "title", "about", "historySize", "historyInterval", "historyCalibrated", "httpVersion"]
+    optionalSpecificParams = ["port", "title", "about", "httpVersion", "historySize", "history", "historyFile", "historyInterval", "historyCalibrated"]
     
     details = """
 <div class="panel panel-default">
@@ -47,43 +43,48 @@ class HTTP(output.Output):
 
     rssItem = "<item><title>$sensorname$</title><description>$reading$ $units$</description></item>\n"
 
-    def __init__(self, params):
-        super(HTTP, self).__init__(params)
+    def __init__(self, config):
+        super(HTTP, self).__init__(config)
+        print("done super")
+        self.target = self.params["target"]
 
-        self.target = ["target"]
-
-        if os.path.exists(params["wwwPath"]):
-            self.www = params["wwwPath"]
+        if os.path.exists(self.params["wwwPath"]):
+            self.www = self.params["wwwPath"]
         else:
             self.www = "/home/pi/AirPi/www"
         
-        if "port" in params:
-            self.port = int(params["port"])
+        if "port" in self.params:
+            self.port = int(self.params["port"])
         else:
             self.port = 8080
 
-        if "history" in params:
-            if params["history"].lower() in ["off", "false", "0", "no"]:
-                self.history = 0
-            elif os.path.isfile(params["history"]):
-                #it's a file to load, check if it exists
-                self.history = 2
-                self.historyFile = params["history"];
+        print("starting history")
+        print(str(self.params))
+        if "history" in self.params:
+            if self.params["history"]:
+                if os.path.isfile(self.params["historyFile"]):
+                    #it's a file to load, check if it exists
+                    self.history = 2
+                    self.historyFile = self.params["historyFile"];
+                else:
+                    # short-term history
+                    self.history = 1
             else:
-                # short-term history
-                self.history = 1
-        else:
-            self.history = 0
-        if "historySize" in params:
-            self.historySize = int(params["historySize"])
+                self.history = 0
+            
+        print("done first bit")
+        if "historySize" in self.params:
+            self.historySize = int(self.params["historySize"])
         else:
             self.historySize = 2880
-        if "historyInterval" in params:
-            self.historyInterval = int(params["historyInterval"])
+        print("done second bit")
+        if "historyInterval" in self.params:
+            self.historyInterval = int(self.params["historyInterval"])
         else:
             self.historyInterval = 30
-        if "historyCalibrated" in params:
-            if params["historyCalibrated"].lower() in ["on", "true", "1", "yes"]:
+        print("done third bit")
+        if "historyCalibrated" in self.params:
+            if self.params["historyCalibrated"]:
                 self.historyCalibrated = 1
                 self.cal = calibration.Calibration.sharedClass
             else:
@@ -91,27 +92,27 @@ class HTTP(output.Output):
                 self.cal = []
         else:
             self.historyCalibrated = 0
-        
+        print("starting hostname") 
         hostname = self.gethostname()
 
-        if "title" in params:
-            if "<hostname>" in params["title"]:
-                self.title = params["title"].replace("<hostname>", hostname)
+        print("starting title et al.")
+        if "title" in self.params:
+            if "<hostname>" in self.params["title"]:
+                self.title = self.params["title"].replace("<hostname>", hostname)
             else:
-                self.title = params["title"]
+                self.title = self.params["title"]
         else:
             self.title = "AirPi"
 
-        if "about" in params:
-            if "<hostname>" in params["about"]:
-                self.about = params["about"].replace("<hostname>", hostname)
+        if "about" in self.params:
+            if "<hostname>" in self.params["about"]:
+                self.about = self.params["about"].replace("<hostname>", hostname)
             else:
-                self.about = params["about"]
+                self.about = self.params["about"]
         else:
             self.about = "An AirPi weather station."
 
         self.cal = calibration.Calibration.sharedClass
-        self.docal = self.checkcal(params)
         self.sensorIds = []
         self.readingtypes = dict()
         self.historicData = []
@@ -120,7 +121,7 @@ class HTTP(output.Output):
         self.tempHistoryAt = 0
 
         self.handler = requestHandler
-        if "httpVersion" in params and params["httpVersion"] == "1.1":
+        if "httpVersion" in self.params and self.params["httpVersion"] == "1.1":
             self.handler.protocol_version = "HTTP/1.1"
         # else it's automatically 1.0
         self.server = httpServer(self, ("", self.port), self.handler)
