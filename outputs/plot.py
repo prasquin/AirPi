@@ -20,16 +20,12 @@ class Plot(output.Output):
 
     """
 
-    #TODO: Delete these
-    requiredParams = ["target", "metric"]
-    optionalParams = ["calibration"]
-
     requiredSpecificParams = ["metric"]
 
-    def __init__(self, params):
-        super(Plot, self).__init__(params)
+    def __init__(self, config):
+        super(Plot, self).__init__(config)
         self.history = []
-        self.metric = params["metric"]
+        self.metric = self.params["metric"]
         self.unit = None
 
     def output_data(self, datapoints, dummy):
@@ -55,7 +51,7 @@ class Plot(output.Output):
             boolean True if data successfully printed to stdout.
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             datapoints = self.cal.calibrate(datapoints)
 
         for point in datapoints:
