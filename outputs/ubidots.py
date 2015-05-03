@@ -44,7 +44,8 @@ class Ubidots(output.Output):
         self.ubivariables = {}
         for key, value in self.params.iteritems():
             if key[:3] == "ID-":
-                if value:
+                # N.B. "YYYYY" etc. is used as a placeholder in cfg/outputs.cfg
+                if value is not False and value != "YYYYYYYYYYYYYYYYYYYYYYYY":
                     self.ubivariables[key[3:]] = value
 
     def output_data(self, datapoints, dummy):
