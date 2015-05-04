@@ -256,7 +256,7 @@ class HTTP(output.Output):
             self.historicAt -= 1
 
     def output_data(self,dataPoints, sampletime):
-        if self.cal:
+        if self.params["calibration"]:
             dataPoints = self.cal.calibrate(dataPoints[:])
         if len(self.sensorIds) == 0:
             self.createSensorIds(dataPoints)

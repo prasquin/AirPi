@@ -9,27 +9,20 @@ class Xively(output.Output):
     http://airpi.freeforums.net/thread/98/proxy-airpi-py-helpful-schools
     """
 
-    #TODO: Is "target" really required here? Don't we just use it
-    #      in airpi.py? Applies to other output plugins too.
     #TODO: Expand proxy info to a single setting in settings.cfg and
     #      make available to all plugins which require internet access.
-    #TODO: Delete these
-    requiredParams = ["target", "apikey", "feedid"]
-    optionalParams = ["calibration", "proxyhttp", "proxyhttps"]
-    proxies = None
-
     requiredSpecificParams = ["apikey", "feedid"]
     optionalSpecificParams = ["proxyhttp", "proxyhttps"]
 
-    def __init__(self, params):
-        self.apikey = params["apikey"]
-        self.feedid = params["feedid"]
-        if "proxyhttp" in params and "proxyhttps" in params:
+    def __init__(self, config):
+        super(Xively, self).__init__(config)
+        self.apikey = self.params["apikey"]
+        self.feedid = self.params["feedid"]
+        if "proxyhttp" in self.params and "proxyhttps" in self.params:
             self.proxies = {
-                          http: params["proxyhttp"],
-                          https: params["proxyhttps"]
+                          http: self.params["proxyhttp"],
+                          https: self.params["proxyhttps"]
             }
-        super(Xively, self).__init__(params)
 
     def output_data(self, dataPoints, dummy):
         """Output data.
@@ -54,7 +47,7 @@ class Xively(output.Output):
             boolean True if output successfully. False if not.
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             dataPoints = self.cal.calibrate(dataPoints)
         arr = []
         for i in dataPoints:

@@ -16,6 +16,8 @@ See: http://airpi.es
 import sys
 sys.dont_write_bytecode = True
 
+# We don't import individual sensors classes etc.
+# here because they are imported dynamically below.
 import socket
 import RPi.GPIO as GPIO
 import ConfigParser
@@ -31,7 +33,7 @@ from logging import handlers
 from math import isnan
 from sensors import sensor
 from outputs import output
-import limits
+from supports import support
 from notifications import notification
 
 class MissingField(Exception):
@@ -211,6 +213,7 @@ def set_cfg_paths():
     cfgpaths['sensors'] = os.path.join(cfgdir, 'sensors.cfg')
     cfgpaths['outputs'] = os.path.join(cfgdir, 'outputs.cfg')
     cfgpaths['notifications'] = os.path.join(cfgdir, 'notifications.cfg')
+    cfgpaths['supports'] = os.path.join(cfgdir, 'supports.cfg')
     logdir = os.path.join(basedir, 'log')
     cfgpaths['log'] = os.path.join(logdir, 'airpi.log')
     return cfgpaths
@@ -274,6 +277,107 @@ def any_plugins_enabled(plugins, plugintype):
         sys.exit(1)
     else:
         return True
+
+def set_up_supports():
+    """Set up AirPi support plugins.
+    Set up AirPi support plugins by reading supports.cfg to determine
+    which should be enabled.
+    Returns:
+        list A list containing the enabled 'support' objects.
+    """
+
+    print("==========================================================")
+    msg = format_msg("SUPPORTS", 'loading')
+    print(msg)
+
+    check_cfg_file(CFGPATHS['supports'])
+
+    SUPPORTCONFIG = ConfigParser.SafeConfigParser()
+    SUPPORTCONFIG.read(CFGPATHS['supports'])
+
+    SUPPORTNAMES = SUPPORTCONFIG.sections()
+
+    supportplugins = {}
+
+    print("Looking at plugins...")
+    print("supportnames is: " + str(SUPPORTNAMES))
+    for plugin in SUPPORTNAMES:
+        try:
+            try:
+                filename = SUPPORTCONFIG.get(plugin, "filename")
+                print("filename is: " + filename)
+            except Exception:
+                msg = "No filename config option found for support plugin "
+                msg += str(plugin)
+                msg = format_msg(msg, 'error')
+                print(msg)
+                raise
+            try:
+                enabled = SUPPORTCONFIG.getboolean(plugin, "enabled")
+                print("enabled is: " + str(enabled))
+            except Exception:
+                enabled = True
+
+            #if enabled, load the plugin
+            if enabled:
+                print("Enabled - trying it...")
+                try:
+                    # 'a' means nothing below, but argument must be non-null
+                    
+                    mod = __import__('supports.' + filename, fromlist=['a'])
+                    msg = "Successfully imported support module: " + filename
+                    msg = format_msg(msg, 'success')
+                    logthis("info", msg)
+                except Exception:
+                    msg = "Could not import support module " + filename
+                    msg = format_msg(msg, 'error')
+                    print(msg)
+                    raise
+
+                try:
+                    msg = "Trying to get subclass for " + filename
+                    msg = format_msg(msg, 'info')
+                    logthis('info', msg)
+                    supportclass = get_subclasses(mod, support.Support)
+                    msg = "Successfully got subclasses for " + filename
+                    msg = format_msg(msg, 'success')
+                    logthis("info", msg)
+                    if supportclass == None:
+                        raise AttributeError
+                except Exception:
+                    msg = "Could not find a subclass of support.Support in"
+                    msg += " module " + filename
+                    msg = format_msg(msg, 'error')
+                    print(msg)
+                    raise
+
+                try:
+                    logthis("info", "Starting to set instclass for " + filename)
+                    instclass = supportclass(SUPPORTCONFIG)
+                    logthis("info", "Support plugin params are: " + str(instclass.params))
+                    msg = "Successfully set instclass for " + filename
+                    msg = format_msg(msg, 'success')
+                    logthis("info", msg)
+
+                    supportplugins[instclass.name] = instclass
+                    msg = "Loaded support support plugin " + str(plugin)
+                    msg = format_msg(msg, 'success')
+                    print(msg)
+                    LOGGER.info("*******************")
+
+                except Exception as excep:
+                    msg = "Failed to import support plugin " + plugin
+                    msg = format_msg(msg, 'error')
+                    print(msg)
+                    logthis("info", msg)
+
+        except Exception as excep: #add specific exception for missing module
+            msg = "Did not import support plugin " + str(plugin) + ": " + str(excep)
+            msg = format_msg(msg, 'error')
+            print(msg)
+            raise excep
+        
+    return supportplugins
 
 def set_up_sensors():
     """Set up AirPi sensors.
@@ -474,25 +578,18 @@ def set_up_outputs():
 
                 try:
                     logthis("info", "Starting to set instclass for " + filename)
+                    print(str(OUTPUTCONFIG))
                     instclass = outputclass(OUTPUTCONFIG)
                     logthis("info", "Output plugin params are: " + str(instclass.params))
                     msg = "Successfully set instclass for " + filename
                     msg = format_msg(msg, 'success')
                     logthis("info", msg)
 
-                    if not instclass.params["support"]:
-                        outputplugins.append(instclass)
-                        msg = "Loaded output plugin " + str(plugin)
-                        msg = format_msg(msg, 'success')
-                        print(msg)
-                    else:
-                        msg = "Loaded output support plugin " + str(plugin)
-                        msg = format_msg(msg, 'success')
-                        print(msg)
+                    outputplugins.append(instclass)
                     LOGGER.info("*******************")
 
                 except Exception as excep:
-                    msg = "Failed to import plugin " + plugin
+                    msg = "Failed to import plugin " + plugin + ": " + str(excep)
                     msg = format_msg(msg, 'error')
                     print(msg)
                     logthis("info", msg)
@@ -579,7 +676,8 @@ def define_plugin_params(config, name, reqd, opt, common):
     params = {}
     # Defaults:
     params["metadata"] = False
-    params["limits"] = False
+    #TODO: Can we delete this below?
+    #params["limits"] = False
     params['async'] = False
     # Read params which have been defined
     if reqd:
@@ -749,13 +847,13 @@ def set_up_limits():
     print("==========================================================")
     print(format_msg("LIMITS", 'loading'))
 
-    check_cfg_file(CFGPATHS['settings'])
-    mainconfig = ConfigParser.SafeConfigParser()
-    mainconfig.read(CFGPATHS['settings'])
+    check_cfg_file(CFGPATHS['supports'])
+    supportconfig = ConfigParser.SafeConfigParser()
+    supportconfig.read(CFGPATHS['supports'])
 
-    if mainconfig.has_section("Limits") and mainconfig.has_option("Limits", "enabled") and mainconfig.getboolean("Limits", "enabled"):
+    if supportconfig.has_section("Limits") and supportconfig.has_option("Limits", "enabled") and supportconfig.getboolean("Limits", "enabled"):
         thelimits = {}
-        for phenomena, limit in mainconfig.items("Limits"):
+        for phenomena, limit in supportconfig.items("Limits"):
             if phenomena != "enabled":
                 [value, units] = limit.split(',', 1)
                 thelimits[phenomena.lower()] = [value, units]
@@ -944,11 +1042,13 @@ def dummy_runs(dummyduration):
     startdummy = time.time()
     diff = 0
     while diff < dummyduration:
+        # Note there is no sleep() here, so they will read as quickly as
+        # possible for 15 seconds.
         for i in PLUGINSSENSORS:
             if i == gpsplugininstance:
                 read_gps(i)
             else:
-                read_sensor(i, LIMITS)
+                read_sensor(i, None)
         diff = time.time() - startdummy
     return True
 
@@ -973,7 +1073,7 @@ def read_sensor(sensorplugin, limit):
     reading["sensor"] = sensorplugin.sensorname
     reading["description"] = sensorplugin.description
     reading["readingtype"] = sensorplugin.readingtype
-    if LIMITS is not None:
+    if limit is not None:
         reading["breach"] = limit.isbreach(reading["name"], reading["value"], reading["unit"])
     else:
         reading["breach"] = False
@@ -1047,7 +1147,7 @@ def sample():
                     if sensor == gpsplugininstance:
                         datadict = read_gps(sensor)
                     else:
-                        datadict = read_sensor(sensor, LIMITS)
+                        datadict = read_sensor(sensor, PLUGINSSUPPORTS["Limits"])
                         # TODO: Ensure this is robust
                         if (datadict["value"] is None or
                                 isnan(float(datadict["value"])) or
@@ -1289,10 +1389,12 @@ if __name__ == '__main__':
             pass
 
     #Set up plugins
+    PLUGINSSUPPORTS = set_up_supports()
+    print(str(PLUGINSSUPPORTS))
     PLUGINSSENSORS = set_up_sensors()
     PLUGINSOUTPUTS = set_up_outputs()
     PLUGINSNOTIFICATIONS = set_up_notifications()
-    LIMITS = set_up_limits()
+    #LIMITS = set_up_limits()
 
     # Set up metadata
     METADATA = set_metadata()

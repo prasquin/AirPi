@@ -9,7 +9,6 @@ metadata (again, if present).
 import output
 import datetime
 import time
-import calibration
 import os
 
 #from geopy.geocoders import Nominatim
@@ -27,6 +26,7 @@ class Print(output.Output):
 
     def __init__(self, config):
         super(Print, self).__init__(config)
+        print(str(self.params))
 
     def output_metadata(self, metadata):
         """Output metadata.

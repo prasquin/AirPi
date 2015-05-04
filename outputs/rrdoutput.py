@@ -124,7 +124,7 @@ class RRDOutput(output.Output):
             boolean True if data successfully written to file.
 
         """
-        if self.cal:
+        if self.params["calibration"]:
             datapoints = self.cal.calibrate(datapoints)
         print("writing file")
         names = []

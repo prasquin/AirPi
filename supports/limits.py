@@ -11,8 +11,9 @@ over eight hours, we are only comparing instantaneous values from the
 AirPi to them, so this is not entirely accurate (close enough though!).
 
 """
+import support
 
-class Limits(object):
+class Limits(support.Support):
     """A module to define exposure limits.
 
     A support module which is used to define exposure limits for gases.
@@ -27,7 +28,7 @@ class Limits(object):
 
     """
 
-    def __init__(self, params):
+    def __init__(self, config):
         """Initialise.
 
         Initialise the Limits class, using the parameters passed in
@@ -42,13 +43,17 @@ class Limits(object):
                     params["carbon_monoxide"] = ["20",ppm"]
 
         """
-        temp = dict((k.lower(), v) for k,v in params.iteritems())
+        super(Limits, self).__init__(config)
         self.limits = {}
-        for name, detail in temp.iteritems():
-            self.limits[name] = {}
-            self.limits[name]["value"] = float(detail[0])
-            self.limits[name]["unit"] = detail[1]
-
+        if config.has_section("Limits") and config.has_option("Limits", "enabled") and config.getboolean("Limits", "enabled"):
+            for phenomena, limit in config.items("Limits"):
+                if phenomena.startswith("limit_"):
+                    [value, units] = limit.split(',', 1)
+                    name = phenomena[6:].lower()
+                    self.limits[name] = {}
+                    self.limits[name]["value"] = value
+                    self.limits[name]["units"] = units
+            print("Values used to init Limit object are: " + str(self.limits))
 
     def isbreach(self, samplename, samplevalue, sampleunit):
         """Check whether a data point breaches a limit.
@@ -65,10 +70,14 @@ class Limits(object):
                        plugin which is checking for the breach.
 
         """
+        print(str(samplename))
+        print(str(samplevalue))
+        print(str(sampleunit))
+        print(str(self.limits))
         samplename = samplename.lower()
         if samplename in self.limits:
             if samplevalue > float(self.limits[samplename]["value"]):
-                if sampleunit == self.limits[samplename]["unit"]:
+                if sampleunit == self.limits[samplename]["units"]:
                     return True
                 else:
                     print("ERROR: Limit units do not match measurement units for " + samplename)

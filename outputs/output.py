@@ -22,7 +22,7 @@ class Output(object):
 
     __metaclass__ = ABCMeta
     requiredGenericParams = ["target"]
-    optionalGenericParams = ["calibration", "metadata", "limits", "support"]
+    optionalGenericParams = ["calibration", "metadata", "limits"]
     requiredSpecificParams = None
     optionalSpecificParams = None
     commonParams = None
@@ -44,6 +44,14 @@ class Output(object):
             msg = "Failed to set parameters for output plugin " + self.name
             print(msg)
             #logthis("error", msg)
+        if self.params["calibration"] or self.params["limits"]:
+            import sys
+            sys.path.append(sys.path[0] + '/supports')
+        if self.params["calibration"]:
+            from supports import calibration
+            self.cal = calibration.Calibration.sharedClass
+        if self.params["limits"]:
+            from supports import limits
  
     def setallparams(self, OUTPUTCONFIG):
         """

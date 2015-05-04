@@ -4,15 +4,11 @@ A module which is used to support calibration of sensors on an
 individual basis. Calibration functions are specified in the AirPi
 settings config file (usually AirPi/settings.cfg).
 
-Note that this module does not output data or metadata, so the
-output_data() and output_metadata() methods are inherited from the
-parent class (Output), i.e. always return True.
-
 """
 
-import output
+import support
 
-class Calibration(output.Output):
+class Calibration(support.Support):
     """A class to calibrate sensor data.
 
     A class which is used to support calibration of sensors on an
@@ -21,11 +17,10 @@ class Calibration(output.Output):
 
     """
 
-    optionalParams = ["Light_Level", "Air_Quality", "Nitrogen_Dioxide",
-                      "Carbon_Monoxide", "Volume", "UVI", "Bucket_tips"]
+    optionalSpecificParams = ["Light_Level", "Air_Quality", "Nitrogen_Dioxide", "Carbon_Monoxide", "Volume", "UVI", "Bucket_tips"]
     sharedClass = None
 
-    def __init__(self, params):
+    def __init__(self, config):
         """Initialise.
 
         Initialise the Calibration class, using the parameters passed in
@@ -41,16 +36,18 @@ class Calibration(output.Output):
             params: Parameters to be used in the initialisation.
 
         """
-        self.target = params["target"]
+        super(Calibration, self).__init__(config)
+        self.target = self.params["target"]
         self.calibrations = []
         self.calibrated = []
         self.lastuncalibrated = []
-        for i in self.optionalParams:
-            if i in params:
-                [func, symb] = params[i].rsplit(',', 1)
+        temp = dict((k.lower(), v) for k,v in self.params.iteritems())
+	for name, function in self.params:
+            if name.startswith('func_'):
+                [func, symb] = self.params[i].rsplit(',', 1)
                 self.calibrations.append({'name': i,
-                                            'function': eval("lambda x: " + func),
-                                            'symbol': symb})
+                                        'function': eval("lambda x: " + func),
+                                        'symbol': symb})
 
         if Calibration.sharedClass == None:
             Calibration.sharedClass = self
@@ -70,7 +67,7 @@ class Calibration(output.Output):
         """
         if datapoints == self.lastuncalibrated:
             # The same datapoints object, so the calculations would turn
-            # out the same so we can just return the result of the last
+            # out the same, so we can just return the result of the last
             # calculations.
             return self.last
 
