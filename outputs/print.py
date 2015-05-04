@@ -26,7 +26,6 @@ class Print(output.Output):
 
     def __init__(self, config):
         super(Print, self).__init__(config)
-        print(str(self.params))
 
     def output_metadata(self, metadata):
         """Output metadata.

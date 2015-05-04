@@ -44,6 +44,7 @@ class Limits(support.Support):
 
         """
         super(Limits, self).__init__(config)
+        #TODO: What about the fact that the limits are already in self.params? Do we want to use them? Do we even care?
         self.limits = {}
         if config.has_section("Limits") and config.has_option("Limits", "enabled") and config.getboolean("Limits", "enabled"):
             for phenomena, limit in config.items("Limits"):
@@ -53,7 +54,6 @@ class Limits(support.Support):
                     self.limits[name] = {}
                     self.limits[name]["value"] = value
                     self.limits[name]["units"] = units
-            print("Values used to init Limit object are: " + str(self.limits))
 
     def isbreach(self, samplename, samplevalue, sampleunit):
         """Check whether a data point breaches a limit.
@@ -70,10 +70,6 @@ class Limits(support.Support):
                        plugin which is checking for the breach.
 
         """
-        print(str(samplename))
-        print(str(samplevalue))
-        print(str(sampleunit))
-        print(str(self.limits))
         samplename = samplename.lower()
         if samplename in self.limits:
             if samplevalue > float(self.limits[samplename]["value"]):

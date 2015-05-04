@@ -17,7 +17,7 @@ class Calibration(support.Support):
 
     """
 
-    optionalSpecificParams = ["Light_Level", "Air_Quality", "Nitrogen_Dioxide", "Carbon_Monoxide", "Volume", "UVI", "Bucket_tips"]
+    optionalSpecificParams = ["func_Light_Level", "func_Air_Quality", "func_Nitrogen_Dioxide", "func_Carbon_Monoxide", "func_Volume", "func_UVI", "func_Bucket_tips"]
     sharedClass = None
 
     def __init__(self, config):
@@ -37,18 +37,16 @@ class Calibration(support.Support):
 
         """
         super(Calibration, self).__init__(config)
-        self.target = self.params["target"]
         self.calibrations = []
         self.calibrated = []
         self.lastuncalibrated = []
         temp = dict((k.lower(), v) for k,v in self.params.iteritems())
-	for name, function in self.params:
-            if name.startswith('func_'):
-                [func, symb] = self.params[i].rsplit(',', 1)
-                self.calibrations.append({'name': i,
+        for name, detail in temp.iteritems():
+            if name.startswith('func_') and detail is not False:
+                [func, symb] = detail.rsplit(',', 1)
+                self.calibrations.append({'name': name[5:],
                                         'function': eval("lambda x: " + func),
                                         'symbol': symb})
-
         if Calibration.sharedClass == None:
             Calibration.sharedClass = self
 
@@ -69,14 +67,14 @@ class Calibration(support.Support):
             # The same datapoints object, so the calculations would turn
             # out the same, so we can just return the result of the last
             # calculations.
-            return self.last
+            return self.calibrated
 
         self.calibrated = list(datapoints)
         # Recreate so we don't overwrite un-calibrated data:
-        for i in range(0, len(self.last)):
+        for i in range(0, len(self.calibrated)):
             self.calibrated[i] = dict(self.calibrated[i]) # recreate again
             for j in self.calibrations:
-                if self.calibrated[i]["name"] == j["name"]:
+                if self.calibrated[i]["name"].lower() == j["name"]:
                     if self.calibrated[i]["value"] != None:
                         self.calibrated[i]["value"] = \
                             j["function"](self.calibrated[i]["value"])

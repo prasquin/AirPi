@@ -44,14 +44,11 @@ class Output(object):
             msg = "Failed to set parameters for output plugin " + self.name
             print(msg)
             #logthis("error", msg)
-        if self.params["calibration"] or self.params["limits"]:
+        if self.params["calibration"]:
             import sys
             sys.path.append(sys.path[0] + '/supports')
-        if self.params["calibration"]:
             from supports import calibration
             self.cal = calibration.Calibration.sharedClass
-        if self.params["limits"]:
-            from supports import limits
  
     def setallparams(self, OUTPUTCONFIG):
         """

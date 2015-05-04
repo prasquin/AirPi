@@ -299,13 +299,10 @@ def set_up_supports():
 
     supportplugins = {}
 
-    print("Looking at plugins...")
-    print("supportnames is: " + str(SUPPORTNAMES))
     for plugin in SUPPORTNAMES:
         try:
             try:
                 filename = SUPPORTCONFIG.get(plugin, "filename")
-                print("filename is: " + filename)
             except Exception:
                 msg = "No filename config option found for support plugin "
                 msg += str(plugin)
@@ -314,13 +311,11 @@ def set_up_supports():
                 raise
             try:
                 enabled = SUPPORTCONFIG.getboolean(plugin, "enabled")
-                print("enabled is: " + str(enabled))
             except Exception:
                 enabled = True
 
             #if enabled, load the plugin
             if enabled:
-                print("Enabled - trying it...")
                 try:
                     # 'a' means nothing below, but argument must be non-null
                     
@@ -359,8 +354,8 @@ def set_up_supports():
                     msg = format_msg(msg, 'success')
                     logthis("info", msg)
 
-                    supportplugins[instclass.name] = instclass
-                    msg = "Loaded support support plugin " + str(plugin)
+                    supportplugins[instclass.name.lower()] = instclass
+                    msg = "Loaded support plugin " + str(plugin)
                     msg = format_msg(msg, 'success')
                     print(msg)
                     LOGGER.info("*******************")
@@ -370,6 +365,10 @@ def set_up_supports():
                     msg = format_msg(msg, 'error')
                     print(msg)
                     logthis("info", msg)
+
+            else:
+                # Plugin is not enabled
+                supportplugins[filename] = False
 
         except Exception as excep: #add specific exception for missing module
             msg = "Did not import support plugin " + str(plugin) + ": " + str(excep)
@@ -578,7 +577,6 @@ def set_up_outputs():
 
                 try:
                     logthis("info", "Starting to set instclass for " + filename)
-                    print(str(OUTPUTCONFIG))
                     instclass = outputclass(OUTPUTCONFIG)
                     logthis("info", "Output plugin params are: " + str(instclass.params))
                     msg = "Successfully set instclass for " + filename
@@ -586,6 +584,9 @@ def set_up_outputs():
                     logthis("info", msg)
 
                     outputplugins.append(instclass)
+                    msg = "Loaded output plugin " + instclass.name
+                    msg = format_msg(msg, 'success')
+                    print(msg)
                     LOGGER.info("*******************")
 
                 except Exception as excep:
@@ -833,47 +834,6 @@ def set_up_notifications():
         print(msg)
     return notificationPlugins
 
-def set_up_limits():
-    """Set up limits.
-
-    Set up AirPi sensors by reading sensors.cfg to determine which
-    should be enabled, then checking that all required fields are
-    present in sensors.cfg.
-
-    Returns:
-        list A list containing the enabled 'sensor' objects.
-
-    """
-    print("==========================================================")
-    print(format_msg("LIMITS", 'loading'))
-
-    check_cfg_file(CFGPATHS['supports'])
-    supportconfig = ConfigParser.SafeConfigParser()
-    supportconfig.read(CFGPATHS['supports'])
-
-    if supportconfig.has_section("Limits") and supportconfig.has_option("Limits", "enabled") and supportconfig.getboolean("Limits", "enabled"):
-        thelimits = {}
-        for phenomena, limit in supportconfig.items("Limits"):
-            if phenomena != "enabled":
-                [value, units] = limit.split(',', 1)
-                thelimits[phenomena.lower()] = [value, units]
-        LOGGER.debug("Values used to init Limit object are: " + str(thelimits))
-        try:
-            limitsobj = limits.Limits(thelimits)
-            msg = "Loaded Limits."
-            msg = format_msg(msg, 'success')
-            print(msg)
-            return limitsobj;
-        except Exception as e:
-            msg = "Failed to set Limits."
-            msg += str(e)
-            msg = format_msg(msg, 'error')
-            print(msg)
-    else:
-        msg = format_msg("Limits not enabled.", 'info')
-        print(msg)
-    return None
-
 def set_settings():
     """Set up settings.
 
@@ -1073,7 +1033,7 @@ def read_sensor(sensorplugin, limit):
     reading["sensor"] = sensorplugin.sensorname
     reading["description"] = sensorplugin.description
     reading["readingtype"] = sensorplugin.readingtype
-    if limit is not None:
+    if limit is not None and limit is not False:
         reading["breach"] = limit.isbreach(reading["name"], reading["value"], reading["unit"])
     else:
         reading["breach"] = False
@@ -1147,7 +1107,7 @@ def sample():
                     if sensor == gpsplugininstance:
                         datadict = read_gps(sensor)
                     else:
-                        datadict = read_sensor(sensor, PLUGINSSUPPORTS["Limits"])
+                        datadict = read_sensor(sensor, PLUGINSSUPPORTS["limits"])
                         # TODO: Ensure this is robust
                         if (datadict["value"] is None or
                                 isnan(float(datadict["value"])) or
@@ -1390,11 +1350,9 @@ if __name__ == '__main__':
 
     #Set up plugins
     PLUGINSSUPPORTS = set_up_supports()
-    print(str(PLUGINSSUPPORTS))
     PLUGINSSENSORS = set_up_sensors()
     PLUGINSOUTPUTS = set_up_outputs()
     PLUGINSNOTIFICATIONS = set_up_notifications()
-    #LIMITS = set_up_limits()
 
     # Set up metadata
     METADATA = set_metadata()
