@@ -6,6 +6,7 @@ settings config file (usually AirPi/settings.cfg).
 
 """
 
+import math
 import support
 
 class Calibration(support.Support):
