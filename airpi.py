@@ -525,6 +525,8 @@ def set_up_outputs():
     OUTPUTCONFIG.read(CFGPATHS['outputs'])
 
     OUTPUTNAMES = OUTPUTCONFIG.sections()
+    if "Notes" in OUTPUTNAMES:
+        OUTPUTNAMES.remove("Notes")
 
     outputplugins = []
 

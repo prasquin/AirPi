@@ -8,7 +8,6 @@ does NOT require you to have the Ubidots Python API installed.
 """
 
 import output
-import calibration
 import requests
 import json
 
