@@ -13,6 +13,12 @@ Scroll down for information on previous software versions.
 The following development has been carried out by 
 [Haydn Williams](http://github.com/haydnw/airpi):
 
+**2015-05-11:**
++ [FIX] No more error message when LDR is in complete darkness.
++ [FIX] Calibration now fully working.
++ [FIX] Ignore default (dummy) Ubidots sensor IDs.
++ [FIX] Correctly parse cfg/outputs.cfg when [Notes] is included.
+
 **2015-05-02:**
 + [NEW] 'Limits' feature to alert you when a measure goes above a particular value.
 + [NEW] Dashboard output plugin to easily show whether limits have been breached.
