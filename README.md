@@ -18,7 +18,6 @@ The following development has been carried out by
 + [NEW] Sensor plugin DS18B20, temperature sensor with 1-Wire bus.
 + [NEW] Sensor plugin Raspi, temperature (°C or °F), CPU usage (%) and memory ram usage (%).
 
-+ [FIX] Calibration now fully working.
 **2015-05-11:**
 + [FIX] No more error message when LDR is in complete darkness.
 + [FIX] Calibration now fully working.
