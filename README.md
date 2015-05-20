@@ -13,6 +13,12 @@ Scroll down for information on previous software versions.
 The following development has been carried out by 
 [Haydn Williams](http://github.com/haydnw/airpi):
 
+**2015-05-20:**
++ [NEW] Sensor plugin HTU21D, temperature and humidity with I2C bus.
++ [NEW] Sensor plugin DS18B20, temperature sensor with 1-Wire bus.
++ [NEW] Sensor plugin Raspi, temperature (°C or °F), CPU usage (%) and memory ram usage (%).
+
++ [FIX] Calibration now fully working.
 **2015-05-11:**
 + [FIX] No more error message when LDR is in complete darkness.
 + [FIX] Calibration now fully working.
