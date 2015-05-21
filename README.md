@@ -13,7 +13,7 @@ Scroll down for information on previous software versions.
 The following development has been carried out by 
 [Haydn Williams](http://github.com/haydnw/airpi):
 
-**2015-05-20:**
+**2015-05-20 development by Pierre Rasquin:**
 + [NEW] Sensor HTU21D plugin, an i2c bus temperature and humidity sensor.
 + [NEW] Sensor DS18B20 plugin, an 1-Wire temperature sensor.
 + [NEW] Sensor RasPi plugin, Raspberry Pi temperature(°C or °F), CPU usage(%) and memory ram usage(%).
