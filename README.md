@@ -13,10 +13,11 @@ Scroll down for information on previous software versions.
 The following development has been carried out by 
 [Haydn Williams](http://github.com/haydnw/airpi):
 
-**2015-05-20:**
-+ [NEW] Sensor plugin HTU21D, temperature and humidity with I2C bus.
-+ [NEW] Sensor plugin DS18B20, temperature sensor with 1-Wire bus.
-+ [NEW] Sensor plugin Raspi, temperature (°C or °F), CPU usage (%) and memory ram usage (%).
+**2015-05-20: development by Pierre Rasquin**
++ [NEW] Sensor HTU21D plugin, an i2c bus temperature and humidity sensor.
++ [NEW] Sensor DS18B20 plugin, an 1-Wire temperature sensor.
++ [NEW] Sensor RasPi plugin, Raspberry Pi temperature(°C or °F), CPU usage(%) and memory ram usage(%).(%).
++ [NEW] Sensor Domoticz plugin, read data of from BMP085/180 connected to Domoticz.
 
 **2015-05-11:**
 + [FIX] No more error message when LDR is in complete darkness.
